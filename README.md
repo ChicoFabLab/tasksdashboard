@@ -2,6 +2,9 @@
 
 Volunteer task management system for Chico Fab Lab. Real-time task board with Discord auth, volunteer tracking, and public TV display.
 
+## KIOSK Information
+[https://github.com/ChicoFabLab/tasksdashboard](https://chicofl.org/wiki/cfl-kiosk)
+
 ## Features
 
 - Real-time task board with PocketBase subscriptions
@@ -143,10 +146,6 @@ curl http://localhost:8090/api/health
 - Verify PocketBase is running
 - Check firewall settings
 
-## Repository
-
-https://github.com/ChicoFabLab/tasksdashboard
-
 ## License
 
-Chico Fab Lab internal use
+MIT
