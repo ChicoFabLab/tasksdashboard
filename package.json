@@ -1,0 +1,38 @@
+{
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "migrate-pocketbase": "node ../migrate-pocketbase-local.js",
+    "migrate-pocketbase:local": "node ../migrate-pocketbase-local.js",
+    "migrate-pocketbase:ts": "ts-node --esm src/lib/migrate-pocketbase.ts",
+    "seed-goals": "ts-node --esm src/lib/seed-goals.ts",
+    "test:supabase": "node test-supabase-auth.js",
+    "test:login": "node test-login-flow.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.47.10",
+    "next": "15.5.7",
+    "next-auth": "^4.24.11",
+    "pocketbase": "^0.26.2",
+    "qrcode.react": "^4.2.0",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.7",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,501 @@
+{
+  "collections": [
+    {
+      "name": "volunteers",
+      "type": "base",
+      "schema": [
+        {
+          "name": "email",
+          "type": "email",
+          "required": true,
+          "unique": true
+        },
+        {
+          "name": "username",
+          "type": "text",
+          "required": false
+        },
+        {
+          "name": "discord_id",
+          "type": "text",
+          "required": false
+        },
+        {
+          "name": "discord_username",
+          "type": "text",
+          "required": false
+        },
+        {
+          "name": "total_minutes",
+          "type": "number",
+          "required": false,
+          "options": {
+            "min": 0
+          }
+        },
+        {
+          "name": "profile_photo",
+          "type": "file",
+          "required": false,
+          "options": {
+            "maxSelect": 1,
+            "maxSize": 5242880
+          }
+        },
+        {
+          "name": "admin",
+          "type": "bool",
+          "required": false
+        },
+        {
+          "name": "board",
+          "type": "select",
+          "required": false,
+          "options": {
+            "maxSelect": 1,
+            "values": [
+              "main",
+              "makerradio"
+            ]
+          }
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_volunteers_email ON volunteers (email)",
+        "CREATE INDEX idx_volunteers_discord_id ON volunteers (discord_id)",
+        "CREATE INDEX idx_volunteers_total_minutes ON volunteers (total_minutes)"
+      ],
+      "listRule": "",
+      "viewRule": "",
+      "createRule": "",
+      "updateRule": "@request.auth.id = id",
+      "deleteRule": "@request.auth.id = id"
+    },
+    {
+      "name": "tasks",
+      "type": "base",
+      "schema": [
+        {
+          "name": "task_number",
+          "type": "number",
+          "required": true,
+          "unique": true
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "required": true,
+          "options": {
+            "max": 200
+          }
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "required": true
+        },
+        {
+          "name": "zone",
+          "type": "select",
+          "required": true,
+          "options": {
+            "maxSelect": 1,
+            "values": [
+              "3D Printing",
+              "Laser",
+              "Electronics",
+              "Woodshop",
+              "CNC",
+              "Vinyl",
+              "Custom",
+              "General",
+              "Admin"
+            ]
+          }
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": true,
+          "options": {
+            "maxSelect": 1,
+            "values": [
+              "open",
+              "in_progress",
+              "completed",
+              "archived"
+            ]
+          }
+        },
+        {
+          "name": "estimated_minutes",
+          "type": "number",
+          "required": false
+        },
+        {
+          "name": "created_by",
+          "type": "relation",
+          "required": true,
+          "options": {
+            "collectionId": "volunteers",
+            "cascadeDelete": false,
+            "maxSelect": 1
+          }
+        },
+        {
+          "name": "claimed_by",
+          "type": "relation",
+          "required": false,
+          "options": {
+            "collectionId": "volunteers",
+            "cascadeDelete": false,
+            "maxSelect": 1
+          }
+        },
+        {
+          "name": "image",
+          "type": "file",
+          "required": false,
+          "options": {
+            "maxSelect": 1,
+            "maxSize": 5242880
+          }
+        },
+        {
+          "name": "board",
+          "type": "select",
+          "required": false,
+          "options": {
+            "maxSelect": 1,
+            "values": [
+              "main",
+              "makerradio"
+            ]
+          }
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_tasks_number ON tasks (task_number)",
+        "CREATE INDEX idx_tasks_status ON tasks (status)",
+        "CREATE INDEX idx_tasks_zone ON tasks (zone)",
+        "CREATE INDEX idx_tasks_created_by ON tasks (created_by)",
+        "CREATE INDEX idx_tasks_claimed_by ON tasks (claimed_by)"
+      ],
+      "listRule": "",
+      "viewRule": "",
+      "createRule": "@request.auth.id != \"\"",
+      "updateRule": "@request.auth.id = created_by || @request.auth.id = claimed_by",
+      "deleteRule": "@request.auth.id = created_by"
+    },
+    {
+      "name": "completions",
+      "type": "base",
+      "schema": [
+        {
+          "name": "task",
+          "type": "relation",
+          "required": true,
+          "options": {
+            "collectionId": "tasks",
+            "cascadeDelete": true,
+            "maxSelect": 1
+          }
+        },
+        {
+          "name": "volunteer",
+          "type": "relation",
+          "required": true,
+          "options": {
+            "collectionId": "volunteers",
+            "cascadeDelete": true,
+            "maxSelect": 1
+          }
+        },
+        {
+          "name": "minutes_worked",
+          "type": "number",
+          "required": true,
+          "options": {
+            "min": 0
+          }
+        },
+        {
+          "name": "note",
+          "type": "text",
+          "required": false
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_completions_task ON completions (task)",
+        "CREATE INDEX idx_completions_volunteer ON completions (volunteer)",
+        "CREATE INDEX idx_completions_created ON completions (created)"
+      ],
+      "listRule": "",
+      "viewRule": "",
+      "createRule": "@request.auth.id != \"\"",
+      "updateRule": "",
+      "deleteRule": ""
+    },
+    {
+      "name": "creations",
+      "type": "base",
+      "schema": [
+        {
+          "name": "title",
+          "type": "text",
+          "required": true,
+          "options": {
+            "max": 200
+          }
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "required": true
+        },
+        {
+          "name": "volunteer",
+          "type": "relation",
+          "required": true,
+          "options": {
+            "collectionId": "volunteers",
+            "cascadeDelete": true,
+            "maxSelect": 1
+          }
+        },
+        {
+          "name": "photos",
+          "type": "file",
+          "required": false,
+          "options": {
+            "maxSelect": 10,
+            "maxSize": 5242880
+          }
+        },
+        {
+          "name": "zone",
+          "type": "select",
+          "required": false,
+          "options": {
+            "maxSelect": 1,
+            "values": [
+              "3D Printing",
+              "Laser",
+              "Electronics",
+              "Woodshop",
+              "CNC",
+              "Vinyl",
+              "Custom"
+            ]
+          }
+        },
+        {
+          "name": "board",
+          "type": "select",
+          "required": false,
+          "options": {
+            "maxSelect": 1,
+            "values": [
+              "main",
+              "makerradio"
+            ]
+          }
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_creations_volunteer ON creations (volunteer)",
+        "CREATE INDEX idx_creations_zone ON creations (zone)",
+        "CREATE INDEX idx_creations_board ON creations (board)",
+        "CREATE INDEX idx_creations_created ON creations (created)"
+      ],
+      "listRule": "",
+      "viewRule": "",
+      "createRule": "@request.auth.id != \"\"",
+      "updateRule": "@request.auth.id = volunteer",
+      "deleteRule": "@request.auth.id = volunteer"
+    },
+    {
+      "name": "goals",
+      "type": "base",
+      "schema": [
+        {
+          "name": "title",
+          "type": "text",
+          "required": true,
+          "options": {
+            "max": 200
+          }
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "required": true,
+          "options": {
+            "max": 2000
+          }
+        },
+        {
+          "name": "category",
+          "type": "select",
+          "required": true,
+          "options": {
+            "maxSelect": 1,
+            "values": [
+              "3D Printing",
+              "Laser",
+              "Electronics",
+              "Woodshop",
+              "CNC",
+              "Vinyl",
+              "Custom"
+            ]
+          }
+        },
+        {
+          "name": "difficulty",
+          "type": "select",
+          "required": true,
+          "options": {
+            "maxSelect": 1,
+            "values": [
+              "Beginner",
+              "Intermediate",
+              "Advanced"
+            ]
+          }
+        },
+        {
+          "name": "estimated_minutes",
+          "type": "number",
+          "required": true,
+          "options": {
+            "min": 1,
+            "max": 10000
+          }
+        },
+        {
+          "name": "icon",
+          "type": "text",
+          "required": false,
+          "options": {
+            "max": 10
+          }
+        },
+        {
+          "name": "zone_leader",
+          "type": "text",
+          "required": false,
+          "options": {
+            "max": 100
+          }
+        },
+        {
+          "name": "sbu_schedule",
+          "type": "text",
+          "required": false,
+          "options": {
+            "max": 200
+          }
+        },
+        {
+          "name": "is_sbu",
+          "type": "bool",
+          "required": false
+        },
+        {
+          "name": "steps",
+          "type": "json",
+          "required": false
+        },
+        {
+          "name": "prerequisites",
+          "type": "json",
+          "required": false
+        },
+        {
+          "name": "created_by",
+          "type": "relation",
+          "required": false,
+          "options": {
+            "collectionId": "volunteers",
+            "cascadeDelete": false,
+            "maxSelect": 1
+          }
+        },
+        {
+          "name": "board",
+          "type": "select",
+          "required": false,
+          "options": {
+            "maxSelect": 1,
+            "values": [
+              "main",
+              "makerradio"
+            ]
+          }
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_goals_category ON goals (category)",
+        "CREATE INDEX idx_goals_difficulty ON goals (difficulty)",
+        "CREATE INDEX idx_goals_is_sbu ON goals (is_sbu)",
+        "CREATE INDEX idx_goals_board ON goals (board)",
+        "CREATE INDEX idx_goals_created_by ON goals (created_by)"
+      ],
+      "listRule": "",
+      "viewRule": "",
+      "createRule": "@request.auth.id != \"\"",
+      "updateRule": "@request.auth.id = created_by && is_sbu = false",
+      "deleteRule": "@request.auth.id = created_by && is_sbu = false"
+    },
+    {
+      "name": "goal_progress",
+      "type": "base",
+      "schema": [
+        {
+          "name": "volunteer",
+          "type": "relation",
+          "required": true,
+          "options": {
+            "collectionId": "volunteers",
+            "cascadeDelete": true,
+            "maxSelect": 1
+          }
+        },
+        {
+          "name": "goal",
+          "type": "relation",
+          "required": true,
+          "options": {
+            "collectionId": "goals",
+            "cascadeDelete": true,
+            "maxSelect": 1
+          }
+        },
+        {
+          "name": "completed_steps",
+          "type": "json",
+          "required": false
+        },
+        {
+          "name": "is_completed",
+          "type": "bool",
+          "required": false
+        },
+        {
+          "name": "completed_at",
+          "type": "date",
+          "required": false
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_volunteer_goal ON goal_progress (volunteer, goal)"
+      ],
+      "listRule": "@request.auth.id = volunteer",
+      "viewRule": "@request.auth.id = volunteer || @request.auth.id != ''",
+      "createRule": "@request.auth.id = volunteer",
+      "updateRule": "@request.auth.id = volunteer",
+      "deleteRule": "@request.auth.id = volunteer"
+    }
+  ]
+}
