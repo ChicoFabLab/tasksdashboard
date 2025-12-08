@@ -1,0 +1,16 @@
+services:
+  dev:
+    tty: true
+    build:
+      context: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+    network_mode: "host"
+  pocketbase:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.pocketbase
+    network_mode: "host"
+

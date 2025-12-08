@@ -25,7 +25,7 @@ export default function RegisterPage() {
 
         if (data.session) {
           setSession(data.session);
-          
+
           console.log('needsRegistration:', data.session.needsRegistration);
 
           if (!data.session.needsRegistration) {
@@ -66,7 +66,7 @@ export default function RegisterPage() {
 
   const handleSubmit = async () => {
     const requiredInviteCode = process.env.NEXT_PUBLIC_INVITE_CODE;
-    
+
     // If invite code is configured, validate it
     if (requiredInviteCode && inviteCode.trim() !== requiredInviteCode) {
       setError('Please enter the correct invite code.');
@@ -87,7 +87,7 @@ export default function RegisterPage() {
       // Save to both username (if enabled) and name (custom field)
       const username = session.username || 'Unknown';
       formData.append('username', username);
-      formData.append('name', username); 
+      formData.append('name', username);
       formData.append('email', session.email || '');
       formData.append('discord_id', session.discordId || '');
       formData.append('profile_photo', photoBlob, 'profile.jpg');

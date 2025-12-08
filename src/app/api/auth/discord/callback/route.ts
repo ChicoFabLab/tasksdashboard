@@ -12,6 +12,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import PocketBase from 'pocketbase';
 import { cookies } from 'next/headers';
 
+function generateInsecurePassword(length = 16) {
+    const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let password = "";
+
+    for (let i = 0; i < length; i++) {
+        password += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+
+    return password;
+}
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const code = searchParams.get('code');
@@ -37,7 +48,7 @@ export async function GET(request: NextRequest) {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        client_id: process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID!,
+        client_id: process.env.DISCORD_CLIENT_ID!,
         client_secret: process.env.DISCORD_CLIENT_SECRET!,
         grant_type: 'authorization_code',
         code,
@@ -79,7 +90,7 @@ export async function GET(request: NextRequest) {
 
     // Create or update volunteer in PocketBase using admin credentials
     const adminPb = new PocketBase(pbUrl);
-    await adminPb.admins.authWithPassword(
+    await adminPb.collection('_superusers').authWithPassword(
       process.env.POCKETBASE_ADMIN_EMAIL!,
       process.env.POCKETBASE_ADMIN_PASSWORD!
     );
@@ -98,6 +109,7 @@ export async function GET(request: NextRequest) {
       
       volunteer = await adminPb.collection('volunteers').getOne(volunteer.id);
     } catch (error) {
+      let password = generateInsecurePassword();
       // Volunteer doesn't exist, create new one
       console.log('[Discord Callback] Creating new volunteer');
       volunteer = await adminPb.collection('volunteers').create({
@@ -106,6 +118,8 @@ export async function GET(request: NextRequest) {
         username: discordUsername,
         email: email,
         total_minutes: 0,
+        password: password,
+        passwordConfirm: password,
       });
     }
 
