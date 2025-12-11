@@ -1,33 +1,7 @@
 services:
-  app-dev:
-    build:
-      context: .
-      target: development
-      dockerfile: Dockerfile
-    container_name: taskboard-app-dev
-    ports:
-      - "3000:3000"
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - /app/.next
-    environment:
-      - NODE_ENV=development
-      - NEXT_PUBLIC_POCKETBASE_URL=http://pocketbase:8090
-    env_file:
-      - .env.local
-    depends_on:
-      - pocketbase
-    networks:
-      - taskboard-network
-    restart: unless-stopped
-
-  app-prod:
-    build:
-      context: .
-      target: production
-      dockerfile: Dockerfile
-    container_name: taskboard-app-prod
+  app:
+    image: ghcr.io/chicofablab/tasksdashboard:latest
+    container_name: taskboard-app
     ports:
       - "3000:3000"
     environment:
@@ -36,17 +10,20 @@ services:
     env_file:
       - .env.local
     depends_on:
-      - pocketbase
+      pocketbase:
+        condition: service_healthy
     networks:
       - taskboard-network
     restart: unless-stopped
-    profiles:
-      - production
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   pocketbase:
-    build:
-      context: .
-      dockerfile: Dockerfile.pocketbase
+    image: ghcr.io/chicofablab/tasksdashboard-pocketbase:latest
     container_name: taskboard-pocketbase
     ports:
       - "8090:8090"

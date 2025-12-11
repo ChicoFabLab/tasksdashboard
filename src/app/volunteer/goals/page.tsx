@@ -72,10 +72,10 @@ function GoalsPageContent() {
         const data = await response.json();
         
         if (data.progressList) {
-          const completed = new Set(
+          const completed = new Set<string>(
             data.progressList
               .filter((p: any) => p.is_completed)
-              .map((p: any) => p.goal)
+              .map((p: any) => p.goal as string)
           );
           setCompletedGoals(completed);
         }
