@@ -149,3 +149,12 @@ curl http://localhost:8090/api/health
 ## License
 
 MIT
+
+
+## TODO
+
+- Improve docker file to have dev and production
+-- Research different build targets
+-- Create a built image that's compatible with ghcr.
+- Test docker on server with env file supplied (volume mount)
+- Set up github actions so that docker image is built and can run from github
