@@ -56,33 +56,11 @@ function DiscordAuthContent() {
       const redirectUrl = callbackUrl || '/volunteer/tasks';
       sessionStorage.setItem('oauth_redirect_url', redirectUrl);
       
-      // Direct Discord OAuth (not PocketBase OAuth2)
-      // Flow: App → Discord → App → Create PocketBase user
-      const clientId = process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID;
-      
-      if (!clientId) {
-        alert('Discord OAuth not configured');
-        return;
-      }
-      
-      const redirectUri = `${window.location.origin}/api/auth/discord/callback`;
-      
-      // Generate random state for security
-      const state = Math.random().toString(36).substring(7);
-      sessionStorage.setItem('oauth_state', state);
-      
-      // Construct Discord OAuth URL
-      const discordAuthUrl = new URL('https://discord.com/oauth2/authorize');
-      discordAuthUrl.searchParams.set('client_id', clientId);
-      discordAuthUrl.searchParams.set('redirect_uri', redirectUri);
-      discordAuthUrl.searchParams.set('response_type', 'code');
-      discordAuthUrl.searchParams.set('scope', 'identify email');
-      discordAuthUrl.searchParams.set('state', state);
-      
-      console.log('[Auth] Redirecting to Discord OAuth:', discordAuthUrl.toString());
+      const redirectUri = `${window.location.origin}/api/auth/discord`;
+      console.log('[Auth] Redirecting to Discord OAuth:', redirectUri);
       
       // Redirect to Discord
-      window.location.href = discordAuthUrl.toString();
+      window.location.href = redirectUri;
     } catch (error) {
       console.error('Failed to initiate Discord OAuth:', error);
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
