@@ -32,27 +32,35 @@ export async function POST(request: NextRequest) {
       volunteerIds.map(id => pb.collection('volunteers').getOne(id))
     );
 
-    // Create completion record for each volunteer
-    const completions = await Promise.all(
-      volunteerIds.map(async (volId, index) => {
+    // Create completion records and update volunteers SEQUENTIALLY to avoid race conditions
+    const completions = [];
+    for (let i = 0; i < volunteerIds.length; i++) {
+      const volId = volunteerIds[i];
+      const volunteer = volunteers[i];
+      
+      try {
+        // Create completion record
         const completion = await pb.collection('completions').create({
           task: taskId,
           volunteer: volId,
           actual_minutes: minutesPerVolunteer,
           completion_note: note || 'Completed successfully',
         });
+        completions.push(completion);
 
         // Update volunteer total minutes
-        const volunteer = volunteers[index];
         await pb.collection('volunteers').update(volId, {
           total_minutes: (volunteer.total_minutes || 0) + minutesPerVolunteer,
         });
+        
+        console.log(`✅ Completion record created for volunteer ${i + 1}/${volunteerIds.length}`);
+      } catch (err: any) {
+        console.error(`❌ Error creating completion for volunteer ${volId}:`, err);
+        throw new Error(`Failed to create completion for volunteer ${i + 1}: ${err.message}`);
+      }
+    }
 
-        return completion;
-      })
-    );
-
-    // Update task status to completed
+    // Update task status to completed AFTER all completions are created
     const updatedTask = await pb.collection('tasks').update(taskId, {
       status: 'completed',
     });

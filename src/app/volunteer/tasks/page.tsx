@@ -20,6 +20,8 @@ function TasksPageContent() {
   const [activeTasks, setActiveTasks] = useState<Task[]>([]);
   const [completedTasks, setCompletedTasks] = useState<Task[]>([]);
   const [filter, setFilter] = useState<'all' | string>('all');
+  const [sortBy, setSortBy] = useState<'task_number' | 'created' | 'updated'>('task_number');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [loading, setLoading] = useState(true);
   const [showCompleted, setShowCompleted] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -343,6 +345,21 @@ function TasksPageContent() {
     ? tasks
     : tasks.filter(t => t.zone === filter);
 
+  // Sort tasks based on selected criteria
+  const sortedTasks = [...filteredTasks].sort((a, b) => {
+    let comparison = 0;
+    
+    if (sortBy === 'task_number') {
+      comparison = a.task_number - b.task_number;
+    } else if (sortBy === 'created') {
+      comparison = new Date(a.created).getTime() - new Date(b.created).getTime();
+    } else if (sortBy === 'updated') {
+      comparison = new Date(a.updated).getTime() - new Date(b.updated).getTime();
+    }
+    
+    return sortOrder === 'asc' ? comparison : -comparison;
+  });
+
   const zones = ['Woodshop', '3D Printing', 'Electronics', 'Laser Cutting', 'CNC', 'General', 'Admin'];
 
   const getZoneColor = (zone: string) => {
@@ -647,9 +664,10 @@ function TasksPageContent() {
             </div>
           )}
 
-          {/* Filter Bar */}
+          {/* Filter and Sort Bar */}
           <div className="bg-white rounded-lg shadow p-4 mb-6">
-            <div className="flex items-center gap-2 flex-wrap">
+            {/* Zone Filter */}
+            <div className="flex items-center gap-2 flex-wrap mb-4">
               <span className="text-sm font-medium text-gray-700">Filter by zone:</span>
               <button
                 onClick={() => setFilter('all')}
@@ -679,17 +697,67 @@ function TasksPageContent() {
                 );
               })}
             </div>
+
+            {/* Sort Controls */}
+            <div className="flex items-center gap-3 flex-wrap border-t pt-4">
+              <span className="text-sm font-medium text-gray-700">Sort by:</span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setSortBy('task_number')}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 ${
+                    sortBy === 'task_number'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <span>🔢</span>
+                  <span>Task #</span>
+                </button>
+                <button
+                  onClick={() => setSortBy('created')}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 ${
+                    sortBy === 'created'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <span>📅</span>
+                  <span>Created</span>
+                </button>
+                <button
+                  onClick={() => setSortBy('updated')}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 ${
+                    sortBy === 'updated'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <span>🔄</span>
+                  <span>Updated</span>
+                </button>
+              </div>
+              
+              {/* Sort Order Toggle */}
+              <button
+                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                className="px-3 py-1.5 bg-gray-700 text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-1 shadow-md"
+                title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
+              >
+                <span className="text-base">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                <span>{sortOrder === 'asc' ? 'Ascending' : 'Descending'}</span>
+              </button>
+            </div>
           </div>
 
           {/* Tasks Grid */}
-          {filteredTasks.length === 0 ? (
+          {sortedTasks.length === 0 ? (
             <div className="bg-white rounded-lg shadow p-12 text-center">
               <p className="text-gray-500 text-lg">No tasks available right now.</p>
               <p className="text-gray-400 text-sm mt-2">Check back soon for new opportunities!</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredTasks.map((task) => (
+              {sortedTasks.map((task) => (
                 <div
                   key={task.id}
                   className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6 border-l-4 border-purple-500 relative"

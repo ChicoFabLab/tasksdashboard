@@ -158,55 +158,74 @@ export default function ClaimPage() {
 
       console.log('✅ Task completion successful!');
 
-      // Send Discord notifications (non-blocking)
-      try {
-        const volunteerNames = selectedVolunteers.map(volId => {
-          const vol = allVolunteers.find(v => v.id === volId);
-          return vol?.username || vol?.email || 'Unknown';
-        });
+      // Send Discord notifications (non-blocking - don't let failures prevent success)
+      Promise.all([
+        (async () => {
+          try {
+            const volunteerNames = selectedVolunteers.map(volId => {
+              const vol = allVolunteers.find(v => v.id === volId);
+              return vol?.username || vol?.email || 'Unknown';
+            });
 
-        // Send to channel
-        await fetch('/api/discord/notify-completion', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            taskId: task.id,
-            taskData: {
-              task_number: task.task_number,
-              title: task.title,
-              description: task.description,
-              zone: task.zone,
-            },
-            volunteerNames: volunteerNames,
-            actualMinutes: totalMinutes,
-          }),
-        });
-        console.log('✅ Discord channel notification sent');
-
-        // Send DMs to volunteers
-        await fetch('/api/discord/notify-completion-dm', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            taskId: task.id,
-            taskData: {
-              task_number: task.task_number,
-              title: task.title,
-              description: task.description,
-              zone: task.zone,
-            },
-            volunteerIds: selectedVolunteers,
-            actualMinutes: totalMinutes,
-          }),
-        });
-        console.log('✅ Discord completion DMs sent');
-      } catch (discordErr) {
-        console.warn('⚠️ Discord notifications failed:', discordErr);
-      }
+            // Send to channel
+            const channelResponse = await fetch('/api/discord/notify-completion', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                taskId: task.id,
+                taskData: {
+                  task_number: task.task_number,
+                  title: task.title,
+                  description: task.description,
+                  zone: task.zone,
+                },
+                volunteerNames: volunteerNames,
+                actualMinutes: totalMinutes,
+              }),
+            });
+            
+            if (!channelResponse.ok) {
+              console.warn('⚠️ Discord channel notification failed:', await channelResponse.text());
+            } else {
+              console.log('✅ Discord channel notification sent');
+            }
+          } catch (err) {
+            console.warn('⚠️ Discord channel notification error:', err);
+          }
+        })(),
+        (async () => {
+          try {
+            // Send DMs to volunteers
+            const dmResponse = await fetch('/api/discord/notify-completion-dm', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                taskId: task.id,
+                taskData: {
+                  task_number: task.task_number,
+                  title: task.title,
+                  description: task.description,
+                  zone: task.zone,
+                },
+                volunteerIds: selectedVolunteers,
+                actualMinutes: totalMinutes,
+              }),
+            });
+            
+            if (!dmResponse.ok) {
+              console.warn('⚠️ Discord DM notification failed:', await dmResponse.text());
+            } else {
+              console.log('✅ Discord completion DMs sent');
+            }
+          } catch (err) {
+            console.warn('⚠️ Discord DM notification error:', err);
+          }
+        })(),
+      ]).catch(err => console.warn('⚠️ Discord notifications failed:', err));
 
       setSuccess(true);
       setStep('complete');
