@@ -404,12 +404,12 @@ export default function DisplayPage() {
 
           {/* Single QR Code - Clickable */}
           <a
-            href={`${process.env.NEXT_PUBLIC_BASE_URL || window.location.origin}/auth/discord`}
+            href={`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/auth/discord`}
             target="_blank"
             rel="noopener noreferrer"
             className="bg-white rounded-xl p-2.5 shadow-2xl flex items-center gap-2.5 hover:shadow-3xl transition-shadow cursor-pointer"
           >
-            <QRCode value={`${process.env.NEXT_PUBLIC_BASE_URL || window.location.origin}/auth/discord`} size={80} />
+            <QRCode value={`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/auth/discord`} size={80} />
             <div>
               <h3 className="text-sm font-bold text-purple-900">Volunteer Portal</h3>
               <p className="text-xs text-gray-600">Scan or Click to join</p>

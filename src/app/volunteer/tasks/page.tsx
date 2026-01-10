@@ -94,8 +94,8 @@ function TasksPageContent() {
           sort: 'task_number',
         });
         
-        // Cast to Task type to include created/updated fields
-        const tasksWithDates = records.items as Task[];
+        // PocketBase returns records with created/updated fields automatically
+        const tasksWithDates = records.items as unknown as Task[];
         
         // Filter client-side:
         // 1. Assigned to this volunteer
@@ -136,8 +136,8 @@ function TasksPageContent() {
           sort: '-updated',
         });
         
-        // Cast to Task type to include created/updated fields
-        const tasksWithDates = records.items as Task[];
+        // PocketBase returns records with created/updated fields automatically
+        const tasksWithDates = records.items as unknown as Task[];
         
         // Filter client-side:
         // 1. Assigned to this volunteer
@@ -187,7 +187,7 @@ function TasksPageContent() {
         
         // PocketBase automatically includes created and updated fields
         // Cast to Task type (which includes optional created/updated)
-        const tasksWithDates = records.items as Task[];
+        const tasksWithDates = records.items as unknown as Task[];
         
         // Exclude archived tasks
         setTasks(tasksWithDates.filter(task => !task.title.startsWith('[ARCHIVED]')));
