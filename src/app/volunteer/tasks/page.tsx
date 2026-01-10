@@ -89,15 +89,18 @@ function TasksPageContent() {
       try {
         // Fetch all in_progress tasks, then filter client-side for assignment
         // This avoids PocketBase filter syntax issues with relation fields
-        const records = await pb.collection('tasks').getList<Task>(1, 100, {
+        const records = await pb.collection('tasks').getList(1, 100, {
           filter: 'status = "in_progress"',
           sort: 'task_number',
         });
         
+        // Cast to Task type to include created/updated fields
+        const tasksWithDates = records.items as Task[];
+        
         // Filter client-side:
         // 1. Assigned to this volunteer
         // 2. Not archived
-        const active = records.items.filter((task: Task) => {
+        const active = tasksWithDates.filter((task: Task) => {
           // Check if assigned to this volunteer
           const isAssigned = volunteerId ? (
             Array.isArray(task.assigned_to)
@@ -128,15 +131,18 @@ function TasksPageContent() {
       try {
         // Fetch all completed tasks, then filter client-side for assignment
         // This avoids PocketBase filter syntax issues with relation fields
-        const records = await pb.collection('tasks').getList<Task>(1, 100, {
+        const records = await pb.collection('tasks').getList(1, 100, {
           filter: 'status = "completed"',
           sort: '-updated',
         });
         
+        // Cast to Task type to include created/updated fields
+        const tasksWithDates = records.items as Task[];
+        
         // Filter client-side:
         // 1. Assigned to this volunteer
         // 2. Not archived
-        const completed = records.items.filter((task: Task) => {
+        const completed = tasksWithDates.filter((task: Task) => {
           // Check if assigned to this volunteer
           const isAssigned = volunteerId ? (
             Array.isArray(task.assigned_to)
@@ -164,12 +170,27 @@ function TasksPageContent() {
     async function fetchTasks() {
       try {
         // Fetch tasks - get all open and in_progress tasks
-        const records = await pb.collection('tasks').getList<Task>(1, 50, {
+        const records = await pb.collection('tasks').getList(1, 50, {
           filter: '(status = "open" || status = "in_progress")',
           sort: 'task_number',
         });
+        
+        // Debug: Log ALL fields from first task to see what PocketBase returns
+        if (records.items.length > 0) {
+          console.log('=== FULL TASK DATA FROM POCKETBASE ===');
+          console.log(JSON.stringify(records.items[0], null, 2));
+          console.log('=====================================');
+          console.log('Task fields:', Object.keys(records.items[0]));
+          console.log('created field exists?', 'created' in records.items[0]);
+          console.log('updated field exists?', 'updated' in records.items[0]);
+        }
+        
+        // PocketBase automatically includes created and updated fields
+        // Cast to Task type (which includes optional created/updated)
+        const tasksWithDates = records.items as Task[];
+        
         // Exclude archived tasks
-        setTasks(records.items.filter(task => !task.title.startsWith('[ARCHIVED]')));
+        setTasks(tasksWithDates.filter(task => !task.title.startsWith('[ARCHIVED]')));
         setLoading(false);
       } catch (err) {
         console.error('Error fetching tasks:', err);
@@ -352,9 +373,21 @@ function TasksPageContent() {
     if (sortBy === 'task_number') {
       comparison = a.task_number - b.task_number;
     } else if (sortBy === 'created') {
-      comparison = new Date(a.created).getTime() - new Date(b.created).getTime();
+      // Use created timestamp if available, fallback to task_number
+      if (a.created && b.created) {
+        comparison = new Date(a.created).getTime() - new Date(b.created).getTime();
+      } else {
+        // Fallback to task_number if created field is missing
+        comparison = a.task_number - b.task_number;
+      }
     } else if (sortBy === 'updated') {
-      comparison = new Date(a.updated).getTime() - new Date(b.updated).getTime();
+      // Use updated timestamp if available, fallback to task_number
+      if (a.updated && b.updated) {
+        comparison = new Date(a.updated).getTime() - new Date(b.updated).getTime();
+      } else {
+        // Fallback to task_number if updated field is missing
+        comparison = a.task_number - b.task_number;
+      }
     }
     
     return sortOrder === 'asc' ? comparison : -comparison;

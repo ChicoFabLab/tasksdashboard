@@ -33,8 +33,8 @@ export interface Task {
   created_by: string;
   image?: string; // image filename
   board?: 'main' | 'makerradio'; // Board/tenant identifier
-  created: string; // timestamp
-  updated: string; // timestamp
+  created?: string; // timestamp - auto-added by PocketBase
+  updated?: string; // timestamp - auto-added by PocketBase
 }
 
 export interface Completion {
