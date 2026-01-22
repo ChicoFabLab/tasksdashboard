@@ -76,13 +76,17 @@ export default function DisplayPage() {
     async function fetchTasks() {
       try {
         // Fetch ALL open and in_progress tasks (not completed)
-        const records = await pb.collection('tasks').getList<Task>(1, 500, {
+        const records = await pb.collection('tasks').getList(1, 500, {
           filter: `(status = "open" || status = "in_progress")`,
           sort: '-task_number',
           expand: 'assigned_to',
         });
+        
+        // Cast to get created/updated fields
+        const tasksWithDates = records.items as unknown as Task[];
+        
         // Filter out archived tasks client-side
-        const openTasks = records.items.filter(task =>
+        const openTasks = tasksWithDates.filter(task =>
           !task.title.startsWith('[ARCHIVED]')
         );
         setTasks(openTasks);
@@ -216,20 +220,23 @@ export default function DisplayPage() {
     async function refetchTasks() {
       // Fetch with expand to get volunteer data in single query
       try {
-        const allRecords = await pb.collection('tasks').getList<Task>(1, 500, {
+        const allRecords = await pb.collection('tasks').getList(1, 500, {
           filter: `(status = "open" || status = "in_progress")`,
           sort: '-task_number',
           expand: 'assigned_to',
         });
+        
+        // Cast to get created/updated fields
+        const tasksWithDates = allRecords.items as unknown as Task[];
 
         // Filter out archived tasks client-side
-        const openTasks = allRecords.items.filter(task =>
+        const openTasks = tasksWithDates.filter(task =>
           !task.title.startsWith('[ARCHIVED]')
         );
         setTasks(openTasks);
 
         // Filter in_progress tasks client-side (exclude archived)
-        const inProgressTasks = allRecords.items.filter(task =>
+        const inProgressTasks = tasksWithDates.filter(task =>
           task.status === 'in_progress' && !task.title.startsWith('[ARCHIVED]')
         );
         
@@ -517,6 +524,21 @@ export default function DisplayPage() {
                     <h3 className={`font-bold text-gray-900 ${config.titleSize} ${config.titleLines} leading-tight flex-1`}>
                       {task.title}
                     </h3>
+                    
+                    {/* Creator and Date Info */}
+                    {(task.created_by || task.created) && (
+                      <div className="text-[10px] text-gray-600 border-t border-gray-200 pt-1 mt-1">
+                        {task.created_by && (
+                          <div className="truncate">👤 ID: {task.created_by.slice(0, 8)}...</div>
+                        )}
+                        {task.created && (
+                          <div className="truncate">
+                            📅 {new Date(task.created).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
                     <div className={`flex items-center justify-between ${config.timeSize} text-gray-500 mt-auto`}>
                       <div className="flex items-center gap-1.5">
                         <span>⏱️ {formatTime(task.estimated_minutes)}</span>

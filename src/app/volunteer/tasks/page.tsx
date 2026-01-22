@@ -568,6 +568,26 @@ function TasksPageContent() {
                     {task.description}
                   </p>
 
+                  {/* Creator and Date Info */}
+                  {(task.created_by || task.created) && (
+                    <div className="text-xs text-gray-500 bg-gray-50 rounded px-2 py-1.5 mb-3 space-y-0.5">
+                      {task.created_by && (
+                        <div className="flex items-center gap-1">
+                          <span>👤</span>
+                          <span className="font-medium">Creator:</span>
+                          <span className="truncate">{task.created_by.slice(0, 10)}...</span>
+                        </div>
+                      )}
+                      {task.created && (
+                        <div className="flex items-center gap-1">
+                          <span>📅</span>
+                          <span className="font-medium">Created:</span>
+                          <span>{new Date(task.created).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between pt-4 border-t border-purple-200">
                     <div className="flex items-center gap-1 text-sm text-gray-500">
                       <span>⏱️</span>
@@ -665,6 +685,26 @@ function TasksPageContent() {
                     <p className="text-gray-600 text-sm mb-4 line-clamp-3">
                       {task.description}
                     </p>
+
+                    {/* Creator and Date Info */}
+                    {(task.created_by || task.created) && (
+                      <div className="text-xs text-gray-500 bg-gray-50 rounded px-2 py-1.5 mb-3 space-y-0.5">
+                        {task.created_by && (
+                          <div className="flex items-center gap-1">
+                            <span>👤</span>
+                            <span className="font-medium">Creator:</span>
+                            <span className="truncate">{task.created_by.slice(0, 10)}...</span>
+                          </div>
+                        )}
+                        {task.created && (
+                          <div className="flex items-center gap-1">
+                            <span>📅</span>
+                            <span className="font-medium">Created:</span>
+                            <span>{new Date(task.created).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                       <div className="flex items-center gap-1 text-sm text-green-600 font-semibold">
@@ -821,6 +861,26 @@ function TasksPageContent() {
                   <p className="text-gray-600 text-sm mb-4 line-clamp-3">
                     {task.description}
                   </p>
+
+                  {/* Creator and Date Info */}
+                  {(task.created_by || task.created) && (
+                    <div className="text-xs text-gray-500 bg-gray-50 rounded px-2 py-1.5 mb-3 space-y-0.5">
+                      {task.created_by && (
+                        <div className="flex items-center gap-1">
+                          <span>👤</span>
+                          <span className="font-medium">Creator:</span>
+                          <span className="truncate">{task.created_by.slice(0, 10)}...</span>
+                        </div>
+                      )}
+                      {task.created && (
+                        <div className="flex items-center gap-1">
+                          <span>📅</span>
+                          <span className="font-medium">Created:</span>
+                          <span>{new Date(task.created).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                     <div className="flex items-center gap-1 text-sm text-gray-500">
