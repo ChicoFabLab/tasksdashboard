@@ -525,20 +525,6 @@ export default function DisplayPage() {
                       {task.title}
                     </h3>
                     
-                    {/* Creator and Date Info */}
-                    {(task.created_by || task.created) && (
-                      <div className="text-[10px] text-gray-600 border-t border-gray-200 pt-1 mt-1">
-                        {task.created_by && (
-                          <div className="truncate">👤 ID: {task.created_by.slice(0, 8)}...</div>
-                        )}
-                        {task.created && (
-                          <div className="truncate">
-                            📅 {new Date(task.created).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    
                     <div className={`flex items-center justify-between ${config.timeSize} text-gray-500 mt-auto`}>
                       <div className="flex items-center gap-1.5">
                         <span>⏱️ {formatTime(task.estimated_minutes)}</span>

@@ -465,41 +465,51 @@ function TasksPageContent() {
     <div className="min-h-screen bg-base-200">
       {/* Top Navigation Bar */}
       <nav className="navbar bg-base-100 shadow-lg sticky top-0 z-50">
-        <div className="container mx-auto">
-          <div className="flex-1">
-            {/* Left: Action Buttons */}
-            <div className="flex items-center gap-2 sm:gap-3">
+        <div className="container mx-auto px-4">
+          {/* Left: Action Buttons */}
+          <div className="navbar-start">
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => router.push('/task/create')}
-                className="btn btn-primary btn-sm sm:btn-md"
+                className="btn btn-outline btn-sm sm:btn-md"
               >
-                <span className="text-lg">➕</span>
-                <span className="hidden sm:inline">Create</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                </svg>
+                <span>Create</span>
               </button>
               <button
                 onClick={() => router.push('/claim')}
-                className="btn btn-success btn-sm sm:btn-md"
+                className="btn btn-outline btn-sm sm:btn-md"
               >
-                <span className="text-base">✅</span>
-                <span className="hidden sm:inline">Claim</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                <span>Claim</span>
               </button>
               <button
                 onClick={() => router.push(`/volunteer/goals?id=${volunteerId}`)}
-                className="btn btn-info btn-sm sm:btn-md"
+                className="btn btn-outline btn-sm sm:btn-md"
               >
-                <span className="text-base">🎯</span>
-                <span className="hidden sm:inline">Goals</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clipRule="evenodd" />
+                </svg>
+                <span>Goals</span>
               </button>
               <button
                 onClick={() => router.push(`/volunteer/creations?id=${volunteerId}`)}
-                className="btn btn-secondary btn-sm sm:btn-md"
+                className="btn btn-outline btn-sm sm:btn-md"
               >
-                <span className="text-base">🎨</span>
-                <span className="hidden sm:inline">Creations</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                </svg>
+                <span>Creations</span>
               </button>
             </div>
+          </div>
 
-            {/* Right: Profile & Admin */}
+          {/* Right: Profile & Admin */}
+          <div className="navbar-end">
             <div className="flex items-center gap-3">
               {isAdmin && (
                 <button
@@ -578,7 +588,7 @@ function TasksPageContent() {
               <div className="card bg-base-100 shadow-xl">
                 <div className="card-body text-center">
                   <p className="text-lg">No active tasks right now.</p>
-                  <p className="text-sm text-base-content/60">Claim a task below to get started!</p>
+                  <p className="text-sm text-base-content">Claim a task below to get started!</p>
                 </div>
               </div>
             ) : (
@@ -586,99 +596,92 @@ function TasksPageContent() {
                 {activeTasks.map((task) => (
                 <div
                   key={task.id}
-                  className="card bg-primary/10 shadow-xl border-2 border-primary"
+                  className="card bg-base-100 shadow-md hover:shadow-xl transition-all duration-200 border-l-4 border-primary"
                 >
-                  <div className="card-body">
-                  {/* Task Image (if available) */}
-                  {task.image && (
-                    <div className="w-full mb-3 rounded overflow-hidden">
-                      <img
-                        src={pb.files.getURL(task, task.image, { thumb: '400x300' })}
-                        alt={task.title}
-                        className="w-full h-auto object-cover"
-                        style={{ maxHeight: '200px' }}
-                      />
-                    </div>
-                  )}
-
-                  <div className="flex items-start justify-between mb-3">
-                    <span className="text-sm font-mono font-bold text-base-content/70">#{task.task_number}</span>
+                  <div className="card-body p-5">
+                  {/* Task Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="badge badge-lg badge-primary font-mono">#{task.task_number}</div>
                     <span className={`badge badge-sm ${getZoneColor(task.zone)}`}>
                       {task.zone}
                     </span>
                   </div>
 
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {task.title}
-                  </h3>
-
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                    {task.description}
-                  </p>
-
-                  {/* Creator and Date Info */}
-                  {(task.creator_name || task.created) && (
-                    <div className="text-xs text-gray-500 bg-gray-50 rounded px-2 py-1.5 mb-3 space-y-0.5">
-                      {task.creator_name && (
-                        <div className="flex items-center gap-1">
-                          <span>👤</span>
-                          <span className="font-medium">Creator:</span>
-                          <span className="truncate">{task.creator_name}</span>
-                        </div>
-                      )}
-                      {task.created && (
-                        <div className="flex items-center gap-1">
-                          <span>📅</span>
-                          <span className="font-medium">Created:</span>
-                          <span>{new Date(task.created).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                        </div>
-                      )}
+                  {/* Task Image (if available) */}
+                  {task.image && (
+                    <div className="w-full mb-4 rounded-lg overflow-hidden bg-base-200">
+                      <img
+                        src={pb.files.getURL(task, task.image, { thumb: '400x300' })}
+                        alt={task.title}
+                        className="w-full h-40 object-cover"
+                      />
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between pt-4 border-t border-purple-200">
-                    <div className="flex items-center gap-1 text-sm text-gray-500">
-                      <span>⏱️</span>
-                      <span>{formatTime(task.estimated_minutes)}</span>
-                    </div>
+                  <h3 className="card-title text-base font-bold mb-2 line-clamp-2">
+                    {task.title}
+                  </h3>
 
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleUnclaimTask(task.id)}
-                        className="btn btn-warning btn-sm"
-                      >
-                        Unclaim
+                  <p className="text-sm opacity-70 mb-4 line-clamp-2">
+                    {task.description}
+                  </p>
+
+                  {/* Meta Information */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <div className="badge badge-ghost badge-sm gap-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                      </svg>
+                      {formatTime(task.estimated_minutes)}
+                    </div>
+                    <div className="badge badge-primary badge-sm">Active</div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="card-actions justify-end gap-2">
+                    <button
+                      onClick={() => handleUnclaimTask(task.id)}
+                      className="btn btn-sm btn-outline"
+                    >
+                      Unclaim
+                    </button>
+                    <button
+                      onClick={() => handleCompleteTask(task.id)}
+                      className="btn btn-sm btn-success"
+                    >
+                      Complete
+                    </button>
+                    <div className="dropdown dropdown-end">
+                      <button tabIndex={0} className="btn btn-square btn-sm btn-ghost">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                        </svg>
                       </button>
-                      <button
-                        onClick={() => handleCompleteTask(task.id)}
-                        className="btn btn-success btn-sm"
-                      >
-                        Complete
-                      </button>
-                      {/* Edit Button */}
-                      <a
-                        href={`/task/edit/${task.id}`}
-                        className="btn btn-square btn-sm btn-info"
-                        title="Edit Task"
-                      >
-                        ✏️
-                      </a>
-                      {/* Copy Link Button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const taskUrl = `${window.location.origin}/task/${task.id}`;
-                          navigator.clipboard.writeText(taskUrl);
-                          const btn = e.currentTarget;
-                          const originalText = btn.textContent;
-                          btn.textContent = '✓';
-                          setTimeout(() => btn.textContent = originalText, 1000);
-                        }}
-                        className="btn btn-square btn-sm btn-neutral"
-                        title="Copy task link"
-                      >
-                        🔗
-                      </button>
+                      <ul tabIndex={0} className="dropdown-content menu p-2 shadow-lg bg-base-100 rounded-box w-40 border border-base-300">
+                        <li>
+                          <a href={`/task/edit/${task.id}`}>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                            </svg>
+                            Edit
+                          </a>
+                        </li>
+                        <li>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const taskUrl = `${window.location.origin}/task/${task.id}`;
+                              navigator.clipboard.writeText(taskUrl);
+                            }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                              <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002 2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                            </svg>
+                            Copy Link
+                          </button>
+                        </li>
+                      </ul>
                     </div>
                   </div>
                   </div>
@@ -706,79 +709,80 @@ function TasksPageContent() {
                   {completedTasks.map((task) => (
                   <div
                     key={task.id}
-                    className="card bg-base-100 shadow-xl border-l-4 border-success opacity-75"
+                    className="card bg-base-100 shadow-md hover:shadow-xl transition-all duration-200 border-l-4 border-success opacity-90"
                   >
-                    <div className="card-body">
-                    {/* Task Image (if available) */}
-                    {task.image && (
-                      <div className="w-full mb-3 rounded overflow-hidden">
-                        <img
-                          src={pb.files.getURL(task, task.image, { thumb: '400x300' })}
-                          alt={task.title}
-                          className="w-full h-auto object-cover"
-                          style={{ maxHeight: '200px' }}
-                        />
-                      </div>
-                    )}
-
-                    <div className="flex items-start justify-between mb-3">
-                      <span className="text-sm font-mono text-base-content/70">#{task.task_number}</span>
+                    <div className="card-body p-5">
+                    {/* Task Header */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="badge badge-lg badge-outline badge-success font-mono">#{task.task_number}</div>
                       <span className={`badge badge-sm ${getZoneColor(task.zone)}`}>
                         {task.zone}
                       </span>
                     </div>
 
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      {task.title}
-                    </h3>
-
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                      {task.description}
-                    </p>
-
-                    {/* Creator and Date Info */}
-                    {(task.created_by || task.created) && (
-                      <div className="text-xs text-gray-500 bg-gray-50 rounded px-2 py-1.5 mb-3 space-y-0.5">
-                        {task.created_by && (
-                          <div className="flex items-center gap-1">
-                            <span>👤</span>
-                            <span className="font-medium">Creator:</span>
-                            <span className="truncate">{task.created_by.slice(0, 10)}...</span>
-                          </div>
-                        )}
-                        {task.created && (
-                          <div className="flex items-center gap-1">
-                            <span>📅</span>
-                            <span className="font-medium">Created:</span>
-                            <span>{new Date(task.created).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                          </div>
-                        )}
+                    {/* Task Image (if available) */}
+                    {task.image && (
+                      <div className="w-full mb-4 rounded-lg overflow-hidden bg-base-200">
+                        <img
+                          src={pb.files.getURL(task, task.image, { thumb: '400x300' })}
+                          alt={task.title}
+                          className="w-full h-40 object-cover"
+                        />
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                      <div className="flex items-center gap-1 text-sm text-green-600 font-semibold">
-                        <span>✅</span>
-                        <span>Completed</span>
+                    <h3 className="card-title text-base font-bold mb-2 line-clamp-2">
+                      {task.title}
+                    </h3>
+
+                    <p className="text-sm opacity-70 mb-4 line-clamp-2">
+                      {task.description}
+                    </p>
+
+                    {/* Meta Information */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <div className="badge badge-ghost badge-sm gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                        </svg>
+                        {formatTime(task.estimated_minutes)}
                       </div>
-                      <div className="flex gap-2">
-                        {/* Copy Link Button */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const taskUrl = `${window.location.origin}/task/${task.id}`;
-                            navigator.clipboard.writeText(taskUrl);
-                            const btn = e.currentTarget;
-                            const originalText = btn.textContent;
-                            btn.textContent = '✓';
-                            setTimeout(() => btn.textContent = originalText, 1000);
-                          }}
-                          className="btn btn-square btn-sm btn-neutral"
-                          title="Copy task link"
-                        >
-                          🔗
-                        </button>
+                      {task.created_by && (
+                        <div className="badge badge-ghost badge-sm gap-1">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                          </svg>
+                          {task.created_by.slice(0, 10)}
+                        </div>
+                      )}
+                      <div className="badge badge-success badge-sm gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                        Completed
                       </div>
+                    </div>
+
+                    {/* Action - Copy Link Only */}
+                    <div className="card-actions justify-end">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const taskUrl = `${window.location.origin}/task/${task.id}`;
+                          navigator.clipboard.writeText(taskUrl);
+                          const btn = e.currentTarget;
+                          btn.textContent = '✓ Copied';
+                          setTimeout(() => btn.textContent = 'Copy Link', 1500);
+                        }}
+                        className="btn btn-sm btn-ghost gap-1"
+                        title="Copy task link"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                          <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                        </svg>
+                        Copy Link
+                      </button>
                     </div>
                     </div>
                   </div>
@@ -870,7 +874,7 @@ function TasksPageContent() {
             <div className="card bg-base-100 shadow-xl">
               <div className="card-body text-center">
                 <p className="text-lg">No tasks available right now.</p>
-                <p className="text-sm text-base-content/60 mt-2">Check back soon for new opportunities!</p>
+                <p className="text-sm text-base-content mt-2">Check back soon for new opportunities!</p>
               </div>
             </div>
           ) : (
@@ -878,123 +882,115 @@ function TasksPageContent() {
               {sortedTasks.map((task) => (
                 <div
                   key={task.id}
-                  className="card bg-base-100 shadow-xl border-l-4 border-primary hover:shadow-2xl transition-shadow"
+                  className="card bg-base-100 shadow-md hover:shadow-xl transition-all duration-200 border border-base-300"
                 >
-                  <div className="card-body">
-                  {/* Task Image (if available) */}
-                  {task.image && (
-                    <div className="w-full mb-3 rounded overflow-hidden">
-                      <img
-                        src={pb.files.getURL(task, task.image, { thumb: '400x300' })}
-                        alt={task.title}
-                        className="w-full h-auto object-cover"
-                        style={{ maxHeight: '200px' }}
-                      />
-                    </div>
-                  )}
-
-                  <div className="flex items-start justify-between mb-3">
-                    <span className="text-sm font-mono text-gray-500">#{task.task_number}</span>
-                    <span className={`text-xs px-2 py-1 rounded-full border ${getZoneColor(task.zone)}`}>
+                  <div className="card-body p-5">
+                  {/* Task Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="badge badge-lg badge-outline font-mono">#{task.task_number}</div>
+                    <span className={`badge badge-sm ${getZoneColor(task.zone)}`}>
                       {task.zone}
                     </span>
                   </div>
 
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {task.title}
-                  </h3>
-
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                    {task.description}
-                  </p>
-
-                  {/* Creator and Date Info */}
-                  {(task.creator_name || task.created) && (
-                    <div className="text-xs text-gray-500 bg-gray-50 rounded px-2 py-1.5 mb-3 space-y-0.5">
-                      {task.creator_name && (
-                        <div className="flex items-center gap-1">
-                          <span>👤</span>
-                          <span className="font-medium">Creator:</span>
-                          <span className="truncate">{task.creator_name}</span>
-                        </div>
-                      )}
-                      {task.created && (
-                        <div className="flex items-center gap-1">
-                          <span>📅</span>
-                          <span className="font-medium">Created:</span>
-                          <span>{new Date(task.created).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                        </div>
-                      )}
+                  {/* Task Image (if available) */}
+                  {task.image && (
+                    <div className="w-full mb-4 rounded-lg overflow-hidden bg-base-200">
+                      <img
+                        src={pb.files.getURL(task, task.image, { thumb: '400x300' })}
+                        alt={task.title}
+                        className="w-full h-40 object-cover"
+                      />
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                    <div className="flex items-center gap-1 text-sm text-gray-500">
-                      <span>⏱️</span>
-                      <span>{formatTime(task.estimated_minutes)}</span>
+                  <h3 className="card-title text-base font-bold mb-2 line-clamp-2">
+                    {task.title}
+                  </h3>
+
+                  <p className="text-sm opacity-70 mb-4 line-clamp-2">
+                    {task.description}
+                  </p>
+
+                  {/* Meta Information */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <div className="badge badge-ghost badge-sm gap-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                      </svg>
+                      {formatTime(task.estimated_minutes)}
                     </div>
+                  </div>
 
-                    <div className="flex gap-2">
-                      {(() => {
-                        // Check if task is assigned to current user
-                        const isAssignedToMe = volunteerId ? (
-                          Array.isArray(task.assigned_to)
-                            ? task.assigned_to.includes(volunteerId)
-                            : task.assigned_to === volunteerId
-                        ) : false;
+                  {/* Action Buttons */}
+                  <div className="card-actions justify-end gap-2">
+                    {(() => {
+                      // Check if task is assigned to current user
+                      const isAssignedToMe = volunteerId ? (
+                        Array.isArray(task.assigned_to)
+                          ? task.assigned_to.includes(volunteerId)
+                          : task.assigned_to === volunteerId
+                      ) : false;
 
-                        if (isAssignedToMe) {
-                          // Task is assigned to user - show Unclaim button
-                          return (
-                            <button
-                              onClick={() => handleUnclaimTask(task.id)}
-                              className="btn btn-warning btn-sm"
-                            >
-                              Unclaim
-                            </button>
-                          );
-                        } else {
-                          // Task is not assigned - show Claim button
-                          return (
-                            <button
-                              onClick={() => handleClaimTask(task.id)}
-                              className="btn btn-primary btn-sm"
-                            >
-                              Claim
-                            </button>
-                          );
-                        }
-                      })()}
-                      <button
-                        onClick={() => handleCompleteTask(task.id)}
-                        className="btn btn-success btn-sm"
-                      >
-                        Complete
+                      if (isAssignedToMe) {
+                        // Task is assigned to user - show Unclaim button
+                        return (
+                          <button
+                            onClick={() => handleUnclaimTask(task.id)}
+                            className="btn btn-sm btn-outline"
+                          >
+                            Unclaim
+                          </button>
+                        );
+                      } else {
+                        // Task is not assigned - show Claim button
+                        return (
+                          <button
+                            onClick={() => handleClaimTask(task.id)}
+                            className="btn btn-sm btn-primary"
+                          >
+                            Claim
+                          </button>
+                        );
+                      }
+                    })()}
+                    <button
+                      onClick={() => handleCompleteTask(task.id)}
+                      className="btn btn-sm btn-success"
+                    >
+                      Complete
+                    </button>
+                    <div className="dropdown dropdown-end">
+                      <button tabIndex={0} className="btn btn-square btn-sm btn-ghost">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                        </svg>
                       </button>
-                      {/* Edit Button */}
-                      <a
-                        href={`/task/edit/${task.id}`}
-                        className="btn btn-square btn-sm btn-info"
-                        title="Edit Task"
-                      >
-                        ✏️
-                      </a>
-                      {/* Copy Link Button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const taskUrl = `${window.location.origin}/task/${task.id}`;
-                          navigator.clipboard.writeText(taskUrl);
-                          const btn = e.currentTarget;
-                          const originalText = btn.textContent;
-                          btn.textContent = '✓';
-                          setTimeout(() => btn.textContent = originalText, 1000);
-                        }}
-                        className="btn btn-square btn-sm btn-neutral"
-                        title="Copy task link"
-                      >
-                        🔗
-                      </button>
+                      <ul tabIndex={0} className="dropdown-content menu p-2 shadow-lg bg-base-100 rounded-box w-40 border border-base-300">
+                        <li>
+                          <a href={`/task/edit/${task.id}`}>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                            </svg>
+                            Edit
+                          </a>
+                        </li>
+                        <li>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const taskUrl = `${window.location.origin}/task/${task.id}`;
+                              navigator.clipboard.writeText(taskUrl);
+                            }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                              <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                            </svg>
+                            Copy Link
+                          </button>
+                        </li>
+                      </ul>
                     </div>
                   </div>
                   </div>

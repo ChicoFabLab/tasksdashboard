@@ -128,7 +128,7 @@ export default function TaskDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-base-300 flex items-center justify-center">
+      <div className="min-h-screen bg-base-200 flex items-center justify-center">
         <div className="text-2xl">Loading task...</div>
       </div>
     );
@@ -136,8 +136,8 @@ export default function TaskDetailPage() {
 
   if (error || !task) {
     return (
-      <div className="min-h-screen bg-base-300 flex items-center justify-center">
-        <div className="card glass shadow-2xl max-w-md">
+      <div className="min-h-screen bg-base-200 flex items-center justify-center">
+        <div className="card bg-base-100 shadow-2xl max-w-md">
           <div className="card-body text-center">
             <div className="text-6xl mb-4">❌</div>
             <h1 className="text-2xl font-bold mb-2">Task Not Found</h1>
@@ -155,7 +155,7 @@ export default function TaskDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-base-300">
+    <div className="min-h-screen bg-base-200">
       {/* Top Navigation Bar */}
       <div className="navbar bg-base-100 shadow-lg">
         <div className="flex-1">
@@ -187,13 +187,13 @@ export default function TaskDetailPage() {
 
       {/* Task Details */}
       <div className="container mx-auto px-4 py-8">
-        <div className="card glass shadow-2xl">
+        <div className="card bg-base-100 shadow-2xl">
           <div className="card-body">
           {/* Task Header */}
           <div className="flex items-start justify-between mb-6">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-3">
-                <span className="text-lg font-mono font-bold text-base-content/70">#{task.task_number}</span>
+                <span className="text-lg font-mono font-bold">#{task.task_number}</span>
                 <span className={`badge ${getZoneColor(task.zone)}`}>
                   {task.zone}
                 </span>
@@ -205,7 +205,7 @@ export default function TaskDetailPage() {
               </h1>
               
               {creator && task.created && (
-                <div className="text-base-content/70 text-sm space-y-1">
+                <div className="text-base-content/80 text-sm space-y-1">
                   <p>
                     👤 Created by <span className="font-semibold">{creator.username || creator.email}</span>
                   </p>
@@ -276,7 +276,7 @@ export default function TaskDetailPage() {
               >
                 {currentUser ? '🎯 Claim & Start This Task' : '🔐 Login to Claim Task'}
               </button>
-              <p className="text-base-content/60 text-sm mt-3">
+              <p className="text-base-content/80 text-sm mt-3">
                 {currentUser 
                   ? 'Start tracking your time and earn credit for completing this task'
                   : 'Login with Discord to claim tasks and track your contributions'
@@ -312,7 +312,7 @@ export default function TaskDetailPage() {
                             className="bg-base-100/50 rounded-lg p-3 flex items-center justify-between"
                           >
                             <span className="font-medium">{person.name}</span>
-                            <span className="text-base-content/70 text-sm">
+                            <span className="text-base-content/80 text-sm">
                               {person.minutes} min ({Math.round(person.minutes / 60 * 10) / 10}h)
                             </span>
                           </div>

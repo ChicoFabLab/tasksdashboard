@@ -261,7 +261,7 @@ export default function EditTaskPage() {
   // Show loading while checking auth
   if (status === 'loading' || !authChecked) {
     return (
-      <div className="min-h-screen bg-base-300 flex items-center justify-center">
+      <div className="min-h-screen bg-base-200 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="animate-spin text-6xl">⏳</div>
           <p className="text-xl">Checking authentication...</p>
@@ -273,7 +273,7 @@ export default function EditTaskPage() {
   // If not authenticated after check, show redirecting message
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-base-300 flex items-center justify-center">
+      <div className="min-h-screen bg-base-200 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="text-6xl">🔒</div>
           <p className="text-xl">Authentication required. Redirecting to login...</p>
@@ -285,7 +285,7 @@ export default function EditTaskPage() {
   // Show loading while fetching task data
   if (loading) {
     return (
-      <div className="min-h-screen bg-base-300 flex items-center justify-center">
+      <div className="min-h-screen bg-base-200 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="animate-spin text-6xl">⏳</div>
           <p className="text-xl">Loading task...</p>
@@ -296,7 +296,7 @@ export default function EditTaskPage() {
 
   if (!task) {
     return (
-      <div className="min-h-screen bg-base-300 flex items-center justify-center">
+      <div className="min-h-screen bg-base-200 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="text-6xl">❌</div>
           <p className="text-xl">Task not found</p>
@@ -312,7 +312,7 @@ export default function EditTaskPage() {
   }
 
   return (
-    <div className="min-h-screen bg-base-300 p-4">
+    <div className="min-h-screen bg-base-200 p-4">
       <div className="max-w-2xl mx-auto py-8">
         <button
           onClick={() => router.back()}
@@ -321,12 +321,12 @@ export default function EditTaskPage() {
           ← Back
         </button>
 
-        <div className="card glass shadow-2xl">
+        <div className="card bg-base-100 shadow-2xl">
           <div className="card-body">
           <div className="text-center mb-8">
             <div className="text-6xl mb-4">✏️</div>
             <h1 className="text-3xl font-bold mb-2">Edit Task #{task.task_number}</h1>
-            <p className="text-base-content/70">Update task details, image, and assignment</p>
+            <p className="text-base-content/80">Update task details, image, and assignment</p>
           </div>
 
           {error && (
@@ -421,7 +421,7 @@ export default function EditTaskPage() {
               />
               {formData.estimated_minutes && !isNaN(parseInt(formData.estimated_minutes)) && (
                 <label className="label">
-                  <span className="label-text-alt text-base-content/60">
+                  <span className="label-text-alt text-base-content/80">
                     ≈ {Math.round(parseInt(formData.estimated_minutes) / 60)} hours
                   </span>
                 </label>
@@ -481,7 +481,7 @@ export default function EditTaskPage() {
               />
               {isMounted && imagePreview && (
                 <div className="mt-4">
-                  <p className="text-sm mb-2 text-base-content/70">Preview:</p>
+                  <p className="text-sm mb-2 text-base-content/80">Preview:</p>
                   <img
                     src={imagePreview}
                     alt="Task preview"
