@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* DaisyUI Plugin with Dark Themes */
+@plugin "daisyui" {
+  themes: business --default, night --prefersdark, synthwave, cyberpunk, dracula, luxury, black, forest;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
