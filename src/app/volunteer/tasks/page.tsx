@@ -456,7 +456,7 @@ function TasksPageContent() {
   if (!isAuthenticated || loading) {
     return (
       <div className="min-h-screen bg-base-200 flex items-center justify-center">
-        <div className="text-xl opacity-70">Loading...</div>
+        <div className="text-xl">Loading...</div>
       </div>
     );
   }
@@ -551,11 +551,11 @@ function TasksPageContent() {
                       alt="Profile"
                       className="w-full h-full object-cover"
                     />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white text-lg">
-                      👤
-                    </div>
-                  )}
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-lg">
+                          👤
+                        </div>
+                      )}
                 </div>
               </button>
             </div>
@@ -577,8 +577,8 @@ function TasksPageContent() {
             {activeTasks.length === 0 ? (
               <div className="card bg-base-100 shadow-xl">
                 <div className="card-body text-center">
-                  <p className="text-lg opacity-70">No active tasks right now.</p>
-                  <p className="text-sm opacity-50">Claim a task below to get started!</p>
+                  <p className="text-lg">No active tasks right now.</p>
+                  <p className="text-sm text-base-content/60">Claim a task below to get started!</p>
                 </div>
               </div>
             ) : (
@@ -602,7 +602,7 @@ function TasksPageContent() {
                   )}
 
                   <div className="flex items-start justify-between mb-3">
-                    <span className="text-sm font-mono font-bold opacity-70">#{task.task_number}</span>
+                    <span className="text-sm font-mono font-bold text-base-content/70">#{task.task_number}</span>
                     <span className={`badge badge-sm ${getZoneColor(task.zone)}`}>
                       {task.zone}
                     </span>
@@ -722,7 +722,7 @@ function TasksPageContent() {
                     )}
 
                     <div className="flex items-start justify-between mb-3">
-                      <span className="text-sm font-mono opacity-70">#{task.task_number}</span>
+                      <span className="text-sm font-mono text-base-content/70">#{task.task_number}</span>
                       <span className={`badge badge-sm ${getZoneColor(task.zone)}`}>
                         {task.zone}
                       </span>
@@ -869,8 +869,8 @@ function TasksPageContent() {
           {sortedTasks.length === 0 ? (
             <div className="card bg-base-100 shadow-xl">
               <div className="card-body text-center">
-                <p className="text-lg opacity-70">No tasks available right now.</p>
-                <p className="text-sm opacity-50 mt-2">Check back soon for new opportunities!</p>
+                <p className="text-lg">No tasks available right now.</p>
+                <p className="text-sm text-base-content/60 mt-2">Check back soon for new opportunities!</p>
               </div>
             </div>
           ) : (
@@ -948,7 +948,7 @@ function TasksPageContent() {
                           return (
                             <button
                               onClick={() => handleUnclaimTask(task.id)}
-                              className="px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-semibold text-sm"
+                              className="btn btn-warning btn-sm"
                             >
                               Unclaim
                             </button>
@@ -1011,7 +1011,7 @@ export default function TasksPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-base-200 flex items-center justify-center">
-        <div className="text-xl opacity-70">Loading...</div>
+        <div className="text-xl">Loading...</div>
       </div>
     }>
       <TasksPageContent />

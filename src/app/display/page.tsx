@@ -396,15 +396,15 @@ export default function DisplayPage() {
   const isSplashPage = currentPage === taskPages;
 
   return (
-    <div className="h-screen overflow-hidden bg-base-300 p-4">
+    <div className="h-screen overflow-hidden bg-slate-900 text-white p-4">
       <div className="max-w-[1920px] mx-auto h-full flex flex-col">
         {/* Header - Compact for 1080p */}
         <div className="flex items-center justify-between gap-4 mb-2">
           <div className="flex-1">
-            <h1 className="text-2xl font-bold mb-0.5 flex items-center gap-2">
+            <h1 className="text-2xl font-bold mb-0.5 flex items-center gap-2 text-white">
               🏗️ Chico Fab Lab Volunteer Board
             </h1>
-            <p className="text-sm opacity-70">
+            <p className="text-sm text-white/70">
               Make an impact • Earn recognition • Build community
             </p>
           </div>

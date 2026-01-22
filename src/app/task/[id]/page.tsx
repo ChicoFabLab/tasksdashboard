@@ -129,7 +129,7 @@ export default function TaskDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-base-300 flex items-center justify-center">
-        <div className="text-2xl opacity-70">Loading task...</div>
+        <div className="text-2xl">Loading task...</div>
       </div>
     );
   }
@@ -141,7 +141,7 @@ export default function TaskDetailPage() {
           <div className="card-body text-center">
             <div className="text-6xl mb-4">❌</div>
             <h1 className="text-2xl font-bold mb-2">Task Not Found</h1>
-            <p className="opacity-80 mb-6">{error}</p>
+            <p className="text-base-content/80 mb-6">{error}</p>
             <button
               onClick={() => router.push('/')}
               className="btn btn-primary"
@@ -193,7 +193,7 @@ export default function TaskDetailPage() {
           <div className="flex items-start justify-between mb-6">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-3">
-                <span className="text-lg font-mono font-bold opacity-70">#{task.task_number}</span>
+                <span className="text-lg font-mono font-bold text-base-content/70">#{task.task_number}</span>
                 <span className={`badge ${getZoneColor(task.zone)}`}>
                   {task.zone}
                 </span>
@@ -205,9 +205,9 @@ export default function TaskDetailPage() {
               </h1>
               
               {creator && task.created && (
-                <div className="opacity-70 text-sm space-y-1">
+                <div className="text-base-content/70 text-sm space-y-1">
                   <p>
-                    👤 Created by <span className="font-semibold opacity-90">{creator.username || creator.email}</span>
+                    👤 Created by <span className="font-semibold">{creator.username || creator.email}</span>
                   </p>
                   <p>
                     📅 {new Date(task.created).toLocaleDateString('en-US', {
@@ -238,7 +238,7 @@ export default function TaskDetailPage() {
           <div className="space-y-6">
             <div>
               <h2 className="text-xl font-bold mb-3">📝 Description</h2>
-              <p className="text-lg whitespace-pre-wrap opacity-90">
+              <p className="text-lg whitespace-pre-wrap">
                 {task.description}
               </p>
             </div>
@@ -276,7 +276,7 @@ export default function TaskDetailPage() {
               >
                 {currentUser ? '🎯 Claim & Start This Task' : '🔐 Login to Claim Task'}
               </button>
-              <p className="opacity-60 text-sm mt-3">
+              <p className="text-base-content/60 text-sm mt-3">
                 {currentUser 
                   ? 'Start tracking your time and earn credit for completing this task'
                   : 'Login with Discord to claim tasks and track your contributions'
@@ -312,7 +312,7 @@ export default function TaskDetailPage() {
                             className="bg-base-100/50 rounded-lg p-3 flex items-center justify-between"
                           >
                             <span className="font-medium">{person.name}</span>
-                            <span className="opacity-70 text-sm">
+                            <span className="text-base-content/70 text-sm">
                               {person.minutes} min ({Math.round(person.minutes / 60 * 10) / 10}h)
                             </span>
                           </div>

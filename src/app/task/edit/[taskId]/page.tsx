@@ -264,7 +264,7 @@ export default function EditTaskPage() {
       <div className="min-h-screen bg-base-300 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="animate-spin text-6xl">⏳</div>
-          <p className="text-xl opacity-70">Checking authentication...</p>
+          <p className="text-xl">Checking authentication...</p>
         </div>
       </div>
     );
@@ -276,7 +276,7 @@ export default function EditTaskPage() {
       <div className="min-h-screen bg-base-300 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="text-6xl">🔒</div>
-          <p className="text-xl opacity-70">Authentication required. Redirecting to login...</p>
+          <p className="text-xl">Authentication required. Redirecting to login...</p>
         </div>
       </div>
     );
@@ -288,7 +288,7 @@ export default function EditTaskPage() {
       <div className="min-h-screen bg-base-300 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="animate-spin text-6xl">⏳</div>
-          <p className="text-xl opacity-70">Loading task...</p>
+          <p className="text-xl">Loading task...</p>
         </div>
       </div>
     );
@@ -299,10 +299,10 @@ export default function EditTaskPage() {
       <div className="min-h-screen bg-base-300 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="text-6xl">❌</div>
-          <p className="text-white text-xl">Task not found</p>
+          <p className="text-xl">Task not found</p>
           <button
             onClick={() => router.back()}
-            className="text-white/80 hover:text-white"
+            className="btn btn-ghost"
           >
             ← Go back
           </button>
@@ -316,16 +316,17 @@ export default function EditTaskPage() {
       <div className="max-w-2xl mx-auto py-8">
         <button
           onClick={() => router.back()}
-          className="text-white/80 hover:text-white mb-6 flex items-center gap-2"
+          className="btn btn-ghost mb-6"
         >
           ← Back
         </button>
 
         <div className="card glass shadow-2xl">
+          <div className="card-body">
           <div className="text-center mb-8">
             <div className="text-6xl mb-4">✏️</div>
-            <h1 className="text-3xl font-bold text-white mb-2">Edit Task #{task.task_number}</h1>
-            <p className="text-white/80">Update task details, image, and assignment</p>
+            <h1 className="text-3xl font-bold mb-2">Edit Task #{task.task_number}</h1>
+            <p className="text-base-content/70">Update task details, image, and assignment</p>
           </div>
 
           {error && (
@@ -344,7 +345,7 @@ export default function EditTaskPage() {
                 type="number"
                 readOnly
                 value={formData.task_number}
-                className="input input-bordered opacity-70 cursor-not-allowed"
+                className="input input-bordered cursor-not-allowed bg-base-200"
               />
             </div>
 
@@ -420,7 +421,7 @@ export default function EditTaskPage() {
               />
               {formData.estimated_minutes && !isNaN(parseInt(formData.estimated_minutes)) && (
                 <label className="label">
-                  <span className="label-text-alt opacity-60">
+                  <span className="label-text-alt text-base-content/60">
                     ≈ {Math.round(parseInt(formData.estimated_minutes) / 60)} hours
                   </span>
                 </label>
@@ -480,7 +481,7 @@ export default function EditTaskPage() {
               />
               {isMounted && imagePreview && (
                 <div className="mt-4">
-                  <p className="text-sm mb-2 opacity-80">Preview:</p>
+                  <p className="text-sm mb-2 text-base-content/70">Preview:</p>
                   <img
                     src={imagePreview}
                     alt="Task preview"
@@ -503,11 +504,12 @@ export default function EditTaskPage() {
             <button
               type="button"
               onClick={handleArchive}
-              className="w-full bg-orange-500/20 border-2 border-orange-500/50 text-white font-bold py-4 px-6 rounded-xl hover:bg-orange-500/30 transition-colors text-xl"
+              className="btn btn-warning btn-lg w-full text-xl"
             >
-              Archive Task
+              🗄️ Archive Task
             </button>
           </form>
+          </div>
         </div>
       </div>
     </div>

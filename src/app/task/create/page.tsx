@@ -223,7 +223,7 @@ export default function CreateTaskPage() {
           <div className="text-center mb-8">
             <div className="text-6xl mb-4">➕</div>
             <h1 className="text-3xl font-bold mb-2">Create New Task</h1>
-            <p className="opacity-80">Add a task to the volunteer board</p>
+            <p className="text-base-content/70">Add a task to the volunteer board</p>
           </div>
 
           {error && (
@@ -242,7 +242,7 @@ export default function CreateTaskPage() {
                 type="number"
                 readOnly
                 value={formData.task_number}
-                className="input input-bordered opacity-70 cursor-not-allowed"
+                className="input input-bordered cursor-not-allowed bg-base-200"
               />
             </div>
 
@@ -318,7 +318,7 @@ export default function CreateTaskPage() {
               />
               {formData.estimated_minutes && (
                 <label className="label">
-                  <span className="label-text-alt opacity-60">
+                  <span className="label-text-alt text-base-content/60">
                     ≈ {Math.round(parseInt(formData.estimated_minutes) / 60)} hours
                   </span>
                 </label>
@@ -348,7 +348,7 @@ export default function CreateTaskPage() {
               </select>
               {formData.assigned_to && (
                 <label className="label">
-                  <span className="label-text-alt opacity-60">
+                  <span className="label-text-alt text-base-content/60">
                     💬 They will receive a Discord DM with task details
                   </span>
                 </label>
@@ -368,7 +368,7 @@ export default function CreateTaskPage() {
               />
               {imagePreview && (
                 <div className="mt-4">
-                  <p className="text-sm mb-2 opacity-80">Preview:</p>
+                  <p className="text-sm mb-2 text-base-content/70">Preview:</p>
                   <img
                     src={imagePreview}
                     alt="Task preview"

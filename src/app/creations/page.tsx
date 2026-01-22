@@ -106,7 +106,7 @@ export default function PublicCreationsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-base-200 flex items-center justify-center">
-        <div className="text-xl opacity-70">Loading creations...</div>
+        <div className="text-xl">Loading creations...</div>
       </div>
     );
   }
@@ -118,7 +118,7 @@ export default function PublicCreationsPage() {
         <div className="container mx-auto px-4 py-12">
           <div className="text-center">
             <h1 className="text-5xl font-bold mb-4">🎨 Community Creations</h1>
-            <p className="text-xl opacity-90 mb-6">
+            <p className="text-xl mb-6">
               Amazing projects made by volunteers at Chico Fab Lab
             </p>
             <button
@@ -184,7 +184,7 @@ export default function PublicCreationsPage() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-white text-lg">
+                        <div className="w-full h-full flex items-center justify-center text-lg">
                           👤
                         </div>
                       )}
