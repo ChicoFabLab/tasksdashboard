@@ -31,6 +31,7 @@ export interface Task {
   assigned_to?: string | string[]; // volunteer ID(s) - can be single or array for backwards compatibility
   discord_thread_id?: string;
   created_by: string;
+  creator_name?: string; // Populated when fetching with creator info
   image?: string; // image filename
   board?: 'main' | 'makerradio'; // Board/tenant identifier
   created?: string; // timestamp - auto-added by PocketBase

@@ -23,7 +23,7 @@ function TasksPageContent() {
   const [sortBy, setSortBy] = useState<'task_number' | 'created' | 'updated'>('task_number');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [loading, setLoading] = useState(true);
-  const [showCompleted, setShowCompleted] = useState(true);
+  const [showCompleted, setShowCompleted] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Check if user is admin (has Zone Leader role)
@@ -114,7 +114,25 @@ function TasksPageContent() {
           return isAssigned && notArchived;
         });
         
-        setActiveTasks(active);
+        // Fetch creator names for active tasks
+        const activeWithCreators = await Promise.all(
+          active.map(async (task) => {
+            if (task.created_by) {
+              try {
+                const creator = await pb.collection('volunteers').getOne(task.created_by);
+                return {
+                  ...task,
+                  creator_name: creator.username || creator.email || 'Unknown',
+                };
+              } catch (err) {
+                return { ...task, creator_name: 'Unknown' };
+              }
+            }
+            return task;
+          })
+        );
+        
+        setActiveTasks(activeWithCreators);
       } catch (err) {
         console.error('Error fetching active tasks:', err);
       }
@@ -156,7 +174,25 @@ function TasksPageContent() {
           return isAssigned && notArchived;
         });
         
-        setCompletedTasks(completed);
+        // Fetch creator names for completed tasks
+        const completedWithCreators = await Promise.all(
+          completed.map(async (task) => {
+            if (task.created_by) {
+              try {
+                const creator = await pb.collection('volunteers').getOne(task.created_by);
+                return {
+                  ...task,
+                  creator_name: creator.username || creator.email || 'Unknown',
+                };
+              } catch (err) {
+                return { ...task, creator_name: 'Unknown' };
+              }
+            }
+            return task;
+          })
+        );
+        
+        setCompletedTasks(completedWithCreators);
       } catch (err) {
         console.error('Error fetching completed tasks:', err);
       }
@@ -175,26 +211,31 @@ function TasksPageContent() {
           sort: 'task_number',
         });
         
-        // Debug: Log ALL fields from first task to see what PocketBase returns
-        if (records.items.length > 0) {
-          console.log('=== FULL TASK DATA FROM POCKETBASE ===');
-          console.log(JSON.stringify(records.items[0], null, 2));
-          console.log('=====================================');
-          console.log('Task fields:', Object.keys(records.items[0]));
-          console.log('created field exists?', 'created' in records.items[0]);
-          console.log('updated field exists?', 'updated' in records.items[0]);
-          console.log('created_by field exists?', 'created_by' in records.items[0]);
-          console.log('created_by value:', records.items[0].created_by);
-          console.log('created value:', (records.items[0] as any).created);
-          console.log('updated value:', (records.items[0] as any).updated);
-        }
-        
         // PocketBase automatically includes created and updated fields
         // Cast to Task type (which includes optional created/updated)
         const tasksWithDates = records.items as unknown as Task[];
         
+        // Fetch creator names for all tasks
+        const tasksWithCreators = await Promise.all(
+          tasksWithDates.map(async (task) => {
+            if (task.created_by) {
+              try {
+                const creator = await pb.collection('volunteers').getOne(task.created_by);
+                return {
+                  ...task,
+                  creator_name: creator.username || creator.email || 'Unknown',
+                };
+              } catch (err) {
+                console.warn(`Could not fetch creator for task ${task.id}:`, err);
+                return { ...task, creator_name: 'Unknown' };
+              }
+            }
+            return task;
+          })
+        );
+        
         // Exclude archived tasks
-        setTasks(tasksWithDates.filter(task => !task.title.startsWith('[ARCHIVED]')));
+        setTasks(tasksWithCreators.filter(task => !task.title.startsWith('[ARCHIVED]')));
         setLoading(false);
       } catch (err) {
         console.error('Error fetching tasks:', err);
@@ -573,13 +614,13 @@ function TasksPageContent() {
                   </p>
 
                   {/* Creator and Date Info */}
-                  {(task.created_by || task.created) && (
+                  {(task.creator_name || task.created) && (
                     <div className="text-xs text-gray-500 bg-gray-50 rounded px-2 py-1.5 mb-3 space-y-0.5">
-                      {task.created_by && (
+                      {task.creator_name && (
                         <div className="flex items-center gap-1">
                           <span>👤</span>
                           <span className="font-medium">Creator:</span>
-                          <span className="truncate">{task.created_by.slice(0, 10)}...</span>
+                          <span className="truncate">{task.creator_name}</span>
                         </div>
                       )}
                       {task.created && (
@@ -867,13 +908,13 @@ function TasksPageContent() {
                   </p>
 
                   {/* Creator and Date Info */}
-                  {(task.created_by || task.created) && (
+                  {(task.creator_name || task.created) && (
                     <div className="text-xs text-gray-500 bg-gray-50 rounded px-2 py-1.5 mb-3 space-y-0.5">
-                      {task.created_by && (
+                      {task.creator_name && (
                         <div className="flex items-center gap-1">
                           <span>👤</span>
                           <span className="font-medium">Creator:</span>
-                          <span className="truncate">{task.created_by.slice(0, 10)}...</span>
+                          <span className="truncate">{task.creator_name}</span>
                         </div>
                       )}
                       {task.created && (
