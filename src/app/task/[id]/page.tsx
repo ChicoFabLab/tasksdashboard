@@ -93,28 +93,28 @@ export default function TaskDetailPage() {
   }, [taskId]);
 
   const getZoneColor = (zone: string) => {
-    switch (zone) {
-      case 'Woodshop': return 'bg-amber-50 text-amber-700 border-amber-300';
-      case '3D Printing': return 'bg-blue-50 text-blue-700 border-blue-300';
-      case 'Electronics': return 'bg-yellow-50 text-yellow-700 border-yellow-300';
-      case 'Laser Cutting': return 'bg-red-50 text-red-700 border-red-300';
-      case 'CNC': return 'bg-purple-50 text-purple-700 border-purple-300';
-      case 'General': return 'bg-gray-50 text-gray-700 border-gray-300';
-      case 'Admin': return 'bg-pink-50 text-pink-700 border-pink-300';
-      default: return 'bg-gray-50 text-gray-700 border-gray-300';
-    }
+    const colors: Record<string, string> = {
+      Woodshop: 'badge-warning',
+      '3D Printing': 'badge-secondary',
+      Electronics: 'badge-info',
+      'Laser Cutting': 'badge-error',
+      CNC: 'badge-success',
+      General: 'badge-neutral',
+      Admin: 'badge-primary',
+    };
+    return colors[zone] || colors.General;
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'open':
-        return <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-semibold">🟢 Open</span>;
+        return <span className="badge badge-success">🟢 Open</span>;
       case 'in_progress':
-        return <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">🔵 In Progress</span>;
+        return <span className="badge badge-info">🔵 In Progress</span>;
       case 'completed':
-        return <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-semibold">✅ Completed</span>;
+        return <span className="badge badge-neutral">✅ Completed</span>;
       default:
-        return <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-semibold">{status}</span>;
+        return <span className="badge badge-neutral">{status}</span>;
     }
   };
 
@@ -128,53 +128,56 @@ export default function TaskDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
-        <div className="text-white text-2xl">Loading task...</div>
+      <div className="min-h-screen bg-base-300 flex items-center justify-center">
+        <div className="text-2xl opacity-70">Loading task...</div>
       </div>
     );
   }
 
   if (error || !task) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
-        <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 max-w-md text-center">
-          <div className="text-6xl mb-4">❌</div>
-          <h1 className="text-2xl font-bold text-white mb-2">Task Not Found</h1>
-          <p className="text-white/80 mb-6">{error}</p>
-          <button
-            onClick={() => router.push('/')}
-            className="px-6 py-3 bg-white text-purple-900 rounded-xl font-semibold hover:bg-white/90 transition-colors"
-          >
-            Back to Tasks
-          </button>
+      <div className="min-h-screen bg-base-300 flex items-center justify-center">
+        <div className="card glass shadow-2xl max-w-md">
+          <div className="card-body text-center">
+            <div className="text-6xl mb-4">❌</div>
+            <h1 className="text-2xl font-bold mb-2">Task Not Found</h1>
+            <p className="opacity-80 mb-6">{error}</p>
+            <button
+              onClick={() => router.push('/')}
+              className="btn btn-primary"
+            >
+              Back to Tasks
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+    <div className="min-h-screen bg-base-300">
       {/* Top Navigation Bar */}
-      <div className="bg-white/10 backdrop-blur-md border-b border-white/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+      <div className="navbar bg-base-100 shadow-lg">
+        <div className="flex-1">
           <button
             onClick={() => router.push('/')}
-            className="text-white hover:text-white/80 transition-colors font-medium"
+            className="btn btn-ghost"
           >
             ← Back to Tasks
           </button>
-          
+        </div>
+        <div className="flex-none">
           {currentUser ? (
             <button
               onClick={() => router.push(`/volunteer?id=${currentUser.id}`)}
-              className="px-4 py-2 bg-white text-purple-900 rounded-lg hover:bg-white/90 transition-colors font-semibold"
+              className="btn btn-primary"
             >
               👤 {currentUser.name}
             </button>
           ) : (
             <button
               onClick={() => router.push('/auth/discord')}
-              className="px-4 py-2 bg-white text-purple-900 rounded-lg hover:bg-white/90 transition-colors font-semibold"
+              className="btn btn-primary"
             >
               Login
             </button>
@@ -183,27 +186,28 @@ export default function TaskDetailPage() {
       </div>
 
       {/* Task Details */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 shadow-2xl">
+      <div className="container mx-auto px-4 py-8">
+        <div className="card glass shadow-2xl">
+          <div className="card-body">
           {/* Task Header */}
           <div className="flex items-start justify-between mb-6">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-3">
-                <span className="text-lg font-mono text-white/90 font-bold">#{task.task_number}</span>
-                <span className={`px-3 py-1 rounded-full text-sm font-semibold border ${getZoneColor(task.zone)}`}>
+                <span className="text-lg font-mono font-bold opacity-70">#{task.task_number}</span>
+                <span className={`badge ${getZoneColor(task.zone)}`}>
                   {task.zone}
                 </span>
                 {getStatusBadge(task.status)}
               </div>
               
-              <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
+              <h1 className="text-3xl sm:text-4xl font-bold mb-2">
                 {task.title}
               </h1>
               
               {creator && task.created && (
-                <div className="text-white/70 text-sm space-y-1">
+                <div className="opacity-70 text-sm space-y-1">
                   <p>
-                    👤 Created by <span className="font-semibold text-white/90">{creator.username || creator.email}</span>
+                    👤 Created by <span className="font-semibold opacity-90">{creator.username || creator.email}</span>
                   </p>
                   <p>
                     📅 {new Date(task.created).toLocaleDateString('en-US', {
@@ -233,27 +237,31 @@ export default function TaskDetailPage() {
           {/* Task Details */}
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-bold text-white mb-3">📝 Description</h2>
-              <p className="text-white/90 text-lg whitespace-pre-wrap">
+              <h2 className="text-xl font-bold mb-3">📝 Description</h2>
+              <p className="text-lg whitespace-pre-wrap opacity-90">
                 {task.description}
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-white/5 rounded-xl p-4">
-                <div className="text-white/70 text-sm mb-1">Estimated Time</div>
-                <div className="text-white text-2xl font-bold">
-                  ⏱️ {task.estimated_minutes} min
-                </div>
-                <div className="text-white/60 text-sm">
-                  ≈ {Math.round(task.estimated_minutes / 60 * 10) / 10} hours
+              <div className="stats shadow">
+                <div className="stat">
+                  <div className="stat-title">Estimated Time</div>
+                  <div className="stat-value text-2xl">
+                    ⏱️ {task.estimated_minutes} min
+                  </div>
+                  <div className="stat-desc">
+                    ≈ {Math.round(task.estimated_minutes / 60 * 10) / 10} hours
+                  </div>
                 </div>
               </div>
 
-              <div className="bg-white/5 rounded-xl p-4">
-                <div className="text-white/70 text-sm mb-1">Zone</div>
-                <div className="text-white text-2xl font-bold">
-                  🏷️ {task.zone}
+              <div className="stats shadow">
+                <div className="stat">
+                  <div className="stat-title">Zone</div>
+                  <div className="stat-value text-2xl">
+                    🏷️ {task.zone}
+                  </div>
                 </div>
               </div>
             </div>
@@ -261,14 +269,14 @@ export default function TaskDetailPage() {
 
           {/* Action Buttons */}
           {task.status === 'open' && (
-            <div className="mt-8 pt-6 border-t border-white/20">
+            <div className="mt-8 pt-6 border-t border-base-300">
               <button
                 onClick={handleClaimTask}
-                className="w-full sm:w-auto px-8 py-4 bg-white text-purple-900 rounded-xl font-bold text-lg hover:bg-white/90 transition-all transform hover:scale-105 shadow-lg"
+                className="btn btn-primary btn-lg w-full sm:w-auto"
               >
                 {currentUser ? '🎯 Claim & Start This Task' : '🔐 Login to Claim Task'}
               </button>
-              <p className="text-white/60 text-sm mt-3">
+              <p className="opacity-60 text-sm mt-3">
                 {currentUser 
                   ? 'Start tracking your time and earn credit for completing this task'
                   : 'Login with Discord to claim tasks and track your contributions'
@@ -278,9 +286,9 @@ export default function TaskDetailPage() {
           )}
 
           {task.status === 'in_progress' && (
-            <div className="mt-8 pt-6 border-t border-white/20">
-              <div className="bg-blue-500/20 border border-blue-400/30 rounded-xl p-4">
-                <p className="text-white text-center">
+            <div className="mt-8 pt-6 border-t border-base-300">
+              <div className="alert alert-info">
+                <p className="text-center">
                   🔵 This task is currently being worked on
                 </p>
               </div>
@@ -288,43 +296,46 @@ export default function TaskDetailPage() {
           )}
 
           {task.status === 'completed' && (
-            <div className="mt-8 pt-6 border-t border-white/20">
-              <div className="bg-green-500/20 border border-green-400/30 rounded-xl p-6">
-                <p className="text-white text-center text-xl font-bold mb-4">
-                  ✅ This task has been completed
-                </p>
-                {completedBy.length > 0 && (
-                  <div className="mt-4">
-                    <h3 className="text-white/90 font-semibold mb-3">👥 Completed by:</h3>
-                    <div className="space-y-2">
-                      {completedBy.map((person, index) => (
-                        <div 
-                          key={index}
-                          className="bg-white/10 rounded-lg p-3 flex items-center justify-between"
-                        >
-                          <span className="text-white font-medium">{person.name}</span>
-                          <span className="text-white/70 text-sm">
-                            {person.minutes} min ({Math.round(person.minutes / 60 * 10) / 10}h)
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                    {completedBy.length > 1 && (
-                      <div className="mt-3 pt-3 border-t border-white/20">
-                        <div className="flex items-center justify-between">
-                          <span className="text-white/90 font-semibold">Total Time:</span>
-                          <span className="text-white font-bold text-lg">
-                            {completedBy.reduce((sum, p) => sum + p.minutes, 0)} min
-                            ({Math.round(completedBy.reduce((sum, p) => sum + p.minutes, 0) / 60 * 10) / 10}h)
-                          </span>
-                        </div>
+            <div className="mt-8 pt-6 border-t border-base-300">
+              <div className="alert alert-success">
+                <div className="w-full">
+                  <p className="text-center text-xl font-bold mb-4">
+                    ✅ This task has been completed
+                  </p>
+                  {completedBy.length > 0 && (
+                    <div className="mt-4">
+                      <h3 className="font-semibold mb-3">👥 Completed by:</h3>
+                      <div className="space-y-2">
+                        {completedBy.map((person, index) => (
+                          <div 
+                            key={index}
+                            className="bg-base-100/50 rounded-lg p-3 flex items-center justify-between"
+                          >
+                            <span className="font-medium">{person.name}</span>
+                            <span className="opacity-70 text-sm">
+                              {person.minutes} min ({Math.round(person.minutes / 60 * 10) / 10}h)
+                            </span>
+                          </div>
+                        ))}
                       </div>
-                    )}
-                  </div>
-                )}
+                      {completedBy.length > 1 && (
+                        <div className="mt-3 pt-3 border-t border-base-300/50">
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold">Total Time:</span>
+                            <span className="font-bold text-lg">
+                              {completedBy.reduce((sum, p) => sum + p.minutes, 0)} min
+                              ({Math.round(completedBy.reduce((sum, p) => sum + p.minutes, 0) / 60 * 10) / 10}h)
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
+          </div>
         </div>
       </div>
     </div>

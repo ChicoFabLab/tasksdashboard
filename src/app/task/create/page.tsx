@@ -216,39 +216,40 @@ export default function CreateTaskPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
+    <div className="min-h-screen bg-base-300 p-4">
       <div className="max-w-2xl mx-auto py-8">
-        <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 shadow-2xl">
+        <div className="card glass shadow-2xl">
+          <div className="card-body">
           <div className="text-center mb-8">
             <div className="text-6xl mb-4">➕</div>
-            <h1 className="text-3xl font-bold text-white mb-2">Create New Task</h1>
-            <p className="text-white/80">Add a task to the volunteer board</p>
+            <h1 className="text-3xl font-bold mb-2">Create New Task</h1>
+            <p className="opacity-80">Add a task to the volunteer board</p>
           </div>
 
           {error && (
-            <div className="bg-red-500/20 border border-red-500/50 text-white p-4 rounded-xl mb-6">
+            <div className="alert alert-error mb-6">
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Task Number - Auto-generated, read-only */}
-            <div>
-              <label className="block text-white font-medium mb-2">
-                Task Number (Auto-generated)
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Task Number (Auto-generated)</span>
               </label>
               <input
                 type="number"
                 readOnly
                 value={formData.task_number}
-                className="w-full px-4 py-3 rounded-xl bg-white/10 border-2 border-white/20 text-white/70 cursor-not-allowed"
+                className="input input-bordered opacity-70 cursor-not-allowed"
               />
             </div>
 
             {/* Title */}
-            <div>
-              <label className="block text-white font-medium mb-2">
-                Title *
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Title *</span>
               </label>
               <input
                 type="text"
@@ -257,15 +258,15 @@ export default function CreateTaskPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })
                 }
-                className="w-full px-4 py-3 rounded-xl bg-white/20 border-2 border-white/30 text-white placeholder-white/50 focus:outline-none focus:border-white/60"
+                className="input input-bordered w-full"
                 placeholder="e.g., Clean 3D Printer Area"
               />
             </div>
 
             {/* Description */}
-            <div>
-              <label className="block text-white font-medium mb-2">
-                Description *
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Description *</span>
               </label>
               <textarea
                 required
@@ -274,15 +275,15 @@ export default function CreateTaskPage() {
                   setFormData({ ...formData, description: e.target.value })
                 }
                 rows={4}
-                className="w-full px-4 py-3 rounded-xl bg-white/20 border-2 border-white/30 text-white placeholder-white/50 focus:outline-none focus:border-white/60"
+                className="textarea textarea-bordered w-full"
                 placeholder="What needs to be done?"
               />
             </div>
 
             {/* Zone */}
-            <div>
-              <label className="block text-white font-medium mb-2">
-                Zone *
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Zone *</span>
               </label>
               <select
                 required
@@ -290,10 +291,10 @@ export default function CreateTaskPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, zone: e.target.value })
                 }
-                className="w-full px-4 py-3 rounded-xl bg-white/20 border-2 border-white/30 text-white focus:outline-none focus:border-white/60"
+                className="select select-bordered w-full"
               >
                 {zones.map((zone) => (
-                  <option key={zone} value={zone} className="bg-purple-900">
+                  <option key={zone} value={zone}>
                     {zone}
                   </option>
                 ))}
@@ -301,9 +302,9 @@ export default function CreateTaskPage() {
             </div>
 
             {/* Estimated Time */}
-            <div>
-              <label className="block text-white font-medium mb-2">
-                Estimated Time (minutes) *
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Estimated Time (minutes) *</span>
               </label>
               <input
                 type="number"
@@ -312,62 +313,66 @@ export default function CreateTaskPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, estimated_minutes: e.target.value })
                 }
-                className="w-full px-4 py-3 rounded-xl bg-white/20 border-2 border-white/30 text-white placeholder-white/50 focus:outline-none focus:border-white/60"
+                className="input input-bordered w-full"
                 placeholder="e.g., 120 (2 hours)"
               />
               {formData.estimated_minutes && (
-                <p className="text-white/60 text-sm mt-2">
-                  ≈ {Math.round(parseInt(formData.estimated_minutes) / 60)} hours
-                </p>
+                <label className="label">
+                  <span className="label-text-alt opacity-60">
+                    ≈ {Math.round(parseInt(formData.estimated_minutes) / 60)} hours
+                  </span>
+                </label>
               )}
             </div>
 
             {/* Assign to Volunteer */}
-            <div>
-              <label className="block text-white font-medium mb-2">
-                Assign to Volunteer (Optional)
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Assign to Volunteer (Optional)</span>
               </label>
               <select
                 value={formData.assigned_to}
                 onChange={(e) =>
                   setFormData({ ...formData, assigned_to: e.target.value })
                 }
-                className="w-full px-4 py-3 rounded-xl bg-white/20 border-2 border-white/30 text-white focus:outline-none focus:border-white/60"
+                className="select select-bordered w-full"
               >
-                <option value="" className="bg-purple-900">
+                <option value="">
                   -- Leave Unassigned --
                 </option>
                 {volunteers.map((volunteer) => (
-                  <option key={volunteer.id} value={volunteer.id} className="bg-purple-900">
+                  <option key={volunteer.id} value={volunteer.id}>
                     {volunteer.username || volunteer.email}
                   </option>
                 ))}
               </select>
               {formData.assigned_to && (
-                <p className="text-white/60 text-sm mt-2">
-                  💬 They will receive a Discord DM with task details
-                </p>
+                <label className="label">
+                  <span className="label-text-alt opacity-60">
+                    💬 They will receive a Discord DM with task details
+                  </span>
+                </label>
               )}
             </div>
 
             {/* Image Upload */}
-            <div>
-              <label className="block text-white font-medium mb-2">
-                Task Image (Optional)
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Task Image (Optional)</span>
               </label>
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
-                className="w-full px-4 py-3 rounded-xl bg-white/20 border-2 border-white/30 text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-white/30 file:text-white hover:file:bg-white/40"
+                className="file-input file-input-bordered w-full"
               />
               {imagePreview && (
                 <div className="mt-4">
-                  <p className="text-white/80 text-sm mb-2">Preview:</p>
+                  <p className="text-sm mb-2 opacity-80">Preview:</p>
                   <img
                     src={imagePreview}
                     alt="Task preview"
-                    className="w-full max-h-64 object-contain rounded-xl border-2 border-white/30"
+                    className="w-full max-h-64 object-contain rounded-xl"
                   />
                 </div>
               )}
@@ -377,11 +382,12 @@ export default function CreateTaskPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full bg-white text-purple-900 font-bold py-4 px-6 rounded-xl hover:bg-white/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xl"
+              className="btn btn-primary btn-lg w-full text-xl"
             >
               {submitting ? 'Creating...' : 'Create Task'}
             </button>
           </form>
+          </div>
         </div>
       </div>
     </div>

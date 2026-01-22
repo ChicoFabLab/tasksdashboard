@@ -126,7 +126,7 @@ function VolunteerCreationsContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-base-200 flex items-center justify-center">
         <div className="text-xl text-gray-600">Loading...</div>
       </div>
     );
@@ -134,20 +134,20 @@ function VolunteerCreationsContent() {
 
   if (!volunteer) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-base-200 flex items-center justify-center">
         <div className="text-xl text-red-600">Volunteer not found</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-base-200">
       {/* Header */}
       <div className="bg-gradient-to-r from-pink-600 to-purple-600 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <button
             onClick={() => router.push(`/volunteer/tasks?id=${volunteerId}`)}
-            className="mb-4 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+            className="mb-4 btn btn-ghost btn-sm transition-colors"
           >
             ← Back to Dashboard
           </button>
@@ -180,7 +180,7 @@ function VolunteerCreationsContent() {
             </div>
             <button
               onClick={() => router.push('/creations')}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+              className="btn btn-primary btn-sm transition-colors font-medium"
             >
               Browse All →
             </button>
@@ -197,7 +197,7 @@ function VolunteerCreationsContent() {
             </p>
             <button
               onClick={() => setShowUploadForm(true)}
-              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold"
+              className="btn btn-primary transition-colors font-semibold"
             >
               Share Your First Creation
             </button>
@@ -485,7 +485,7 @@ function UploadCreationForm({ volunteerId, onClose, onSuccess }: { volunteerId: 
             <button
               type="submit"
               disabled={uploading || photoFiles.length === 0}
-              className="flex-1 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 btn btn-primary transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {uploading ? 'Uploading...' : 'Share Creation'}
             </button>
@@ -499,7 +499,7 @@ function UploadCreationForm({ volunteerId, onClose, onSuccess }: { volunteerId: 
 export default function VolunteerCreationsPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-base-200 flex items-center justify-center">
         <div className="text-xl text-gray-600">Loading...</div>
       </div>
     }>

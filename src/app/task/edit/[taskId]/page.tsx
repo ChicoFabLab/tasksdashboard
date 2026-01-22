@@ -261,10 +261,10 @@ export default function EditTaskPage() {
   // Show loading while checking auth
   if (status === 'loading' || !authChecked) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+      <div className="min-h-screen bg-base-300 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="animate-spin text-6xl">⏳</div>
-          <p className="text-white text-xl">Checking authentication...</p>
+          <p className="text-xl opacity-70">Checking authentication...</p>
         </div>
       </div>
     );
@@ -273,10 +273,10 @@ export default function EditTaskPage() {
   // If not authenticated after check, show redirecting message
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+      <div className="min-h-screen bg-base-300 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="text-6xl">🔒</div>
-          <p className="text-white text-xl">Authentication required. Redirecting to login...</p>
+          <p className="text-xl opacity-70">Authentication required. Redirecting to login...</p>
         </div>
       </div>
     );
@@ -285,10 +285,10 @@ export default function EditTaskPage() {
   // Show loading while fetching task data
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+      <div className="min-h-screen bg-base-300 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="animate-spin text-6xl">⏳</div>
-          <p className="text-white text-xl">Loading task...</p>
+          <p className="text-xl opacity-70">Loading task...</p>
         </div>
       </div>
     );
@@ -296,7 +296,7 @@ export default function EditTaskPage() {
 
   if (!task) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+      <div className="min-h-screen bg-base-300 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="text-6xl">❌</div>
           <p className="text-white text-xl">Task not found</p>
@@ -312,7 +312,7 @@ export default function EditTaskPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
+    <div className="min-h-screen bg-base-300 p-4">
       <div className="max-w-2xl mx-auto py-8">
         <button
           onClick={() => router.back()}
@@ -321,7 +321,7 @@ export default function EditTaskPage() {
           ← Back
         </button>
 
-        <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 shadow-2xl">
+        <div className="card glass shadow-2xl">
           <div className="text-center mb-8">
             <div className="text-6xl mb-4">✏️</div>
             <h1 className="text-3xl font-bold text-white mb-2">Edit Task #{task.task_number}</h1>
@@ -329,29 +329,29 @@ export default function EditTaskPage() {
           </div>
 
           {error && (
-            <div className="bg-red-500/20 border border-red-500/50 text-white p-4 rounded-xl mb-6">
+            <div className="alert alert-error mb-6">
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Task Number - Read-only */}
-            <div>
-              <label className="block text-white font-medium mb-2">
-                Task Number
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Task Number</span>
               </label>
               <input
                 type="number"
                 readOnly
                 value={formData.task_number}
-                className="w-full px-4 py-3 rounded-xl bg-white/10 border-2 border-white/20 text-white/70 cursor-not-allowed"
+                className="input input-bordered opacity-70 cursor-not-allowed"
               />
             </div>
 
             {/* Title */}
-            <div>
-              <label className="block text-white font-medium mb-2">
-                Title *
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Title *</span>
               </label>
               <input
                 type="text"
@@ -360,15 +360,15 @@ export default function EditTaskPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })
                 }
-                className="w-full px-4 py-3 rounded-xl bg-white/20 border-2 border-white/30 text-white placeholder-white/50 focus:outline-none focus:border-white/60"
+                className="input input-bordered w-full"
                 placeholder="e.g., Clean 3D Printer Area"
               />
             </div>
 
             {/* Description */}
-            <div>
-              <label className="block text-white font-medium mb-2">
-                Description *
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Description *</span>
               </label>
               <textarea
                 required
@@ -377,15 +377,15 @@ export default function EditTaskPage() {
                   setFormData({ ...formData, description: e.target.value })
                 }
                 rows={4}
-                className="w-full px-4 py-3 rounded-xl bg-white/20 border-2 border-white/30 text-white placeholder-white/50 focus:outline-none focus:border-white/60"
+                className="textarea textarea-bordered w-full"
                 placeholder="What needs to be done?"
               />
             </div>
 
             {/* Zone */}
-            <div>
-              <label className="block text-white font-medium mb-2">
-                Zone *
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Zone *</span>
               </label>
               <select
                 required
@@ -393,10 +393,10 @@ export default function EditTaskPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, zone: e.target.value })
                 }
-                className="w-full px-4 py-3 rounded-xl bg-white/20 border-2 border-white/30 text-white focus:outline-none focus:border-white/60"
+                className="select select-bordered w-full"
               >
                 {zones.map((zone) => (
-                  <option key={zone} value={zone} className="bg-purple-900">
+                  <option key={zone} value={zone}>
                     {zone}
                   </option>
                 ))}
@@ -404,9 +404,9 @@ export default function EditTaskPage() {
             </div>
 
             {/* Estimated Time */}
-            <div>
-              <label className="block text-white font-medium mb-2">
-                Estimated Time (minutes) *
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Estimated Time (minutes) *</span>
               </label>
               <input
                 type="number"
@@ -415,20 +415,22 @@ export default function EditTaskPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, estimated_minutes: e.target.value })
                 }
-                className="w-full px-4 py-3 rounded-xl bg-white/20 border-2 border-white/30 text-white placeholder-white/50 focus:outline-none focus:border-white/60"
+                className="input input-bordered w-full"
                 placeholder="e.g., 120 (2 hours)"
               />
               {formData.estimated_minutes && !isNaN(parseInt(formData.estimated_minutes)) && (
-                <p className="text-white/60 text-sm mt-2">
-                  ≈ {Math.round(parseInt(formData.estimated_minutes) / 60)} hours
-                </p>
+                <label className="label">
+                  <span className="label-text-alt opacity-60">
+                    ≈ {Math.round(parseInt(formData.estimated_minutes) / 60)} hours
+                  </span>
+                </label>
               )}
             </div>
 
             {/* Status */}
-            <div>
-              <label className="block text-white font-medium mb-2">
-                Status *
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Status *</span>
               </label>
               <select
                 required
@@ -436,29 +438,29 @@ export default function EditTaskPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, status: e.target.value as 'open' | 'in_progress' | 'completed' })
                 }
-                className="w-full px-4 py-3 rounded-xl bg-white/20 border-2 border-white/30 text-white focus:outline-none focus:border-white/60"
+                className="select select-bordered w-full"
               >
-                <option value="open" className="bg-purple-900">Open</option>
-                <option value="in_progress" className="bg-purple-900">In Progress</option>
-                <option value="completed" className="bg-purple-900">Completed</option>
+                <option value="open">Open</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
               </select>
             </div>
 
             {/* Assign to Volunteer */}
-            <div>
-              <label className="block text-white font-medium mb-2">
-                Assign to Volunteer (Optional)
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Assign to Volunteer (Optional)</span>
               </label>
               <select
                 value={formData.assigned_to}
                 onChange={(e) =>
                   setFormData({ ...formData, assigned_to: e.target.value })
                 }
-                className="w-full px-4 py-3 rounded-xl bg-white/20 border-2 border-white/30 text-white focus:outline-none focus:border-white/60"
+                className="select select-bordered w-full"
               >
-                <option value="" className="bg-purple-900">-- Unassigned --</option>
+                <option value="">-- Unassigned --</option>
                 {volunteers.map((volunteer) => (
-                  <option key={volunteer.id} value={volunteer.id} className="bg-purple-900">
+                  <option key={volunteer.id} value={volunteer.id}>
                     {getVolunteerName(volunteer)} ({Math.round((volunteer.total_minutes || 0) / 60)}h contributed)
                   </option>
                 ))}
@@ -466,19 +468,19 @@ export default function EditTaskPage() {
             </div>
 
             {/* Image Upload */}
-            <div>
-              <label className="block text-white font-medium mb-2">
-                Task Image (Optional)
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Task Image (Optional)</span>
               </label>
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
-                className="w-full px-4 py-3 rounded-xl bg-white/20 border-2 border-white/30 text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-white/30 file:text-white hover:file:bg-white/40"
+                className="file-input file-input-bordered w-full"
               />
               {isMounted && imagePreview && (
                 <div className="mt-4">
-                  <p className="text-white/80 text-sm mb-2">Preview:</p>
+                  <p className="text-sm mb-2 opacity-80">Preview:</p>
                   <img
                     src={imagePreview}
                     alt="Task preview"
@@ -492,7 +494,7 @@ export default function EditTaskPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full bg-white text-purple-900 font-bold py-4 px-6 rounded-xl hover:bg-white/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xl"
+              className="btn btn-primary btn-lg w-full text-xl"
             >
               {submitting ? 'Updating...' : 'Update Task'}
             </button>

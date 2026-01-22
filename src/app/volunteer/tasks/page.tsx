@@ -442,59 +442,59 @@ function TasksPageContent() {
 
   const getZoneColor = (zone: string) => {
     const colors: Record<string, string> = {
-      Woodshop: 'bg-amber-100 text-amber-800 border-amber-300',
-      '3D Printing': 'bg-purple-100 text-purple-800 border-purple-300',
-      Electronics: 'bg-blue-100 text-blue-800 border-blue-300',
-      'Laser Cutting': 'bg-red-100 text-red-800 border-red-300',
-      CNC: 'bg-green-100 text-green-800 border-green-300',
-      General: 'bg-gray-100 text-gray-800 border-gray-300',
-      Admin: 'bg-indigo-100 text-indigo-800 border-indigo-300',
+      Woodshop: 'badge-warning',
+      '3D Printing': 'badge-secondary',
+      Electronics: 'badge-info',
+      'Laser Cutting': 'badge-error',
+      CNC: 'badge-success',
+      General: 'badge-neutral',
+      Admin: 'badge-primary',
     };
     return colors[zone] || colors.General;
   };
 
   if (!isAuthenticated || loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-xl text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-base-200 flex items-center justify-center">
+        <div className="text-xl opacity-70">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-base-200">
       {/* Top Navigation Bar */}
-      <nav className="bg-white shadow-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+      <nav className="navbar bg-base-100 shadow-lg sticky top-0 z-50">
+        <div className="container mx-auto">
+          <div className="flex-1">
             {/* Left: Action Buttons */}
             <div className="flex items-center gap-2 sm:gap-3">
               <button
                 onClick={() => router.push('/task/create')}
-                className="flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all font-medium text-sm shadow-lg border-2 border-blue-500"
+                className="btn btn-primary btn-sm sm:btn-md"
               >
-                <span className="text-lg sm:text-xl font-bold">➕</span>
+                <span className="text-lg">➕</span>
                 <span className="hidden sm:inline">Create</span>
               </button>
               <button
                 onClick={() => router.push('/claim')}
-                className="flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm shadow-md"
+                className="btn btn-success btn-sm sm:btn-md"
               >
-                <span className="text-base sm:text-lg">✅</span>
+                <span className="text-base">✅</span>
                 <span className="hidden sm:inline">Claim</span>
               </button>
               <button
                 onClick={() => router.push(`/volunteer/goals?id=${volunteerId}`)}
-                className="flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium text-sm shadow-md"
+                className="btn btn-info btn-sm sm:btn-md"
               >
-                <span className="text-base sm:text-lg">🎯</span>
+                <span className="text-base">🎯</span>
                 <span className="hidden sm:inline">Goals</span>
               </button>
               <button
                 onClick={() => router.push(`/volunteer/creations?id=${volunteerId}`)}
-                className="flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors font-medium text-sm shadow-md"
+                className="btn btn-secondary btn-sm sm:btn-md"
               >
-                <span className="text-base sm:text-lg">🎨</span>
+                <span className="text-base">🎨</span>
                 <span className="hidden sm:inline">Creations</span>
               </button>
             </div>
@@ -504,7 +504,7 @@ function TasksPageContent() {
               {isAdmin && (
                 <button
                   onClick={() => router.push('/admin/dashboard')}
-                  className="hidden sm:flex items-center gap-2 px-3 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors font-medium text-sm"
+                  className="btn btn-error btn-outline btn-sm sm:btn-md hidden sm:flex"
                 >
                   <span className="text-lg">🔧</span>
                   <span>Admin</span>
@@ -527,10 +527,10 @@ function TasksPageContent() {
                     window.location.href = '/auth/discord';
                   }
                 }}
-                className="flex items-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm"
+                className="btn btn-ghost btn-sm sm:btn-md"
                 title="Logout"
               >
-                <span className="text-base sm:text-lg">🚪</span>
+                <span className="text-base">🚪</span>
                 <span className="hidden sm:inline">Logout</span>
               </button>
 
@@ -573,19 +573,22 @@ function TasksPageContent() {
 
           {/* Active Tasks Section */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">🔥 Your Active Tasks</h2>
+            <h2 className="text-2xl font-bold mb-4">🔥 Your Active Tasks</h2>
             {activeTasks.length === 0 ? (
-              <div className="bg-white rounded-lg shadow p-8 text-center">
-                <p className="text-gray-500 text-lg">No active tasks right now.</p>
-                <p className="text-gray-400 text-sm mt-2">Claim a task below to get started!</p>
+              <div className="card bg-base-100 shadow-xl">
+                <div className="card-body text-center">
+                  <p className="text-lg opacity-70">No active tasks right now.</p>
+                  <p className="text-sm opacity-50">Claim a task below to get started!</p>
+                </div>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {activeTasks.map((task) => (
                 <div
                   key={task.id}
-                  className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg shadow-lg hover:shadow-xl transition-shadow p-6 border-2 border-purple-500 relative"
+                  className="card bg-primary/10 shadow-xl border-2 border-primary"
                 >
+                  <div className="card-body">
                   {/* Task Image (if available) */}
                   {task.image && (
                     <div className="w-full mb-3 rounded overflow-hidden">
@@ -599,8 +602,8 @@ function TasksPageContent() {
                   )}
 
                   <div className="flex items-start justify-between mb-3">
-                    <span className="text-sm font-mono text-purple-700 font-bold">#{task.task_number}</span>
-                    <span className={`text-xs px-2 py-1 rounded-full border ${getZoneColor(task.zone)}`}>
+                    <span className="text-sm font-mono font-bold opacity-70">#{task.task_number}</span>
+                    <span className={`badge badge-sm ${getZoneColor(task.zone)}`}>
                       {task.zone}
                     </span>
                   </div>
@@ -642,20 +645,20 @@ function TasksPageContent() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleUnclaimTask(task.id)}
-                        className="px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-semibold text-sm"
+                        className="btn btn-warning btn-sm"
                       >
                         Unclaim
                       </button>
                       <button
                         onClick={() => handleCompleteTask(task.id)}
-                        className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold text-sm"
+                        className="btn btn-success btn-sm"
                       >
                         Complete
                       </button>
                       {/* Edit Button */}
                       <a
                         href={`/task/edit/${task.id}`}
-                        className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg w-9 h-9 flex items-center justify-center transition-colors text-sm shadow-md"
+                        className="btn btn-square btn-sm btn-info"
                         title="Edit Task"
                       >
                         ✏️
@@ -671,12 +674,13 @@ function TasksPageContent() {
                           btn.textContent = '✓';
                           setTimeout(() => btn.textContent = originalText, 1000);
                         }}
-                        className="bg-gray-600 hover:bg-gray-700 text-white rounded-lg w-9 h-9 flex items-center justify-center transition-colors text-sm shadow-md"
+                        className="btn btn-square btn-sm btn-neutral"
                         title="Copy task link"
                       >
                         🔗
                       </button>
                     </div>
+                  </div>
                   </div>
                 </div>
                 ))}
@@ -688,10 +692,10 @@ function TasksPageContent() {
           {completedTasks.length > 0 && (
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-gray-900">✅ Your Completed Tasks ({completedTasks.length})</h2>
+                <h2 className="text-2xl font-bold">✅ Your Completed Tasks ({completedTasks.length})</h2>
                 <button
                   onClick={() => setShowCompleted(!showCompleted)}
-                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm"
+                  className="btn btn-ghost btn-sm"
                 >
                   {showCompleted ? '▲ Hide' : '▼ Show'}
                 </button>
@@ -702,8 +706,9 @@ function TasksPageContent() {
                   {completedTasks.map((task) => (
                   <div
                     key={task.id}
-                    className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6 border-l-4 border-green-500 relative opacity-75"
+                    className="card bg-base-100 shadow-xl border-l-4 border-success opacity-75"
                   >
+                    <div className="card-body">
                     {/* Task Image (if available) */}
                     {task.image && (
                       <div className="w-full mb-3 rounded overflow-hidden">
@@ -717,8 +722,8 @@ function TasksPageContent() {
                     )}
 
                     <div className="flex items-start justify-between mb-3">
-                      <span className="text-sm font-mono text-gray-500">#{task.task_number}</span>
-                      <span className={`text-xs px-2 py-1 rounded-full border ${getZoneColor(task.zone)}`}>
+                      <span className="text-sm font-mono opacity-70">#{task.task_number}</span>
+                      <span className={`badge badge-sm ${getZoneColor(task.zone)}`}>
                         {task.zone}
                       </span>
                     </div>
@@ -768,12 +773,13 @@ function TasksPageContent() {
                             btn.textContent = '✓';
                             setTimeout(() => btn.textContent = originalText, 1000);
                           }}
-                          className="bg-gray-600 hover:bg-gray-700 text-white rounded-lg w-9 h-9 flex items-center justify-center transition-colors text-sm shadow-md"
+                          className="btn btn-square btn-sm btn-neutral"
                           title="Copy task link"
                         >
                           🔗
                         </button>
                       </div>
+                    </div>
                     </div>
                   </div>
                   ))}
@@ -783,16 +789,15 @@ function TasksPageContent() {
           )}
 
           {/* Filter and Sort Bar */}
-          <div className="bg-white rounded-lg shadow p-4 mb-6">
+          <div className="card bg-base-100 shadow-xl mb-6">
+            <div className="card-body p-4">
             {/* Zone Filter */}
             <div className="flex items-center gap-2 flex-wrap mb-4">
               <span className="text-sm font-medium text-gray-700">Filter by zone:</span>
               <button
                 onClick={() => setFilter('all')}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                  filter === 'all'
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                className={`btn btn-sm ${
+                  filter === 'all' ? 'btn-primary' : 'btn-ghost'
                 }`}
               >
                 All ({tasks.length})
@@ -804,10 +809,8 @@ function TasksPageContent() {
                   <button
                     key={zone}
                     onClick={() => setFilter(zone)}
-                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                      filter === zone
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    className={`btn btn-sm ${
+                      filter === zone ? 'btn-primary' : 'btn-ghost'
                     }`}
                   >
                     {zone} ({count})
@@ -822,10 +825,8 @@ function TasksPageContent() {
               <div className="flex gap-2">
                 <button
                   onClick={() => setSortBy('task_number')}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 ${
-                    sortBy === 'task_number'
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  className={`btn btn-sm ${
+                    sortBy === 'task_number' ? 'btn-info' : 'btn-ghost'
                   }`}
                 >
                   <span>🔢</span>
@@ -833,10 +834,8 @@ function TasksPageContent() {
                 </button>
                 <button
                   onClick={() => setSortBy('created')}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 ${
-                    sortBy === 'created'
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  className={`btn btn-sm ${
+                    sortBy === 'created' ? 'btn-info' : 'btn-ghost'
                   }`}
                 >
                   <span>📅</span>
@@ -844,10 +843,8 @@ function TasksPageContent() {
                 </button>
                 <button
                   onClick={() => setSortBy('updated')}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 ${
-                    sortBy === 'updated'
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  className={`btn btn-sm ${
+                    sortBy === 'updated' ? 'btn-info' : 'btn-ghost'
                   }`}
                 >
                   <span>🔄</span>
@@ -858,28 +855,32 @@ function TasksPageContent() {
               {/* Sort Order Toggle */}
               <button
                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                className="px-3 py-1.5 bg-gray-700 text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-1 shadow-md"
+                className="btn btn-sm btn-neutral"
                 title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
               >
                 <span className="text-base">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                 <span>{sortOrder === 'asc' ? 'Ascending' : 'Descending'}</span>
               </button>
             </div>
+            </div>
           </div>
 
           {/* Tasks Grid */}
           {sortedTasks.length === 0 ? (
-            <div className="bg-white rounded-lg shadow p-12 text-center">
-              <p className="text-gray-500 text-lg">No tasks available right now.</p>
-              <p className="text-gray-400 text-sm mt-2">Check back soon for new opportunities!</p>
+            <div className="card bg-base-100 shadow-xl">
+              <div className="card-body text-center">
+                <p className="text-lg opacity-70">No tasks available right now.</p>
+                <p className="text-sm opacity-50 mt-2">Check back soon for new opportunities!</p>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {sortedTasks.map((task) => (
                 <div
                   key={task.id}
-                  className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6 border-l-4 border-purple-500 relative"
+                  className="card bg-base-100 shadow-xl border-l-4 border-primary hover:shadow-2xl transition-shadow"
                 >
+                  <div className="card-body">
                   {/* Task Image (if available) */}
                   {task.image && (
                     <div className="w-full mb-3 rounded overflow-hidden">
@@ -957,7 +958,7 @@ function TasksPageContent() {
                           return (
                             <button
                               onClick={() => handleClaimTask(task.id)}
-                              className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold text-sm"
+                              className="btn btn-primary btn-sm"
                             >
                               Claim
                             </button>
@@ -966,14 +967,14 @@ function TasksPageContent() {
                       })()}
                       <button
                         onClick={() => handleCompleteTask(task.id)}
-                        className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold text-sm"
+                        className="btn btn-success btn-sm"
                       >
                         Complete
                       </button>
                       {/* Edit Button */}
                       <a
                         href={`/task/edit/${task.id}`}
-                        className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg w-9 h-9 flex items-center justify-center transition-colors text-sm shadow-md"
+                        className="btn btn-square btn-sm btn-info"
                         title="Edit Task"
                       >
                         ✏️
@@ -989,12 +990,13 @@ function TasksPageContent() {
                           btn.textContent = '✓';
                           setTimeout(() => btn.textContent = originalText, 1000);
                         }}
-                        className="bg-gray-600 hover:bg-gray-700 text-white rounded-lg w-9 h-9 flex items-center justify-center transition-colors text-sm shadow-md"
+                        className="btn btn-square btn-sm btn-neutral"
                         title="Copy task link"
                       >
                         🔗
                       </button>
                     </div>
+                  </div>
                   </div>
                 </div>
               ))}
@@ -1008,8 +1010,8 @@ function TasksPageContent() {
 export default function TasksPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-xl text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-base-200 flex items-center justify-center">
+        <div className="text-xl opacity-70">Loading...</div>
       </div>
     }>
       <TasksPageContent />

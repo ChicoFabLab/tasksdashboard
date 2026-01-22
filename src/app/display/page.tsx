@@ -293,13 +293,13 @@ export default function DisplayPage() {
 
   const getZoneColor = (zone: string) => {
     const colors: Record<string, string> = {
-      Woodshop: 'bg-amber-100 text-amber-800 border-amber-300',
-      '3D Printing': 'bg-purple-100 text-purple-800 border-purple-300',
-      Electronics: 'bg-blue-100 text-blue-800 border-blue-300',
-      'Laser Cutting': 'bg-red-100 text-red-800 border-red-300',
-      CNC: 'bg-green-100 text-green-800 border-green-300',
-      General: 'bg-gray-100 text-gray-800 border-gray-300',
-      Admin: 'bg-indigo-100 text-indigo-800 border-indigo-300',
+      Woodshop: 'badge-warning',
+      '3D Printing': 'badge-secondary',
+      Electronics: 'badge-info',
+      'Laser Cutting': 'badge-error',
+      CNC: 'badge-success',
+      General: 'badge-neutral',
+      Admin: 'badge-primary',
     };
     return colors[zone] || colors.General;
   };
@@ -396,15 +396,15 @@ export default function DisplayPage() {
   const isSplashPage = currentPage === taskPages;
 
   return (
-    <div className="h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">
+    <div className="h-screen overflow-hidden bg-base-300 p-4">
       <div className="max-w-[1920px] mx-auto h-full flex flex-col">
         {/* Header - Compact for 1080p */}
         <div className="flex items-center justify-between gap-4 mb-2">
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-white mb-0.5 flex items-center gap-2">
+            <h1 className="text-2xl font-bold mb-0.5 flex items-center gap-2">
               🏗️ Chico Fab Lab Volunteer Board
             </h1>
-            <p className="text-sm text-purple-200">
+            <p className="text-sm opacity-70">
               Make an impact • Earn recognition • Build community
             </p>
           </div>

@@ -105,20 +105,20 @@ export default function PublicCreationsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-xl text-gray-600">Loading creations...</div>
+      <div className="min-h-screen bg-base-200 flex items-center justify-center">
+        <div className="text-xl opacity-70">Loading creations...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+    <div className="min-h-screen bg-base-200">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="bg-gradient-to-r from-primary via-secondary to-accent text-primary-content">
+        <div className="container mx-auto px-4 py-12">
           <div className="text-center">
             <h1 className="text-5xl font-bold mb-4">🎨 Community Creations</h1>
-            <p className="text-xl text-purple-100 mb-6">
+            <p className="text-xl opacity-90 mb-6">
               Amazing projects made by volunteers at Chico Fab Lab
             </p>
             <button
@@ -129,7 +129,7 @@ export default function PublicCreationsPage() {
                   router.push('/');
                 }
               }}
-              className="px-6 py-3 bg-white/20 hover:bg-white/30 rounded-lg transition-colors font-semibold"
+              className="btn btn-outline transition-colors font-semibold"
             >
               ← {volunteerId ? 'Back to Dashboard' : 'Back to Home'}
             </button>
@@ -152,7 +152,7 @@ export default function PublicCreationsPage() {
               <div
                 key={creation.id}
                 onClick={() => router.push(`/creations/${creation.id}`)}
-                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all cursor-pointer transform hover:-translate-y-1"
+                className="card bg-base-100 shadow-xl cursor-pointer hover:shadow-2xl transition-all transform hover:-translate-y-1"
               >
                 {/* Image */}
                 {creation.photos && creation.photos.length > 0 ? (
