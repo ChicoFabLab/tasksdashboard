@@ -14,6 +14,23 @@ export default function PublicCreationsPage() {
   const router = useRouter();
   const [creations, setCreations] = useState<CreationWithVolunteer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [volunteerId, setVolunteerId] = useState<string | null>(null);
+
+  // Check if user is logged in
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const response = await fetch('/api/auth/session');
+        const data = await response.json();
+        if (data.volunteerId) {
+          setVolunteerId(data.volunteerId);
+        }
+      } catch (err) {
+        console.error('Error checking auth:', err);
+      }
+    }
+    checkAuth();
+  }, []);
 
   useEffect(() => {
     async function fetchCreations() {
@@ -105,10 +122,16 @@ export default function PublicCreationsPage() {
               Amazing projects made by volunteers at Chico Fab Lab
             </p>
             <button
-              onClick={() => router.push('/')}
+              onClick={() => {
+                if (volunteerId) {
+                  router.push(`/volunteer/tasks?id=${volunteerId}`);
+                } else {
+                  router.push('/');
+                }
+              }}
               className="px-6 py-3 bg-white/20 hover:bg-white/30 rounded-lg transition-colors font-semibold"
             >
-              ← Back to Home
+              ← {volunteerId ? 'Back to Dashboard' : 'Back to Home'}
             </button>
           </div>
         </div>
