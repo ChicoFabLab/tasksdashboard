@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
-/* DaisyUI Plugin with Light Makerspace Themes */
+/* DaisyUI Plugin with Clean White Theme */
 @plugin "daisyui" {
-  themes: retro --default, bumblebee, emerald, cupcake, garden, light, synthwave --prefersdark;
+  themes: winter --default, light, wireframe, retro, emerald, synthwave --prefersdark;
 }
 
 :root {
