@@ -183,6 +183,10 @@ function TasksPageContent() {
           console.log('Task fields:', Object.keys(records.items[0]));
           console.log('created field exists?', 'created' in records.items[0]);
           console.log('updated field exists?', 'updated' in records.items[0]);
+          console.log('created_by field exists?', 'created_by' in records.items[0]);
+          console.log('created_by value:', records.items[0].created_by);
+          console.log('created value:', (records.items[0] as any).created);
+          console.log('updated value:', (records.items[0] as any).updated);
         }
         
         // PocketBase automatically includes created and updated fields
