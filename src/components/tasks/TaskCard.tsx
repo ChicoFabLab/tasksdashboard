@@ -99,6 +99,16 @@ export function TaskCard({
           </div>
         </div>
         
+        {task.created && (
+          <div className="text-xs text-gray-500 mb-4 pb-4 border-b border-gray-200">
+            📅 Created {new Date(task.created).toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric'
+            })}
+          </div>
+        )}
+        
         <div className="flex gap-2">
           {showUnclaimButton && isAssignedToMe && onUnclaim && (
             <button

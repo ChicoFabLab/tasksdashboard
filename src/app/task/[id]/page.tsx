@@ -200,10 +200,21 @@ export default function TaskDetailPage() {
                 {task.title}
               </h1>
               
-              {creator && (
-                <p className="text-white/70 text-sm">
-                  Created by {creator.username || creator.email}
-                </p>
+              {creator && task.created && (
+                <div className="text-white/70 text-sm space-y-1">
+                  <p>
+                    👤 Created by <span className="font-semibold text-white/90">{creator.username || creator.email}</span>
+                  </p>
+                  <p>
+                    📅 {new Date(task.created).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                </div>
               )}
             </div>
           </div>
