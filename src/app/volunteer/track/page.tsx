@@ -6,7 +6,7 @@ import { useSession } from 'next-auth/react';
 import pb from '@/lib/pocketbase';
 import type { Task, Volunteer } from '@/lib/pocketbase';
 
-import { getVolunteerName, formatTime } from '@/lib/utils';
+import { getVolunteerName, formatTime as formatMinutes } from '@/lib/utils';
 
 
 
@@ -367,7 +367,7 @@ function TrackPageContent() {
             </div>
             <div className="flex items-center gap-1">
               <span>⏱️</span>
-              <span>Est. {formatTime(task.estimated_minutes)}</span>
+              <span>Est. {formatMinutes(task.estimated_minutes)}</span>
             </div>
           </div>
         </div>
@@ -413,7 +413,7 @@ function TrackPageContent() {
                 className="text-5xl font-bold text-gray-900 text-center border-2 border-gray-300 rounded-lg px-6 py-4 w-full max-w-xs mx-auto focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
               <div className="text-sm text-gray-500 mt-3">
-                Estimated: {formatTime(task.estimated_minutes)} minutes
+                Estimated: {formatMinutes(task.estimated_minutes)}
               </div>
               {selectedVolunteers.length > 1 && (
                 <div className="text-xs text-purple-600 mt-2">
