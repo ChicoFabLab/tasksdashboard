@@ -84,15 +84,16 @@ export default function DisplayPage() {
         
         // Cast to get created/updated fields and populate creator_name
         const tasksWithDates = records.items.map((task) => {
+          const taskRecord = task as unknown as Task;
           const expanded = task as any;
           const creator = expanded.expand?.created_by;
           if (creator) {
             return {
-              ...task,
+              ...taskRecord,
               creator_name: creator.username || creator.email || 'Unknown',
-            } as Task;
+            };
           }
-          return task as Task;
+          return taskRecord;
         });
         
         // Filter out archived tasks client-side
@@ -238,15 +239,16 @@ export default function DisplayPage() {
         
         // Cast to get created/updated fields and populate creator_name
         const tasksWithDates = allRecords.items.map((task) => {
+          const taskRecord = task as unknown as Task;
           const expanded = task as any;
           const creator = expanded.expand?.created_by;
           if (creator) {
             return {
-              ...task,
+              ...taskRecord,
               creator_name: creator.username || creator.email || 'Unknown',
-            } as Task;
+            };
           }
-          return task as Task;
+          return taskRecord;
         });
 
         // Filter out archived tasks client-side
