@@ -6,6 +6,20 @@ import { useSession } from 'next-auth/react';
 import pb from '@/lib/pocketbase';
 import type { Task, Volunteer } from '@/lib/pocketbase';
 import { getVolunteerName, formatTime } from '@/lib/utils';
+import { 
+  Plus,
+  CheckCircle2,
+  Target,
+  Palette,
+  Flame,
+  User,
+  Calendar,
+  Clock,
+  Edit,
+  Link as LinkIcon,
+  ChevronDown,
+  ChevronUp
+} from 'lucide-react';
 
 
 
@@ -473,28 +487,28 @@ function TasksPageContent() {
                 onClick={() => router.push('/task/create')}
                 className="flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all font-medium text-sm shadow-lg border-2 border-blue-500"
               >
-                <span className="text-lg sm:text-xl font-bold">➕</span>
+                <Plus className="w-5 h-5" />
                 <span className="hidden sm:inline">Create</span>
               </button>
               <button
                 onClick={() => router.push('/claim')}
                 className="flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm shadow-md"
               >
-                <span className="text-base sm:text-lg">✅</span>
+                <CheckCircle2 className="w-4 h-4" />
                 <span className="hidden sm:inline">Claim</span>
               </button>
               <button
                 onClick={() => router.push(`/volunteer/goals?id=${volunteerId}`)}
                 className="flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium text-sm shadow-md"
               >
-                <span className="text-base sm:text-lg">🎯</span>
+                <Target className="w-4 h-4" />
                 <span className="hidden sm:inline">Goals</span>
               </button>
               <button
                 onClick={() => router.push(`/volunteer/creations?id=${volunteerId}`)}
                 className="flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors font-medium text-sm shadow-md"
               >
-                <span className="text-base sm:text-lg">🎨</span>
+                <Palette className="w-4 h-4" />
                 <span className="hidden sm:inline">Creations</span>
               </button>
             </div>
@@ -553,7 +567,7 @@ function TasksPageContent() {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-white text-lg">
-                      👤
+                      <User className="w-8 h-8" />
                     </div>
                   )}
                 </div>
@@ -573,7 +587,10 @@ function TasksPageContent() {
 
           {/* Active Tasks Section */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">🔥 Your Active Tasks</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Flame className="w-6 h-6" />
+              Your Active Tasks
+            </h2>
             {activeTasks.length === 0 ? (
               <div className="bg-white rounded-lg shadow p-8 text-center">
                 <p className="text-gray-500 text-lg">No active tasks right now.</p>
@@ -618,14 +635,14 @@ function TasksPageContent() {
                     <div className="text-xs text-gray-500 bg-gray-50 rounded px-2 py-1.5 mb-3 space-y-0.5">
                       {task.creator_name && (
                         <div className="flex items-center gap-1">
-                          <span>👤</span>
+                          <User className="w-4 h-4" />
                           <span className="font-medium">Creator:</span>
                           <span className="truncate">{task.creator_name}</span>
                         </div>
                       )}
                       {task.created && (
                         <div className="flex items-center gap-1">
-                          <span>📅</span>
+                          <Calendar className="w-4 h-4" />
                           <span className="font-medium">Created:</span>
                           <span>{new Date(task.created).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                         </div>
@@ -635,7 +652,7 @@ function TasksPageContent() {
 
                   <div className="flex items-center justify-between pt-4 border-t border-purple-200">
                     <div className="flex items-center gap-1 text-sm text-gray-500">
-                      <span>⏱️</span>
+                      <Clock className="w-4 h-4" />
                       <span>{formatTime(task.estimated_minutes)}</span>
                     </div>
 
@@ -658,7 +675,7 @@ function TasksPageContent() {
                         className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg w-9 h-9 flex items-center justify-center transition-colors text-sm shadow-md"
                         title="Edit Task"
                       >
-                        ✏️
+                        <Edit className="w-4 h-4" />
                       </a>
                       {/* Copy Link Button */}
                       <button
@@ -674,7 +691,7 @@ function TasksPageContent() {
                         className="bg-gray-600 hover:bg-gray-700 text-white rounded-lg w-9 h-9 flex items-center justify-center transition-colors text-sm shadow-md"
                         title="Copy task link"
                       >
-                        🔗
+                        <LinkIcon className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -688,7 +705,10 @@ function TasksPageContent() {
           {completedTasks.length > 0 && (
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-gray-900">✅ Your Completed Tasks ({completedTasks.length})</h2>
+                <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                  <CheckCircle2 className="w-6 h-6" />
+                  Your Completed Tasks ({completedTasks.length})
+                </h2>
                 <button
                   onClick={() => setShowCompleted(!showCompleted)}
                   className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm"
@@ -736,14 +756,14 @@ function TasksPageContent() {
                       <div className="text-xs text-gray-500 bg-gray-50 rounded px-2 py-1.5 mb-3 space-y-0.5">
                         {task.created_by && (
                           <div className="flex items-center gap-1">
-                            <span>👤</span>
+                            <User className="w-4 h-4" />
                             <span className="font-medium">Creator:</span>
                             <span className="truncate">{task.created_by.slice(0, 10)}...</span>
                           </div>
                         )}
                         {task.created && (
                           <div className="flex items-center gap-1">
-                            <span>📅</span>
+                            <Calendar className="w-4 h-4" />
                             <span className="font-medium">Created:</span>
                             <span>{new Date(task.created).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                           </div>
@@ -753,7 +773,7 @@ function TasksPageContent() {
 
                     <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                       <div className="flex items-center gap-1 text-sm text-green-600 font-semibold">
-                        <span>✅</span>
+                        <CheckCircle2 className="w-4 h-4" />
                         <span>Completed</span>
                       </div>
                       <div className="flex gap-2">
@@ -771,7 +791,7 @@ function TasksPageContent() {
                           className="bg-gray-600 hover:bg-gray-700 text-white rounded-lg w-9 h-9 flex items-center justify-center transition-colors text-sm shadow-md"
                           title="Copy task link"
                         >
-                          🔗
+                          <LinkIcon className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
@@ -912,14 +932,14 @@ function TasksPageContent() {
                     <div className="text-xs text-gray-500 bg-gray-50 rounded px-2 py-1.5 mb-3 space-y-0.5">
                       {task.creator_name && (
                         <div className="flex items-center gap-1">
-                          <span>👤</span>
+                          <User className="w-4 h-4" />
                           <span className="font-medium">Creator:</span>
                           <span className="truncate">{task.creator_name}</span>
                         </div>
                       )}
                       {task.created && (
                         <div className="flex items-center gap-1">
-                          <span>📅</span>
+                          <Calendar className="w-4 h-4" />
                           <span className="font-medium">Created:</span>
                           <span>{new Date(task.created).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                         </div>
@@ -929,7 +949,7 @@ function TasksPageContent() {
 
                   <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                     <div className="flex items-center gap-1 text-sm text-gray-500">
-                      <span>⏱️</span>
+                      <Clock className="w-4 h-4" />
                       <span>{formatTime(task.estimated_minutes)}</span>
                     </div>
 
@@ -976,7 +996,7 @@ function TasksPageContent() {
                         className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg w-9 h-9 flex items-center justify-center transition-colors text-sm shadow-md"
                         title="Edit Task"
                       >
-                        ✏️
+                        <Edit className="w-4 h-4" />
                       </a>
                       {/* Copy Link Button */}
                       <button
@@ -992,7 +1012,7 @@ function TasksPageContent() {
                         className="bg-gray-600 hover:bg-gray-700 text-white rounded-lg w-9 h-9 flex items-center justify-center transition-colors text-sm shadow-md"
                         title="Copy task link"
                       >
-                        🔗
+                        <LinkIcon className="w-4 h-4" />
                       </button>
                     </div>
                   </div>

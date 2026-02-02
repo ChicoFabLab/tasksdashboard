@@ -6,6 +6,14 @@ import { useSession } from 'next-auth/react';
 import pb from '@/lib/pocketbase';
 import type { Task, Volunteer } from '@/lib/pocketbase';
 import { getVolunteerName } from '@/lib/utils';
+import { 
+  ClipboardList, 
+  Users, 
+  Clock, 
+  CheckCircle2,
+  ArrowLeft,
+  ArrowRight
+} from 'lucide-react';
 
 export default function ClaimPage() {
   const router = useRouter();
@@ -266,7 +274,7 @@ export default function ClaimPage() {
         {/* Success Screen */}
         {step === 'complete' && success && (
           <div className="text-center space-y-6">
-            <div className="text-8xl">🎉</div>
+            <CheckCircle2 className="w-24 h-24 mx-auto text-green-400" />
             <h1 className="text-4xl font-bold text-white">Task Completed!</h1>
             <p className="text-white/80 text-lg">
               Task #{task?.task_number} has been marked complete
@@ -331,7 +339,7 @@ export default function ClaimPage() {
         {step === 'volunteers' && task && !success && (
           <div className="space-y-6">
             <div className="text-center">
-              <div className="text-5xl mb-3">👥</div>
+              <Users className="w-16 h-16 mx-auto mb-3 text-white" />
               <h1 className="text-2xl font-bold text-white mb-2">Who worked on this?</h1>
               <p className="text-white/60 text-sm">Task #{task.task_number}: {task.title}</p>
             </div>
@@ -421,7 +429,7 @@ export default function ClaimPage() {
         {step === 'time' && task && !success && (
           <div className="space-y-6">
             <div className="text-center">
-              <div className="text-5xl mb-3">⏱️</div>
+              <Clock className="w-16 h-16 mx-auto mb-3 text-white" />
               <h1 className="text-2xl font-bold text-white mb-2">How long did it take?</h1>
               <p className="text-white/60 text-sm">Task #{task.task_number}: {task.title}</p>
               <p className="text-white/80 text-sm mt-1">

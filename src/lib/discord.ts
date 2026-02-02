@@ -116,7 +116,7 @@ export function formatTaskAnnouncement(task: {
   const estimatedHours = Math.round(task.estimated_minutes / 60 * 10) / 10;
 
   const embed: DiscordEmbed = {
-    title: `📋 New Task #${task.task_number}: ${task.title}`,
+    title: `📝 New Task #${task.task_number}: ${task.title}`,
     description: task.description,
     url: task.task_url,
     color: 0x5865F2, // Discord blurple
@@ -151,7 +151,7 @@ export function formatTaskAnnouncement(task: {
   }
 
   return {
-    content: '🆕 **New task available!**',
+    content: '✨ **New task available!**',
     embeds: [embed],
   };
 }
