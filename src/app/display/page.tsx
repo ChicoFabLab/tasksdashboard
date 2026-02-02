@@ -167,6 +167,15 @@ export default function DisplayPage() {
             ? expanded.expand?.assigned_to[0]
             : expanded.expand?.assigned_to;
 
+          console.log('Active task volunteer data:', {
+            taskId: task.id,
+            taskTitle: task.title,
+            volunteer: volunteer,
+            volunteerPhoto: volunteer?.profile_photo,
+            hasExpand: !!expanded.expand,
+            assignedTo: expanded.expand?.assigned_to
+          });
+
           return {
             ...task,
             volunteer_name: volunteer?.username,
@@ -194,12 +203,19 @@ export default function DisplayPage() {
 
         const completionsWithDetails: CompletionWithDetails[] = records.items.map(completion => {
           const expanded = completion as any;
-          return {
+          const result: any = {
             ...completion,
             task_title: expanded.expand?.task?.title,
             volunteer_name: expanded.expand?.volunteer?.username,
             volunteer_photo: expanded.expand?.volunteer?.profile_photo,
           };
+          
+          // Preserve the expand property for image URL generation
+          if (expanded.expand) {
+            result.expand = expanded.expand;
+          }
+          
+          return result;
         });
 
         setRecentCompletions(completionsWithDetails);
@@ -238,17 +254,24 @@ export default function DisplayPage() {
         });
         
         // Cast to get created/updated fields and populate creator_name
+        // Keep the raw items to preserve expand data
         const tasksWithDates = allRecords.items.map((task) => {
           const taskRecord = task as unknown as Task;
           const expanded = task as any;
           const creator = expanded.expand?.created_by;
-          if (creator) {
-            return {
-              ...taskRecord,
-              creator_name: creator.username || creator.email || 'Unknown',
-            };
+          
+          // Return the task with creator_name AND preserve the expand property
+          const result: any = {
+            ...taskRecord,
+            creator_name: creator ? (creator.username || creator.email || 'Unknown') : undefined,
+          };
+          
+          // Preserve the expand data
+          if (expanded.expand) {
+            result.expand = expanded.expand;
           }
-          return taskRecord;
+          
+          return result;
         });
 
         // Filter out archived tasks client-side
@@ -756,6 +779,11 @@ export default function DisplayPage() {
           </div>
         </div>
         )}
+        
+        {/* Version Number - Bottom Right */}
+        <div className="absolute bottom-2 right-4 text-white/40 text-xs font-mono">
+          v0.01
+        </div>
       </div>
     </div>
   );
