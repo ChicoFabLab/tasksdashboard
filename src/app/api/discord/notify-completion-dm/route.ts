@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
             },
             {
               name: '⏱️ Time You Spent',
-              value: `${Math.ceil(actualMinutes / volunteerIds.length)} minutes`,
+              value: `${actualMinutes} minutes`,
               inline: true,
             },
             {

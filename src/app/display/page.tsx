@@ -79,11 +79,21 @@ export default function DisplayPage() {
         const records = await pb.collection('tasks').getList(1, 500, {
           filter: `(status = "open" || status = "in_progress")`,
           sort: '-task_number',
-          expand: 'assigned_to',
+          expand: 'assigned_to,created_by',
         });
         
-        // Cast to get created/updated fields
-        const tasksWithDates = records.items as unknown as Task[];
+        // Cast to get created/updated fields and populate creator_name
+        const tasksWithDates = records.items.map((task) => {
+          const expanded = task as any;
+          const creator = expanded.expand?.created_by;
+          if (creator) {
+            return {
+              ...task,
+              creator_name: creator.username || creator.email || 'Unknown',
+            } as Task;
+          }
+          return task as Task;
+        });
         
         // Filter out archived tasks client-side
         const openTasks = tasksWithDates.filter(task =>
@@ -223,11 +233,21 @@ export default function DisplayPage() {
         const allRecords = await pb.collection('tasks').getList(1, 500, {
           filter: `(status = "open" || status = "in_progress")`,
           sort: '-task_number',
-          expand: 'assigned_to',
+          expand: 'assigned_to,created_by',
         });
         
-        // Cast to get created/updated fields
-        const tasksWithDates = allRecords.items as unknown as Task[];
+        // Cast to get created/updated fields and populate creator_name
+        const tasksWithDates = allRecords.items.map((task) => {
+          const expanded = task as any;
+          const creator = expanded.expand?.created_by;
+          if (creator) {
+            return {
+              ...task,
+              creator_name: creator.username || creator.email || 'Unknown',
+            } as Task;
+          }
+          return task as Task;
+        });
 
         // Filter out archived tasks client-side
         const openTasks = tasksWithDates.filter(task =>
