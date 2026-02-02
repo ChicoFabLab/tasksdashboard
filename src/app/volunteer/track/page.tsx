@@ -160,8 +160,8 @@ function TrackPageContent() {
         return;
       }
 
-      // Split time equally among all selected volunteers
-      const minutesPerVolunteer = Math.ceil(actualMinutes / selectedVolunteers.length);
+      // Each volunteer gets the full amount of time entered (not divided)
+      const minutesPerVolunteer = actualMinutes;
 
       // Complete task via API route
       const response = await fetch('/api/completions', {
@@ -209,7 +209,8 @@ function TrackPageContent() {
                   zone: task.zone,
                 },
                 volunteerNames: volunteerNames,
-                actualMinutes: actualMinutes,
+                actualMinutes: actualMinutes, // Time per volunteer
+                totalMinutes: actualMinutes * selectedVolunteers.length, // Total aggregate time
               }),
             });
             
@@ -239,7 +240,7 @@ function TrackPageContent() {
                   zone: task.zone,
                 },
                 volunteerIds: selectedVolunteers,
-                actualMinutes: actualMinutes,
+                actualMinutes: actualMinutes, // Time each volunteer receives
               }),
             });
             
@@ -401,7 +402,7 @@ function TrackPageContent() {
           {mode === 'manual' && (
             <div className="text-center">
               <label className="block text-sm font-medium text-gray-700 mb-3">
-                How many minutes did you spend on this task?
+                How many minutes did this task take?
               </label>
               <input
                 type="number"
@@ -414,6 +415,11 @@ function TrackPageContent() {
               <div className="text-sm text-gray-500 mt-3">
                 Estimated: {formatTime(task.estimated_minutes)} minutes
               </div>
+              {selectedVolunteers.length > 1 && (
+                <div className="text-xs text-purple-600 mt-2">
+                  Each of the {selectedVolunteers.length} selected volunteers will receive this amount of time
+                </div>
+              )}
             </div>
           )}
 
@@ -503,10 +509,10 @@ function TrackPageContent() {
             <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-2">
               <div className="flex items-center gap-2 text-sm text-purple-800 mb-2">
                 <span>ℹ️</span>
-                <span>Time will be split equally among all selected volunteers</span>
+                <span>Each selected volunteer will receive the same amount of time credit</span>
               </div>
               <div className="text-xs text-purple-600">
-                {selectedVolunteers.length} selected · {Math.ceil((mode === 'timer' ? Math.ceil(elapsedSeconds / 60) : (parseInt(manualMinutes) || 0)) / selectedVolunteers.length)} min each
+                {selectedVolunteers.length} selected · {mode === 'timer' ? Math.ceil(elapsedSeconds / 60) : (parseInt(manualMinutes) || 0)} min each
               </div>
             </div>
             
@@ -599,8 +605,8 @@ function TrackPageContent() {
               <>Time to record: {mode === 'timer' ? Math.ceil(elapsedSeconds / 60) : (parseInt(manualMinutes) || 0)} minutes</>
             ) : (
               <>
-                Total time: {mode === 'timer' ? Math.ceil(elapsedSeconds / 60) : (parseInt(manualMinutes) || 0)} minutes 
-                ({Math.ceil((mode === 'timer' ? Math.ceil(elapsedSeconds / 60) : (parseInt(manualMinutes) || 0)) / selectedVolunteers.length)} min × {selectedVolunteers.length} volunteers)
+                {mode === 'timer' ? Math.ceil(elapsedSeconds / 60) : (parseInt(manualMinutes) || 0)} minutes per volunteer 
+                (total: {(mode === 'timer' ? Math.ceil(elapsedSeconds / 60) : (parseInt(manualMinutes) || 0)) * selectedVolunteers.length} min across {selectedVolunteers.length} volunteers)
               </>
             )}
           </p>

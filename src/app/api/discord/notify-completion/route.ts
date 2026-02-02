@@ -8,7 +8,7 @@ import { sendDiscordMessage, formatTaskCompletion } from '@/lib/discord';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { taskId, taskData, volunteerNames, actualMinutes } = body;
+    const { taskId, taskData, volunteerNames, actualMinutes, totalMinutes } = body;
 
     // Get Discord channel from environment variable
     const channelId = process.env.DISCORD_ANNOUNCEMENTS_CHANNEL_ID;
@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
       zone: taskData.zone,
       completed_by_names: volunteerNames,
       actual_minutes: actualMinutes,
+      total_minutes: totalMinutes, // Total aggregate time if multiple volunteers
       task_url: taskUrl,
     });
 

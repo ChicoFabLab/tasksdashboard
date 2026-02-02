@@ -207,33 +207,52 @@ export function formatTaskCompletion(task: {
   zone: string;
   completed_by_names: string[];
   actual_minutes: number;
+  total_minutes?: number; // Total aggregate time if multiple volunteers
   task_url: string;
 }): DiscordMessagePayload {
   const completedHours = Math.round(task.actual_minutes / 60 * 10) / 10;
   const volunteersList = task.completed_by_names.join(', ');
+
+  const fields: DiscordEmbed['fields'] = [
+    {
+      name: '👥 Completed by',
+      value: volunteersList,
+      inline: false,
+    },
+    {
+      name: '🏷️ Zone',
+      value: task.zone,
+      inline: true,
+    },
+  ];
+
+  // If multiple volunteers, show both per-person and total time
+  if (task.total_minutes && task.total_minutes > task.actual_minutes) {
+    const totalHours = Math.round(task.total_minutes / 60 * 10) / 10;
+    fields.push({
+      name: '⏱️ Time per Volunteer',
+      value: `${task.actual_minutes} minutes (${completedHours}h)`,
+      inline: true,
+    });
+    fields.push({
+      name: '📊 Total Time',
+      value: `${task.total_minutes} minutes (${totalHours}h)`,
+      inline: true,
+    });
+  } else {
+    fields.push({
+      name: '⏱️ Time Spent',
+      value: `${task.actual_minutes} minutes (${completedHours}h)`,
+      inline: true,
+    });
+  }
 
   const embed: DiscordEmbed = {
     title: `✅ Task #${task.task_number} Completed!`,
     description: task.title,
     url: task.task_url,
     color: 0x57F287, // Discord green
-    fields: [
-      {
-        name: '👥 Completed by',
-        value: volunteersList,
-        inline: false,
-      },
-      {
-        name: '🏷️ Zone',
-        value: task.zone,
-        inline: true,
-      },
-      {
-        name: '⏱️ Time Spent',
-        value: `${task.actual_minutes} minutes (${completedHours}h)`,
-        inline: true,
-      },
-    ],
+    fields,
     timestamp: new Date().toISOString(),
     footer: {
       text: 'Chico FabLab Task Dashboard',

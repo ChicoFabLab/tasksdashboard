@@ -133,8 +133,8 @@ export default function ClaimPage() {
     try {
       console.log('Starting task completion...');
       
-      // Split time equally among volunteers
-      const minutesPerVolunteer = Math.ceil(totalMinutes / selectedVolunteers.length);
+      // Each volunteer gets the full amount of time entered (not divided)
+      const minutesPerVolunteer = totalMinutes;
 
       // Complete task via API route
       const response = await fetch('/api/completions', {
@@ -182,7 +182,8 @@ export default function ClaimPage() {
                   zone: task.zone,
                 },
                 volunteerNames: volunteerNames,
-                actualMinutes: totalMinutes,
+                actualMinutes: totalMinutes, // Time per volunteer
+                totalMinutes: totalMinutes * selectedVolunteers.length, // Total aggregate time
               }),
             });
             
@@ -276,7 +277,7 @@ export default function ClaimPage() {
                 const vol = allVolunteers.find(v => v.id === volId);
                 return vol ? (
                   <div key={volId} className="text-white/90 font-semibold">
-                    ✓ {getVolunteerName(vol)} - {Math.ceil(parseInt(minutesWorked) / selectedVolunteers.length)} minutes
+                    ✓ {getVolunteerName(vol)} - {parseInt(minutesWorked)} minutes
                   </div>
                 ) : null;
               })}
@@ -452,7 +453,7 @@ export default function ClaimPage() {
 
             <div>
               <label className="block text-white font-semibold mb-3 text-center">
-                Total Minutes Worked
+                Minutes per Volunteer
               </label>
               <input
                 type="number"
@@ -465,7 +466,7 @@ export default function ClaimPage() {
               />
               {minutesWorked && selectedVolunteers.length > 1 && (
                 <p className="text-center text-white/60 text-sm mt-2">
-                  {Math.ceil(parseInt(minutesWorked) / selectedVolunteers.length)} minutes per volunteer
+                  Each of {selectedVolunteers.length} volunteers will receive {minutesWorked} minutes (total: {parseInt(minutesWorked) * selectedVolunteers.length} min)
                 </p>
               )}
             </div>
