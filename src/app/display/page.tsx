@@ -615,13 +615,9 @@ export default function DisplayPage() {
                   >
                     <div className="flex items-center gap-2 mb-1">
                       <div className="w-7 h-7 rounded-full bg-green-500 overflow-hidden flex-shrink-0">
-                        {completion.volunteer_photo ? (
+                        {completion.volunteer_photo && (completion as any).expand?.volunteer ? (
                           <img
-                            src={pb.files.getURL({
-                              id: (completion as any).expand?.volunteer?.id,
-                              collectionId: (completion as any).expand?.volunteer?.collectionId,
-                              collectionName: 'volunteers' // fallback
-                            }, completion.volunteer_photo)}
+                            src={pb.files.getURL((completion as any).expand.volunteer, completion.volunteer_photo)}
                             alt="Profile"
                             className="w-full h-full object-cover"
                           />
@@ -677,13 +673,14 @@ export default function DisplayPage() {
 
                     <div className="flex items-center gap-2 mb-1">
                       <div className="w-7 h-7 rounded-full bg-orange-500 overflow-hidden flex-shrink-0">
-                        {task.volunteer_photo && task.assigned_to ? (
+                        {task.volunteer_photo && (task as any).expand?.assigned_to ? (
                           <img
-                            src={pb.files.getURL({
-                              id: Array.isArray(task.assigned_to) ? task.assigned_to[0] : task.assigned_to,
-                              collectionId: (task as any).expand?.assigned_to?.collectionId || (Array.isArray((task as any).expand?.assigned_to) ? (task as any).expand?.assigned_to[0]?.collectionId : undefined),
-                              collectionName: 'volunteers'
-                            }, task.volunteer_photo)}
+                            src={pb.files.getURL(
+                              Array.isArray((task as any).expand.assigned_to) 
+                                ? (task as any).expand.assigned_to[0] 
+                                : (task as any).expand.assigned_to,
+                              task.volunteer_photo
+                            )}
                             alt="Profile"
                             className="w-full h-full object-cover"
                           />
