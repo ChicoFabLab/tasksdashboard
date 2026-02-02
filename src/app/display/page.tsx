@@ -526,10 +526,10 @@ export default function DisplayPage() {
                     </h3>
                     
                     {/* Creator and Date Info */}
-                    {(task.created_by || task.created) && (
+                    {(task.creator_name || task.created) && (
                       <div className="text-[10px] text-gray-600 border-t border-gray-200 pt-1 mt-1">
-                        {task.created_by && (
-                          <div className="truncate">👤 ID: {task.created_by.slice(0, 8)}...</div>
+                        {task.creator_name && (
+                          <div className="truncate">👤 {task.creator_name}</div>
                         )}
                         {task.created && (
                           <div className="truncate">
