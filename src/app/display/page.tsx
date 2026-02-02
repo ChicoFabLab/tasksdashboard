@@ -201,21 +201,33 @@ export default function DisplayPage() {
           sort: '-created',
         });
 
+        // Fetch all unique volunteer IDs to get their full data
+        const volunteerIds = [...new Set(records.items.map(c => c.volunteer))];
+        const volunteersMap = new Map();
+        
+        // Fetch each volunteer directly (same as leaderboard approach)
+        await Promise.all(
+          volunteerIds.map(async (volunteerId) => {
+            try {
+              const volunteer = await pb.collection('volunteers').getOne<Volunteer>(volunteerId);
+              volunteersMap.set(volunteerId, volunteer);
+            } catch (err) {
+              console.error(`Failed to fetch volunteer ${volunteerId}:`, err);
+            }
+          })
+        );
+
         const completionsWithDetails: CompletionWithDetails[] = records.items.map(completion => {
           const expanded = completion as any;
-          const result: any = {
+          const volunteer = volunteersMap.get(completion.volunteer);
+          
+          return {
             ...completion,
             task_title: expanded.expand?.task?.title,
-            volunteer_name: expanded.expand?.volunteer?.username,
-            volunteer_photo: expanded.expand?.volunteer?.profile_photo,
-          };
-          
-          // Preserve the expand property for image URL generation
-          if (expanded.expand) {
-            result.expand = expanded.expand;
-          }
-          
-          return result;
+            volunteer_name: volunteer?.username || volunteer?.email,
+            volunteer_photo: volunteer?.profile_photo,
+            volunteer_record: volunteer, // Store the full volunteer record for image URL generation
+          } as any;
         });
 
         setRecentCompletions(completionsWithDetails);
@@ -638,9 +650,9 @@ export default function DisplayPage() {
                   >
                     <div className="flex items-center gap-2 mb-1">
                       <div className="w-7 h-7 rounded-full bg-green-500 overflow-hidden flex-shrink-0">
-                        {completion.volunteer_photo && (completion as any).expand?.volunteer ? (
+                        {completion.volunteer_photo && (completion as any).volunteer_record ? (
                           <img
-                            src={pb.files.getURL((completion as any).expand.volunteer, completion.volunteer_photo)}
+                            src={pb.files.getURL((completion as any).volunteer_record, completion.volunteer_photo)}
                             alt="Profile"
                             className="w-full h-full object-cover"
                           />
@@ -651,7 +663,7 @@ export default function DisplayPage() {
                         )}
                       </div>
                       <p className="font-semibold text-white text-xs flex-1 line-clamp-1">
-                        {getVolunteerName((completion as any).expand?.volunteer || {})}
+                        {completion.volunteer_name || 'Unknown'}
                       </p>
                     </div>
                     <h3 className="text-white text-xs font-medium mb-1 line-clamp-2">
@@ -782,7 +794,7 @@ export default function DisplayPage() {
         
         {/* Version Number - Bottom Right */}
         <div className="absolute bottom-2 right-4 text-white/40 text-xs font-mono">
-          v0.01
+          v0.02
         </div>
       </div>
     </div>
