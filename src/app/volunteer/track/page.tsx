@@ -5,8 +5,16 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import pb from '@/lib/pocketbase';
 import type { Task, Volunteer } from '@/lib/pocketbase';
-
 import { getVolunteerName, formatTime as formatMinutes } from '@/lib/utils';
+import { 
+  Clock, 
+  Play, 
+  Pause, 
+  CheckCircle2, 
+  Users, 
+  User,
+  Loader2
+} from 'lucide-react';
 
 
 
@@ -366,7 +374,7 @@ function TrackPageContent() {
               </span>
             </div>
             <div className="flex items-center gap-1">
-              <span>⏱️</span>
+              <Clock className="w-4 h-4" />
               <span>Est. {formatMinutes(task.estimated_minutes)}</span>
             </div>
           </div>
@@ -394,7 +402,8 @@ function TrackPageContent() {
                   : 'text-gray-600 hover:bg-gray-200'
               }`}
             >
-              ⏱️ Use Timer
+              <Clock className="w-4 h-4" />
+              <span>Use Timer</span>
             </button>
           </div>
 
@@ -462,7 +471,17 @@ function TrackPageContent() {
                       : 'bg-green-500 hover:bg-green-600 text-white'
                   }`}
                 >
-                  {isTracking ? '⏸️ Pause' : '▶️ Start'}
+                  {isTracking ? (
+                    <>
+                      <Pause className="w-5 h-5" />
+                      <span>Pause</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-5 h-5" />
+                      <span>Start</span>
+                    </>
+                  )}
                 </button>
 
                 <button

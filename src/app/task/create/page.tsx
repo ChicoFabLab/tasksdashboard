@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import pb from '@/lib/pocketbase';
 import type { Task, Volunteer } from '@/lib/pocketbase';
+import { Plus, MessageCircle } from 'lucide-react';
 
 export default function CreateTaskPage() {
   const router = useRouter();
@@ -220,7 +221,7 @@ export default function CreateTaskPage() {
       <div className="max-w-2xl mx-auto py-8">
         <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 shadow-2xl">
           <div className="text-center mb-8">
-            <div className="text-6xl mb-4">➕</div>
+            <Plus className="w-20 h-20 mx-auto mb-4 text-white" />
             <h1 className="text-3xl font-bold text-white mb-2">Create New Task</h1>
             <p className="text-white/80">Add a task to the volunteer board</p>
           </div>
@@ -344,8 +345,9 @@ export default function CreateTaskPage() {
                 ))}
               </select>
               {formData.assigned_to && (
-                <p className="text-white/60 text-sm mt-2">
-                  💬 They will receive a Discord DM with task details
+                <p className="text-white/60 text-sm mt-2 flex items-center gap-1 justify-center">
+                  <MessageCircle className="w-4 h-4" />
+                  They will receive a Discord DM with task details
                 </p>
               )}
             </div>

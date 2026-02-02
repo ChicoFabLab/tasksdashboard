@@ -6,6 +6,17 @@ import { useSession } from 'next-auth/react';
 import pb from '@/lib/pocketbase';
 import type { Task, Volunteer, Completion } from '@/lib/pocketbase';
 import { getVolunteerName, formatTime } from '@/lib/utils';
+import { 
+  ClipboardList, 
+  Flame, 
+  CheckCircle2, 
+  Clock,
+  User,
+  Calendar,
+  Edit,
+  Link as LinkIcon,
+  Hammer
+} from 'lucide-react';
 
 const QRCode = dynamic(() => import('@/components/QRCode'), { ssr: false });
 
@@ -459,7 +470,8 @@ export default function DisplayPage() {
         <div className="flex items-center justify-between gap-4 mb-2">
           <div className="flex-1">
             <h1 className="text-2xl font-bold text-white mb-0.5 flex items-center gap-2">
-              🏗️ Chico Fab Lab Volunteer Board
+              <Hammer className="w-6 h-6" />
+              Chico Fab Lab Volunteer Board
             </h1>
             <p className="text-sm text-purple-200">
               Make an impact • Earn recognition • Build community
@@ -515,7 +527,8 @@ export default function DisplayPage() {
           {/* Open Tasks - 60% */}
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/20 flex flex-col overflow-hidden">
             <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
-              📋 Open Tasks
+              <ClipboardList className="w-5 h-5" />
+              Open Tasks
               <span className="text-sm font-normal text-purple-200">
                 ({tasks.length})
               </span>
@@ -586,11 +599,15 @@ export default function DisplayPage() {
                     {(task.creator_name || task.created) && (
                       <div className="text-[10px] text-gray-600 border-t border-gray-200 pt-1 mt-1">
                         {task.creator_name && (
-                          <div className="truncate">👤 {task.creator_name}</div>
+                          <div className="truncate flex items-center gap-1">
+                            <User className="w-3 h-3" />
+                            {task.creator_name}
+                          </div>
                         )}
                         {task.created && (
-                          <div className="truncate">
-                            📅 {new Date(task.created).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          <div className="truncate flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {new Date(task.created).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                           </div>
                         )}
                       </div>
@@ -598,18 +615,19 @@ export default function DisplayPage() {
                     
                     <div className={`flex items-center justify-between ${config.timeSize} text-gray-500 mt-auto`}>
                       <div className="flex items-center gap-1.5">
-                        <span>⏱️ {formatTime(task.estimated_minutes)}</span>
+                        <Clock className="w-4 h-4" />
+                        <span>{formatTime(task.estimated_minutes)}</span>
                       </div>
                       <div className="flex items-center gap-1">
                         {/* Edit Button - Only show if authenticated */}
                         {isAuthenticated && (
                           <a
                             href={`/task/edit/${task.id}`}
-                            className="bg-blue-500 hover:bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center transition-colors text-xs shadow-md"
-                            title="Edit Task"
-                          >
-                            ✏️
-                          </a>
+                          className="bg-blue-500 hover:bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center transition-colors text-xs shadow-md"
+                          title="Edit Task"
+                        >
+                          <Edit className="w-3 h-3" />
+                        </a>
                         )}
                         {/* Copy Link Button */}
                         <button
@@ -621,7 +639,7 @@ export default function DisplayPage() {
                           className="bg-gray-600 hover:bg-gray-700 text-white rounded-full w-6 h-6 flex items-center justify-center transition-colors text-xs shadow-md"
                           title="Copy task link"
                         >
-                          🔗
+                          <LinkIcon className="w-3 h-3" />
                         </button>
                       </div>
                     </div>
@@ -633,8 +651,9 @@ export default function DisplayPage() {
 
           {/* Recently Completed - 13.33% */}
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/20 flex flex-col overflow-hidden">
-            <h2 className="text-lg font-bold text-white mb-2 text-center">
-              ✅ Completed
+            <h2 className="text-lg font-bold text-white mb-2 text-center flex items-center justify-center gap-2">
+              <CheckCircle2 className="w-5 h-5" />
+              Completed
             </h2>
 
             <div className="space-y-2 overflow-hidden">
@@ -680,8 +699,9 @@ export default function DisplayPage() {
 
           {/* Active Tasks - 13.33% */}
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/20 flex flex-col overflow-hidden">
-            <h2 className="text-lg font-bold text-white mb-2 text-center">
-              🔥 Active
+            <h2 className="text-lg font-bold text-white mb-2 text-center flex items-center justify-center gap-2">
+              <Flame className="w-5 h-5" />
+              Active
             </h2>
 
             <div className="space-y-2 overflow-hidden">
@@ -702,7 +722,7 @@ export default function DisplayPage() {
                         className="absolute top-1 right-1 bg-blue-500 hover:bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center transition-colors text-xs z-10 shadow-sm"
                         title="Edit Task"
                       >
-                        ✏️
+                        <Edit className="w-3 h-3" />
                       </a>
                     )}
 
@@ -732,7 +752,8 @@ export default function DisplayPage() {
                     <h3 className="text-white text-xs font-medium mb-1 line-clamp-2">
                       #{task.task_number} • {task.title}
                     </h3>
-                    <p className="text-orange-200 text-xs">
+                    <p className="text-orange-200 text-xs flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
                       Est. {formatTime(task.estimated_minutes)}
                     </p>
                   </div>
