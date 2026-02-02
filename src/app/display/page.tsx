@@ -815,7 +815,7 @@ export default function DisplayPage() {
         
         {/* Version Number - Bottom Right */}
         <div className="absolute bottom-2 right-4 text-white/40 text-xs font-mono">
-          v0.02
+          v0.03
         </div>
       </div>
     </div>

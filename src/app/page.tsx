@@ -578,7 +578,7 @@ export default function HomePage() {
           )}
 
           {/* Version Number */}
-          <div className="absolute bottom-2 right-4 text-white/40 text-xs font-mono">v0.02</div>
+          <div className="absolute bottom-2 right-4 text-white/40 text-xs font-mono">v0.03</div>
         </div>
       </div>
 
@@ -824,7 +824,7 @@ export default function HomePage() {
         </div>
 
         {/* Mobile Version Number */}
-        <div className="text-center py-2 text-white/40 text-xs font-mono bg-white/5">v0.02</div>
+        <div className="text-center py-2 text-white/40 text-xs font-mono bg-white/5">v0.03</div>
       </div>
     </div>
   );
