@@ -368,7 +368,7 @@ export default function HomePage() {
               </div>
             </div>
           ) : (
-            <div className="grid gap-3 flex-1 overflow-hidden" style={{ gridTemplateColumns: '60% 13.33% 13.33% 13.33%' }}>
+            <div className="grid gap-3 flex-1 overflow-hidden" style={{ gridTemplateColumns: '9fr 2fr 2fr 2fr' }}>
               {/* Open Tasks */}
               <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/20 flex flex-col overflow-hidden">
                 <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
@@ -535,7 +535,11 @@ export default function HomePage() {
 
               {/* Volunteers Leaderboard */}
               <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/20 flex flex-col overflow-hidden">
-                <div className="flex flex-col gap-1.5 overflow-hidden">
+                <h2 className="text-lg font-bold text-white mb-2 text-center flex items-center justify-center gap-2">
+                  <Trophy className="w-5 h-5" />
+                  Volunteers
+                </h2>
+                <div className="space-y-1.5 overflow-y-auto flex-1">
                   {leaderboard.length === 0 ? (
                     <p className="text-brand-200 text-center py-8 text-sm">No volunteers yet</p>
                   ) : (
