@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import pb from '@/lib/pocketbase';
 import type { Task, Volunteer } from '@/lib/pocketbase';
 import { Plus, MessageCircle } from 'lucide-react';
 
 export default function CreateTaskPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [formData, setFormData] = useState({
     task_number: 1,
     title: '',
@@ -22,6 +24,12 @@ export default function CreateTaskPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+       router.push('/auth/discord');
+    }
+  }, [status,session, router]);
+
   // Auto-generate next task number on mount
   useEffect(() => {
     const getNextTaskNumber = async () => {
@@ -31,7 +39,6 @@ export default function CreateTaskPage() {
           sort: '-task_number',
         });
         const mainBoardTasks = tasks.items;
-
         // If there are tasks, increment the highest number, otherwise start at 1
         const nextNumber = mainBoardTasks.length > 0 ? mainBoardTasks[0].task_number + 1 : 1;
         setFormData(prev => ({ ...prev, task_number: nextNumber }));
@@ -40,7 +47,7 @@ export default function CreateTaskPage() {
         // Default to 1 if there's an error
         setFormData(prev => ({ ...prev, task_number: 1 }));
       }
-    };
+  };
 
     getNextTaskNumber();
   }, []);
@@ -91,7 +98,8 @@ export default function CreateTaskPage() {
 
     try {
       // Get volunteerId from session or localStorage
-      const volunteerId = localStorage.getItem('volunteerId');
+      // const volunteerId = localStorage.getItem('volunteerId');
+      const volunteerId = (session?.user as any)?.id || localStorage.getItem('volunteerId');
       if (!volunteerId) {
         setError('Volunteer ID not found. Please log in again.');
         setSubmitting(false);
@@ -215,9 +223,15 @@ export default function CreateTaskPage() {
       setSubmitting(false);
     }
   };
+  console.log('Auth status:', status, 'Session:', session);
+  if (status === 'loading') return null;
+  if (status === 'unauthenticated' ) {
+     router.push('/auth/discord');
+     return null;
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-brand-900 via-secondary-900 to-secondary-900 p-4">
       <div className="max-w-2xl mx-auto py-8">
         <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 shadow-2xl">
           <div className="text-center mb-8">
@@ -294,7 +308,7 @@ export default function CreateTaskPage() {
                 className="w-full px-4 py-3 rounded-xl bg-white/20 border-2 border-white/30 text-white focus:outline-none focus:border-white/60"
               >
                 {zones.map((zone) => (
-                  <option key={zone} value={zone} className="bg-purple-900">
+                  <option key={zone} value={zone} className="bg-brand-900">
                     {zone}
                   </option>
                 ))}
@@ -335,11 +349,11 @@ export default function CreateTaskPage() {
                 }
                 className="w-full px-4 py-3 rounded-xl bg-white/20 border-2 border-white/30 text-white focus:outline-none focus:border-white/60"
               >
-                <option value="" className="bg-purple-900">
+                <option value="" className="bg-brand-900">
                   -- Leave Unassigned --
                 </option>
                 {volunteers.map((volunteer) => (
-                  <option key={volunteer.id} value={volunteer.id} className="bg-purple-900">
+                  <option key={volunteer.id} value={volunteer.id} className="bg-brand-900">
                     {volunteer.username || volunteer.email}
                   </option>
                 ))}
@@ -379,7 +393,7 @@ export default function CreateTaskPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full bg-white text-purple-900 font-bold py-4 px-6 rounded-xl hover:bg-white/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xl"
+              className="w-full bg-white text-brand-900 font-bold py-4 px-6 rounded-xl hover:bg-white/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xl"
             >
               {submitting ? 'Creating...' : 'Create Task'}
             </button>

@@ -71,20 +71,21 @@ function TasksPageContent() {
   }, [router]);
 
   // Fetch volunteer data
-  useEffect(() => {
-    if (!volunteerId) {
-      router.push('/volunteer');
+useEffect(() => {
+    const vid = volunteerId || (session?.user as any)?.volunteerId;
+    if (!vid) {
+      setLoading(false);
       return;
     }
 
     // Store volunteer ID in localStorage for navigation
-    localStorage.setItem('volunteerId', volunteerId);
+    localStorage.setItem('volunteerId', vid);
 
     async function fetchVolunteer() {
-      if (!volunteerId) return;
+      if (!vid) return;
 
       try {
-        const record = await pb.collection('volunteers').getOne<Volunteer>(volunteerId);
+        const record = await pb.collection('volunteers').getOne<Volunteer>(vid);
         setVolunteer(record);
       } catch (err) {
         console.error('Error fetching volunteer:', err);
@@ -93,11 +94,12 @@ function TasksPageContent() {
     }
 
     fetchVolunteer();
-  }, [volunteerId, router]);
+  }, [volunteerId, session, router]);
 
   // Fetch active (in-progress) tasks assigned to this volunteer
   useEffect(() => {
-    if (!volunteerId) return;
+    const vid = volunteerId || (session?.user as any)?.volunteerId; 
+    if (!vid) return;
 
     async function fetchActiveTasks() {
       try {
@@ -457,12 +459,12 @@ function TasksPageContent() {
   const getZoneColor = (zone: string) => {
     const colors: Record<string, string> = {
       Woodshop: 'bg-amber-100 text-amber-800 border-amber-300',
-      '3D Printing': 'bg-purple-100 text-purple-800 border-purple-300',
-      Electronics: 'bg-blue-100 text-blue-800 border-blue-300',
+      '3D Printing': 'bg-brand-100 text-brand-800 border-brand-400',
+      Electronics: 'bg-brand-50 text-brand-900 border-brand-500',
       'Laser Cutting': 'bg-red-100 text-red-800 border-red-300',
       CNC: 'bg-green-100 text-green-800 border-green-300',
       General: 'bg-gray-100 text-gray-800 border-gray-300',
-      Admin: 'bg-indigo-100 text-indigo-800 border-indigo-300',
+      Admin: 'bg-brand-50 text-brand-900 border-brand-500',
     };
     return colors[zone] || colors.General;
   };
@@ -476,7 +478,7 @@ function TasksPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-brand-50 to-brand-50">
       {/* Top Navigation Bar */}
       <nav className="bg-white shadow-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -499,7 +501,7 @@ function TasksPageContent() {
               </button>
               <button
                 onClick={() => router.push(`/volunteer/goals?id=${volunteerId}`)}
-                className="flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium text-sm shadow-md"
+                className="flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors font-medium text-sm shadow-md"
               >
                 <Target className="w-4 h-4" />
                 <span className="hidden sm:inline">Goals</span>
@@ -558,7 +560,7 @@ function TasksPageContent() {
                   <span className="text-sm font-semibold text-gray-900">{getVolunteerName(volunteer)}</span>
                   <span className="text-xs text-gray-600">{Math.round((volunteer?.total_minutes || 0) / 60)}h</span>
                 </div>
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 overflow-hidden flex-shrink-0 border-2 border-white shadow-md">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-600 to-secondary-600 overflow-hidden flex-shrink-0 border-2 border-white shadow-md">
                   {volunteer?.profile_photo ? (
                     <img
                       src={pb.files.getURL(volunteer, volunteer.profile_photo)}
@@ -601,7 +603,7 @@ function TasksPageContent() {
                 {activeTasks.map((task) => (
                 <div
                   key={task.id}
-                  className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg shadow-lg hover:shadow-xl transition-shadow p-6 border-2 border-purple-500 relative"
+                  className="bg-gradient-to-br from-brand-50 to-brand-50 rounded-lg shadow-lg hover:shadow-xl transition-shadow p-6 border-2 border-brand-500 relative"
                 >
                   {/* Task Image (if available) */}
                   {task.image && (
@@ -616,7 +618,7 @@ function TasksPageContent() {
                   )}
 
                   <div className="flex items-start justify-between mb-3">
-                    <span className="text-sm font-mono text-purple-700 font-bold">#{task.task_number}</span>
+                    <span className="text-sm font-mono text-brand-700 font-bold">#{task.task_number}</span>
                     <span className={`text-xs px-2 py-1 rounded-full border ${getZoneColor(task.zone)}`}>
                       {task.zone}
                     </span>
@@ -650,7 +652,7 @@ function TasksPageContent() {
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between pt-4 border-t border-purple-200">
+                  <div className="flex items-center justify-between pt-4 border-t border-brand-200">
                     <div className="flex items-center gap-1 text-sm text-gray-500">
                       <Clock className="w-4 h-4" />
                       <span>{formatTime(task.estimated_minutes)}</span>
@@ -672,7 +674,7 @@ function TasksPageContent() {
                       {/* Edit Button */}
                       <a
                         href={`/task/edit/${task.id}`}
-                        className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg w-9 h-9 flex items-center justify-center transition-colors text-sm shadow-md"
+                        className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg w-9 h-9 flex items-center justify-center transition-colors text-sm shadow-md"
                         title="Edit Task"
                       >
                         <Edit className="w-4 h-4" />
@@ -811,7 +813,7 @@ function TasksPageContent() {
                 onClick={() => setFilter('all')}
                 className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                   filter === 'all'
-                    ? 'bg-purple-600 text-white'
+                    ? 'bg-brand-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -826,7 +828,7 @@ function TasksPageContent() {
                     onClick={() => setFilter(zone)}
                     className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
                       filter === zone
-                        ? 'bg-purple-600 text-white'
+                        ? 'bg-brand-600 text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -844,7 +846,7 @@ function TasksPageContent() {
                   onClick={() => setSortBy('task_number')}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 ${
                     sortBy === 'task_number'
-                      ? 'bg-blue-600 text-white shadow-md'
+                      ? 'bg-brand-600 text-white shadow-md'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
@@ -855,7 +857,7 @@ function TasksPageContent() {
                   onClick={() => setSortBy('created')}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 ${
                     sortBy === 'created'
-                      ? 'bg-blue-600 text-white shadow-md'
+                      ? 'bg-brand-600 text-white shadow-md'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
@@ -866,7 +868,7 @@ function TasksPageContent() {
                   onClick={() => setSortBy('updated')}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1 ${
                     sortBy === 'updated'
-                      ? 'bg-blue-600 text-white shadow-md'
+                      ? 'bg-brand-600 text-white shadow-md'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
@@ -898,7 +900,7 @@ function TasksPageContent() {
               {sortedTasks.map((task) => (
                 <div
                   key={task.id}
-                  className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6 border-l-4 border-purple-500 relative"
+                  className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6 border-l-4 border-brand-500 relative"
                 >
                   {/* Task Image (if available) */}
                   {task.image && (
@@ -977,7 +979,7 @@ function TasksPageContent() {
                           return (
                             <button
                               onClick={() => handleClaimTask(task.id)}
-                              className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-semibold text-sm"
+                              className="px-3 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors font-semibold text-sm"
                             >
                               Claim
                             </button>
@@ -993,7 +995,7 @@ function TasksPageContent() {
                       {/* Edit Button */}
                       <a
                         href={`/task/edit/${task.id}`}
-                        className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg w-9 h-9 flex items-center justify-center transition-colors text-sm shadow-md"
+                        className="bg-brand-600 hover:bg-brand-700 text-white rounded-lg w-9 h-9 flex items-center justify-center transition-colors text-sm shadow-md"
                         title="Edit Task"
                       >
                         <Edit className="w-4 h-4" />

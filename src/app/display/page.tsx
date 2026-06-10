@@ -1,5 +1,6 @@
 'use client';
 
+import { siteConfig } from '@/lib/site-config';
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useSession } from 'next-auth/react';
@@ -362,12 +363,12 @@ export default function DisplayPage() {
   const getZoneColor = (zone: string) => {
     const colors: Record<string, string> = {
       Woodshop: 'bg-amber-100 text-amber-800 border-amber-300',
-      '3D Printing': 'bg-purple-100 text-purple-800 border-purple-300',
-      Electronics: 'bg-blue-100 text-blue-800 border-blue-300',
+      '3D Printing': 'bg-brand-100 text-brand-800 border-brand-400',
+      Electronics: 'bg-brand-50 text-brand-900 border-brand-500',
       'Laser Cutting': 'bg-red-100 text-red-800 border-red-300',
       CNC: 'bg-green-100 text-green-800 border-green-300',
       General: 'bg-gray-100 text-gray-800 border-gray-300',
-      Admin: 'bg-indigo-100 text-indigo-800 border-indigo-300',
+      Admin: 'bg-brand-50 text-brand-900 border-brand-500',
     };
     return colors[zone] || colors.General;
   };
@@ -464,16 +465,16 @@ export default function DisplayPage() {
   const isSplashPage = currentPage === taskPages;
 
   return (
-    <div className="h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">
+    <div className="h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-brand-900 to-slate-900 p-4">
       <div className="max-w-[1920px] mx-auto h-full flex flex-col">
         {/* Header - Compact for 1080p */}
         <div className="flex items-center justify-between gap-4 mb-2">
           <div className="flex-1">
             <h1 className="text-2xl font-bold text-white mb-0.5 flex items-center gap-2">
               <Hammer className="w-6 h-6" />
-              Chico Fab Lab Volunteer Board
+              {siteConfig.name} Volunteer Board
             </h1>
-            <p className="text-sm text-purple-200">
+            <p className="text-sm text-brand-200">
               Make an impact • Earn recognition • Build community
             </p>
           </div>
@@ -487,7 +488,7 @@ export default function DisplayPage() {
           >
             <QRCode value={`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/auth/discord`} size={80} />
             <div>
-              <h3 className="text-sm font-bold text-purple-900">Volunteer Portal</h3>
+              <h3 className="text-sm font-bold text-brand-900">Volunteer Portal</h3>
               <p className="text-xs text-gray-600">Scan or Click to join</p>
             </div>
           </a>
@@ -500,8 +501,8 @@ export default function DisplayPage() {
               {/* Large Logo (Left Side) */}
               <div className="w-[400px] h-[400px] relative rounded-full overflow-hidden bg-white shadow-2xl p-6 flex items-center justify-center flex-shrink-0">
                  <img 
-                    src="/fablab-logo.webp" 
-                    alt="Chico Fab Lab"
+                    src={siteConfig.logoPath} 
+                    alt={siteConfig.name}
                     className="w-full h-full object-contain"
                     onError={(e) => {
                         e.currentTarget.style.display = 'none';
@@ -513,11 +514,10 @@ export default function DisplayPage() {
               {/* Description (Right Side) */}
               <div className="flex-1 space-y-6 text-left">
                 <h1 className="text-7xl font-bold text-white tracking-tight drop-shadow-lg">
-                  Chico Fab Lab
+                  {siteConfig.name}
                 </h1>
-                <p className="text-3xl text-purple-100 leading-relaxed font-light drop-shadow-md">
-                  We are a nonprofit makerspace where the community comes together to learn, share, and create. 
-                  From 3D printing and laser cutting to woodworking and electronics, we provide access to tools, knowledge, and collaboration.
+                <p className="text-3xl text-brand-100 leading-relaxed font-light drop-shadow-md">
+                  {siteConfig.description}
                 </p>
               </div>
             </div>
@@ -529,11 +529,11 @@ export default function DisplayPage() {
             <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
               <ClipboardList className="w-5 h-5" />
               Open Tasks
-              <span className="text-sm font-normal text-purple-200">
+              <span className="text-sm font-normal text-brand-200">
                 ({tasks.length})
               </span>
               {tasks.length > TASKS_PER_PAGE && (
-                <span className="text-sm font-normal text-purple-200 ml-auto">
+                <span className="text-sm font-normal text-brand-200 ml-auto">
                   Page {currentPage + 1} of {Math.ceil(tasks.length / TASKS_PER_PAGE)}
                 </span>
               )}
@@ -542,7 +542,7 @@ export default function DisplayPage() {
             <div className="grid grid-cols-3 grid-rows-4 gap-2 overflow-hidden h-full">
               {tasks.length === 0 ? (
                 <div className="col-span-3 row-span-4 flex items-center justify-center">
-                  <p className="text-purple-200 text-center text-lg">
+                  <p className="text-brand-200 text-center text-lg">
                     No open tasks right now. Check back soon!
                   </p>
                 </div>
@@ -566,7 +566,7 @@ export default function DisplayPage() {
                 return pageTasks.map((task) => (
                   <div
                     key={task.id}
-                    className={`bg-white/90 rounded-lg ${config.padding} border-l-4 border-purple-500 flex flex-col ${config.spacing} relative overflow-hidden`}
+                    className={`bg-white/90 rounded-lg ${config.padding} border-l-4 border-brand-500 flex flex-col ${config.spacing} relative overflow-hidden`}
                   >
                     {/* Task Image (if available) */}
                     {task.image && (
@@ -623,7 +623,7 @@ export default function DisplayPage() {
                         {isAuthenticated && (
                           <a
                             href={`/task/edit/${task.id}`}
-                          className="bg-blue-500 hover:bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center transition-colors text-xs shadow-md"
+                          className="bg-brand-600 hover:bg-brand-700 text-white rounded-full w-6 h-6 flex items-center justify-center transition-colors text-xs shadow-md"
                           title="Edit Task"
                         >
                           <Edit className="w-3 h-3" />
@@ -658,7 +658,7 @@ export default function DisplayPage() {
 
             <div className="space-y-2 overflow-hidden">
               {recentCompletions.length === 0 ? (
-                <p className="text-purple-200 text-center py-8 text-sm">
+                <p className="text-brand-200 text-center py-8 text-sm">
                   No completed tasks yet
                 </p>
               ) : (
@@ -706,7 +706,7 @@ export default function DisplayPage() {
 
             <div className="space-y-2 overflow-hidden">
               {activeTasks.length === 0 ? (
-                <p className="text-purple-200 text-center py-8 text-sm">
+                <p className="text-brand-200 text-center py-8 text-sm">
                   No active tasks
                 </p>
               ) : (
@@ -719,7 +719,7 @@ export default function DisplayPage() {
                     {isAuthenticated && (
                       <a
                         href={`/task/edit/${task.id}`}
-                        className="absolute top-1 right-1 bg-blue-500 hover:bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center transition-colors text-xs z-10 shadow-sm"
+                        className="absolute top-1 right-1 bg-brand-600 hover:bg-brand-700 text-white rounded-full w-5 h-5 flex items-center justify-center transition-colors text-xs z-10 shadow-sm"
                         title="Edit Task"
                       >
                         <Edit className="w-3 h-3" />
@@ -766,7 +766,7 @@ export default function DisplayPage() {
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/20 flex flex-col overflow-hidden">
             <div className="flex flex-col gap-1.5 overflow-hidden">
               {leaderboard.length === 0 ? (
-                <p className="text-purple-200 text-center py-8 text-sm">
+                <p className="text-brand-200 text-center py-8 text-sm">
                   No volunteers yet. Be the first!
                 </p>
               ) : (
@@ -782,7 +782,7 @@ export default function DisplayPage() {
                     }`}
                   >
                     {/* Profile Photo */}
-                    <div className={`${volunteer.rank === 1 ? 'w-12 h-12' : 'w-9 h-9'} rounded-full bg-purple-500 overflow-hidden flex-shrink-0 ${volunteer.rank === 1 ? 'ring-2 ring-yellow-400' : ''}`}>
+                    <div className={`${volunteer.rank === 1 ? 'w-12 h-12' : 'w-9 h-9'} rounded-full bg-brand-500 overflow-hidden flex-shrink-0 ${volunteer.rank === 1 ? 'ring-2 ring-yellow-400' : ''}`}>
                       {volunteer.profile_photo ? (
                         <img
                           src={pb.files.getURL(volunteer, volunteer.profile_photo)}
@@ -801,7 +801,7 @@ export default function DisplayPage() {
                       <p className={`font-bold text-white ${volunteer.rank === 1 ? 'text-sm' : 'text-xs'} truncate`}>
                         {getVolunteerName(volunteer)}
                       </p>
-                      <p className={`text-purple-200 ${volunteer.rank === 1 ? 'text-xs' : 'text-[10px]'}`}>
+                      <p className={`text-brand-200 ${volunteer.rank === 1 ? 'text-xs' : 'text-[10px]'}`}>
                         {formatTime(volunteer.total_minutes)}
                       </p>
                     </div>

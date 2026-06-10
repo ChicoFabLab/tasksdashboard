@@ -1,3 +1,4 @@
+import { siteConfig } from '@/lib/site-config';
 /**
  * Discord Integration Library
  * Utilities for sending messages to Discord channels
@@ -119,7 +120,7 @@ export function formatTaskAnnouncement(task: {
     title: `📝 New Task #${task.task_number}: ${task.title}`,
     description: task.description,
     url: task.task_url,
-    color: 0x5865F2, // Discord blurple
+    color: 0xFF7C4B, // TechToss Orange
     fields: [
       {
         name: '🏷️ Zone',
@@ -134,7 +135,7 @@ export function formatTaskAnnouncement(task: {
     ],
     timestamp: new Date().toISOString(),
     footer: {
-      text: 'Chico FabLab Task Dashboard',
+      text: siteConfig.name + ' Task Dashboard',
     },
   };
 
@@ -180,7 +181,7 @@ export function formatTaskReminder(task: {
     ],
     timestamp: new Date().toISOString(),
     footer: {
-      text: 'Chico FabLab Task Dashboard',
+      text: siteConfig.name + ' Task Dashboard',
     },
   };
 
@@ -255,7 +256,7 @@ export function formatTaskCompletion(task: {
     fields,
     timestamp: new Date().toISOString(),
     footer: {
-      text: 'Chico FabLab Task Dashboard',
+      text: siteConfig.name + ' Task Dashboard',
     },
   };
 
@@ -282,7 +283,7 @@ export function formatTaskAssignment(task: {
     title: `🎯 You've been assigned Task #${task.task_number}`,
     description: task.title,
     url: task.task_url,
-    color: 0x5865F2, // Discord blurple
+    color: 0xFF7C4B, // TechToss Orange
     fields: [
       {
         name: '📝 Description',
@@ -302,7 +303,7 @@ export function formatTaskAssignment(task: {
     ],
     timestamp: new Date().toISOString(),
     footer: {
-      text: 'Chico FabLab Task Dashboard',
+      text: siteConfig.name + ' Task Dashboard',
     },
   };
 
