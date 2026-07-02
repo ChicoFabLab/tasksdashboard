@@ -607,9 +607,9 @@ function TasksPageContent() {
                   {task.image && (
                     <div className="w-full mb-3 rounded overflow-hidden">
                       <img
-                        src={pb.files.getURL(task, task.image, { thumb: '400x300' })}
+                        src={pb.files.getURL(task, task.image, { thumb: '400x300f' })}
                         alt={task.title}
-                        className="w-full h-auto object-cover"
+                        className="w-full h-auto object-contain"
                         style={{ maxHeight: '200px' }}
                       />
                     </div>
@@ -728,9 +728,9 @@ function TasksPageContent() {
                     {task.image && (
                       <div className="w-full mb-3 rounded overflow-hidden">
                         <img
-                          src={pb.files.getURL(task, task.image, { thumb: '400x300' })}
+                          src={pb.files.getURL(task, task.image, { thumb: '400x300f' })}
                           alt={task.title}
-                          className="w-full h-auto object-cover"
+                          className="w-full h-auto object-contain"
                           style={{ maxHeight: '200px' }}
                         />
                       </div>
@@ -904,9 +904,9 @@ function TasksPageContent() {
                   {task.image && (
                     <div className="w-full mb-3 rounded overflow-hidden">
                       <img
-                        src={pb.files.getURL(task, task.image, { thumb: '400x300' })}
+                        src={pb.files.getURL(task, task.image, { thumb: '400x300f' })}
                         alt={task.title}
-                        className="w-full h-auto object-cover"
+                        className="w-full h-auto object-contain"
                         style={{ maxHeight: '200px' }}
                       />
                     </div>
