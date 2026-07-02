@@ -572,9 +572,9 @@ export default function DisplayPage() {
                     {task.image && (
                       <div className="w-full mb-2 rounded overflow-hidden">
                         <img
-                          src={pb.files.getURL(task, task.image, { thumb: '400x300' })}
+                          src={pb.files.getURL(task, task.image, { thumb: '400x300f' })}
                           alt={task.title}
-                          className="w-full h-auto object-cover"
+                          className="w-full h-auto object-contain"
                           style={{ maxHeight: tasks.length <= 3 ? '150px' : '100px' }}
                         />
                       </div>

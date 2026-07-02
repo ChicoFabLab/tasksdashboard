@@ -401,9 +401,9 @@ export default function HomePage() {
                         {task.image && (
                           <div className="w-full mb-2 rounded overflow-hidden">
                             <img
-                              src={pb.files.getURL(task, task.image, { thumb: '400x300' })}
+                              src={pb.files.getURL(task, task.image, { thumb: '400x300f' })}
                               alt={task.title}
-                              className="w-full h-auto object-cover"
+                              className="w-full h-auto object-contain"
                               style={{ maxHeight: '100px' }}
                             />
                           </div>
@@ -651,9 +651,9 @@ export default function HomePage() {
                   <div key={task.id} className="bg-white/90 rounded-lg p-4 border-l-4 border-purple-500">
                     {task.image && (
                       <img
-                        src={pb.files.getURL(task, task.image, { thumb: '400x300' })}
+                        src={pb.files.getURL(task, task.image, { thumb: '400x300f' })}
                         alt={task.title}
-                        className="w-full h-48 object-cover rounded mb-3"
+                        className="w-full h-48 object-contain rounded mb-3"
                       />
                     )}
                     <div className="flex items-center gap-2 mb-2">
