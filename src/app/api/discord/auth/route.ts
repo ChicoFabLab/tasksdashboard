@@ -18,8 +18,10 @@ export async function GET(request: NextRequest) {
     response_type: 'code',
     scope: 'identify email guilds guilds.members.read',
     state: encodedState,
-    // Mobile-optimized: prompt for app selection on mobile
-    prompt: 'none',
+    // Show Discord's authorize screen when needed. 'none' silently failed for
+    // any user who hadn't already authorized this exact app+scopes, bouncing
+    // them back with no code (the broken-login symptom).
+    prompt: 'consent',
   });
 
   const authUrl = `https://discord.com/api/oauth2/authorize?${params.toString()}`;
