@@ -16,14 +16,13 @@
     "test:login": "node test-login-flow.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.47.10",
     "lucide-react": "^0.563.0",
-    "next": "^15.5.11",
-    "next-auth": "^4.24.11",
+    "next": "^15.5.27",
     "pocketbase": "^0.26.2",
     "qrcode.react": "^4.2.0",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
