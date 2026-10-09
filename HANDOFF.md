@@ -1,5 +1,7 @@
 # Handoff — 2026 Redesign (branch `dev/redesign-2026`)
 
+**Went live:** 2026-10-09 19:07 UTC. Go-live backup: `/var/backups/taskdashboard/golive-20261009-190719/`.
+
 **TL;DR** — tasks.chicofl.org runs the redesign from
 `/var/www/taskdashboard/tasksdashboard-redesign`. The previous version is untouched in
 `/var/www/taskdashboard/tasksdashboard`. To go back:
@@ -23,6 +25,7 @@ That restores the old database rules and restarts the old build on the same port
 | Database | PocketBase 0.26.2, systemd `pocketbase.service`, `127.0.0.1:8091` → `pb.chicofl.org`, data in `/var/www/cfl-volunteer-board/pb_data` |
 | Public URL | Cloudflare tunnel → `localhost:3001` (unchanged) |
 | Env file | `tasksdashboard-redesign/.env.local` (gitignored; based on the old one, see §5) |
+| Kiosk URL | `https://tasks.chicofl.org/display` |
 
 ## 2. Backups (taken before any change)
 
@@ -126,3 +129,8 @@ See `REDESIGN_BRIEF.md` for the full brief. Summary:
 3. **5 members have neither Discord nor a password** (they were created by older flows). An admin can give them a temporary password: `/admin → Members → Temp password`.
 4. **Point the kiosk browser at `https://tasks.chicofl.org/display`** in full-screen/kiosk mode.
 5. **Duplicate task numbers** (#1, #31, #38, #65×3, #70) exist in the old data. New tasks always get a fresh number.
+
+## 8. Testing notes
+- An end-to-end suite (Playwright, 26 checks) was run against a **copy** of the DB on a private port. It covered sign-up from a scanned task, claim, finish with helper and photo, creation upload, password change and re-login, forged/legacy cookies, open redirects, cross-user edits, admin gating, and kiosk tap-to-QR. All 26 passed on the final design.
+- Verified after go-live on the public URLs: anonymous PocketBase writes and password auth return 403, the volunteer list is private, tasks are publicly readable, and old `/claim/<n>` QR links resolve.
+- `pm2 logs cfl-dashboard` may show `Failed to find Server Action "x"`. Those are internet scanners probing Next.js sites and are harmless.
