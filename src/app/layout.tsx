@@ -1,10 +1,11 @@
 import type { Metadata, Viewport } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Archivo, IBM_Plex_Mono } from 'next/font/google';
 import './globals.css';
 import { siteConfig } from '@/lib/site-config';
 
-const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
-const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] });
+// Archivo's width axis gives us a condensed display face from the same family.
+const archivo = Archivo({ variable: '--font-archivo', subsets: ['latin'], axes: ['wdth'] });
+const plexMono = IBM_Plex_Mono({ variable: '--font-plex-mono', subsets: ['latin'], weight: ['500', '600'] });
 
 export const metadata: Metadata = {
   title: { default: siteConfig.name, template: `%s · ${siteConfig.name}` },
@@ -17,14 +18,14 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: 'cover',
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f6f4ef' },
-    { media: '(prefers-color-scheme: dark)', color: '#131311' },
+    { media: '(prefers-color-scheme: light)', color: '#e9eae5' },
+    { media: '(prefers-color-scheme: dark)', color: '#0e0f10' },
   ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="en" className={`${archivo.variable} ${plexMono.variable}`}>
       <body className="min-h-dvh antialiased">{children}</body>
     </html>
   );

@@ -39,25 +39,41 @@ export function taskNo(n: number) {
   return `#${String(n).padStart(3, '0')}`;
 }
 
-/** Zone colours: used only as small dots/tags, never as large fills. */
-export const ZONE_COLORS: Record<string, string> = {
-  General: '#8a8578',
-  Woodshop: '#a0672c',
-  '3D Printing': '#2f6fd6',
-  Electronics: '#1f9a6a',
-  'Laser Cutting': '#d6402f',
-  CNC: '#6b4fd1',
-  Vinyl: '#c03d8f',
-  'Metal Shop': '#5b6b7a',
-  Waterjet: '#1d93b5',
-  'CNC Plasma': '#c47a12',
-  Mill: '#4f6d3a',
-  Lathe: '#7a5a48',
-  Admin: '#3f3d38',
+export function capitalize(s: string) {
+  return s ? s[0].toUpperCase() + s.slice(1) : s;
+}
+
+/** Zone hues (≥3:1 on both concrete and graphite) and machine-label codes. */
+export const ZONE_STYLE: Record<string, { color: string; code: string }> = {
+  General: { color: '#9aa0a6', code: 'GEN' },
+  Woodshop: { color: '#b07444', code: 'WSH' },
+  '3D Printing': { color: '#4d8dff', code: '3DP' },
+  Electronics: { color: '#2fbf71', code: 'ELC' },
+  'Laser Cutting': { color: '#ff5a3c', code: 'LSR' },
+  CNC: { color: '#9b7bff', code: 'CNC' },
+  Vinyl: { color: '#e45bb3', code: 'VNL' },
+  'Metal Shop': { color: '#8fa3b8', code: 'MTL' },
+  Waterjet: { color: '#22c3d6', code: 'WJT' },
+  'CNC Plasma': { color: '#ff9d2e', code: 'PLS' },
+  Mill: { color: '#7fbf3f', code: 'MIL' },
+  Lathe: { color: '#d9a441', code: 'LTH' },
+  Admin: { color: '#b8a8ff', code: 'ADM' },
 };
 
 export function zoneColor(zone: string) {
-  return ZONE_COLORS[zone] ?? ZONE_COLORS.General;
+  return (ZONE_STYLE[zone] ?? ZONE_STYLE.General).color;
+}
+
+export function zoneCode(zone: string) {
+  return (ZONE_STYLE[zone] ?? ZONE_STYLE.General).code;
+}
+
+/** Short mono-friendly duration: 90 -> "1H30", 45 -> "45M". */
+export function shortMinutes(m: number) {
+  const h = Math.floor(m / 60);
+  const r = Math.round(m % 60);
+  if (!h) return `${r}M`;
+  return r ? `${h}H${String(r).padStart(2, '0')}` : `${h}H`;
 }
 
 export function plural(n: number, one: string, many = `${one}s`) {

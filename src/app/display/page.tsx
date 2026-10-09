@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: `${siteConfig.name} — Live board`, 
 export default async function DisplayPage() {
   const [tasks, wins, creations, stats] = await Promise.all([
     listTasks({ status: ['open', 'in_progress'], limit: 200 }),
-    recentWins(10),
+    recentWins(12),
     listCreations({ limit: 10 }),
     labStats(),
   ]);
@@ -18,12 +18,13 @@ export default async function DisplayPage() {
       tasks={tasks}
       wins={wins}
       creations={creations}
-      stats={
-        stats.tasksDone30d >= 5
-          ? { tasks: stats.tasksDone30d, hours: stats.hours30d, third: stats.makers30d, thirdLabel: 'makers', window: '30 days' }
-          : { tasks: stats.tasksDoneAllTime, hours: stats.hoursAllTime, third: stats.openTasks, thirdLabel: 'open now', window: 'all time' }
-      }
-      urls={{ base: absoluteUrl(''), signup: absoluteUrl('/signup'), share: absoluteUrl('/creations/new') }}
+      stats={{
+        tasks: stats.tasksDone30d >= 10 ? stats.tasksDone30d : stats.tasksDoneAllTime,
+        hours: stats.tasksDone30d >= 10 ? stats.hours30d : stats.hoursAllTime,
+        window: stats.tasksDone30d >= 10 ? 'last 30 days' : 'all time',
+        lastWin: stats.lastWin,
+      }}
+      urls={{ base: absoluteUrl(''), signup: absoluteUrl('/signup'), share: absoluteUrl('/creations/new'), tasks: absoluteUrl('/tasks') }}
     />
   );
 }

@@ -1,0 +1,128 @@
+# Handoff — 2026 Redesign (branch `dev/redesign-2026`)
+
+**TL;DR** — tasks.chicofl.org runs the redesign from
+`/var/www/taskdashboard/tasksdashboard-redesign`. The previous version is untouched in
+`/var/www/taskdashboard/tasksdashboard`. To go back:
+
+```bash
+sudo bash /var/www/taskdashboard/tasksdashboard-redesign/scripts/cfl/rollback.sh
+```
+
+That restores the old database rules and restarts the old build on the same port. It takes about 10 seconds.
+
+---
+
+## 1. What's where
+
+| Thing | Location |
+|---|---|
+| New app (live) | `/var/www/taskdashboard/tasksdashboard-redesign` (git worktree, branch `dev/redesign-2026`) |
+| Old app (kept, built, ready) | `/var/www/taskdashboard/tasksdashboard` (branch `mobiledesign`, commit `7e1ce33`) |
+| Git tag of the old version | `pre-redesign-2026-10-09` (pushed to GitHub) |
+| Process | pm2 app `cfl-dashboard`, user `cfl`, port 3001: `sudo -u cfl pm2 ls` / `sudo -u cfl pm2 logs cfl-dashboard` |
+| Database | PocketBase 0.26.2, systemd `pocketbase.service`, `127.0.0.1:8091` → `pb.chicofl.org`, data in `/var/www/cfl-volunteer-board/pb_data` |
+| Public URL | Cloudflare tunnel → `localhost:3001` (unchanged) |
+| Env file | `tasksdashboard-redesign/.env.local` (gitignored; based on the old one, see §5) |
+
+## 2. Backups (taken before any change)
+
+`/var/backups/taskdashboard/2026-10-09-pre-redesign/`
+
+| File | What |
+|---|---|
+| `app-full.tar.gz` | The whole old app dir incl. `.env.local` and the built `.next/` (no node_modules) |
+| `data.db`, `auxiliary.db` | Consistent SQLite snapshots of PocketBase (`sqlite3 .backup`) |
+| `pb_storage.tar.gz` | All uploaded files (photos) |
+| `pb_migrations.tar.gz` | PocketBase migration history |
+| `pm2-cfl.json`, `pocketbase.service` | Process config as it was |
+| `SHA256SUMS` | Checksums |
+
+The go-live script takes a second DB snapshot and a JSON snapshot of the collection
+rules at the moment of switching: `/var/backups/taskdashboard/golive-<timestamp>/`.
+`/var/backups/taskdashboard/LATEST-pb-snapshot.json` points to the latest rules snapshot.
+
+## 3. Rolling back
+
+### a) Quick rollback (keeps all data)
+```bash
+sudo bash /var/www/taskdashboard/tasksdashboard-redesign/scripts/cfl/rollback.sh
+```
+- Restores the PocketBase API rules and auth settings the old app needs (the old app writes to the DB from the browser).
+- Restarts pm2 `cfl-dashboard` from the old directory.
+- Tasks, completions, creations and accounts created on the new version stay in the DB, and the old app shows them.
+- New fields (`is_admin`, `pw_hash`, `completions.photo`, `creations.featured`) are left in place. The old app ignores them.
+- Caveat: people who signed up with a **password only** can't log in to the old app, which is Discord-only.
+
+### b) Manual rollback (if the script can't run)
+```bash
+sudo -u cfl pm2 delete cfl-dashboard
+sudo -u cfl pm2 start /var/www/taskdashboard/tasksdashboard/node_modules/next/dist/bin/next \
+  --name cfl-dashboard --cwd /var/www/taskdashboard/tasksdashboard -- start -p 3001
+sudo -u cfl pm2 save
+# then restore DB rules:
+cd /var/www/taskdashboard/tasksdashboard-redesign && set -a && . ../tasksdashboard/.env.local && set +a
+PB_URL=http://127.0.0.1:8091 PB_EMAIL=$POCKETBASE_ADMIN_EMAIL PB_PASSWORD=$POCKETBASE_ADMIN_PASSWORD \
+  node scripts/pb-rollback-2026.mjs /var/backups/taskdashboard/LATEST-pb-snapshot.json
+```
+
+### c) Full restore of the database to the morning of 2026-10-09 (last resort; loses newer data)
+```bash
+sudo systemctl stop pocketbase
+cd /var/www/cfl-volunteer-board/pb_data
+mkdir -p /var/backups/taskdashboard/displaced-$(date +%s) && mv data.db* auxiliary.db* storage /var/backups/taskdashboard/displaced-*/
+cp /var/backups/taskdashboard/2026-10-09-pre-redesign/{data.db,auxiliary.db} .
+tar -xzf /var/backups/taskdashboard/2026-10-09-pre-redesign/pb_storage.tar.gz -C .
+chown -R erinb:erinb /var/www/cfl-volunteer-board/pb_data
+sudo systemctl start pocketbase
+```
+
+### d) Code
+The old code is tag `pre-redesign-2026-10-09` (= `mobiledesign` @ `7e1ce33`). `main` was never touched.
+If the redesign is merged and later regretted: `git revert -m 1 <merge commit>`.
+
+## 4. Going live again / redeploying
+```bash
+cd /var/www/taskdashboard/tasksdashboard-redesign && sudo -u cfl git pull
+sudo bash scripts/cfl/go-live.sh     # backs up, migrates (idempotent), builds, restarts
+```
+
+## 5. Configuration (`.env.local` of the new app)
+These were added to the old file's values:
+
+| Var | Purpose |
+|---|---|
+| `SESSION_SECRET` | Signs login cookies. Rotating it signs everyone out. |
+| `POCKETBASE_INTERNAL_URL=http://127.0.0.1:8091` | The server talks to PB locally rather than through the tunnel |
+| `NEXT_PUBLIC_SITE_NAME`, `NEXT_PUBLIC_SITE_SHORT_NAME` | Branding (needs a rebuild after changing) |
+| `ADMIN_EMAILS` | Comma-separated admin accounts (currently Gavin and Erin). Admins can also grant admin from `/admin → Members`. |
+| `DISCORD_ADMIN_ROLES` | Discord roles that grant admin at Discord sign-in (default `Zone Leader`) |
+| `SIGNUP_INVITE_CODE` | Optional. If set, password sign-up requires it (checked on the server) |
+
+`NEXT_PUBLIC_INVITE_CODE` and `NEXTAUTH_URL` are no longer used.
+
+## 6. What changed and why
+See `REDESIGN_BRIEF.md` for the full brief. Summary:
+
+**Security (all critical issues from the audit fixed)**
+- Sessions are an HMAC-signed cookie (`cfl_session`). The old unsigned `volunteer_session` cookie and the `pb_auth` cookie, which held a **PocketBase superuser token**, are ignored and cleared.
+- The browser never writes to PocketBase. All writes go through server actions that check who you are and whether you own the thing (CSRF-protected by Next's origin check).
+- PocketBase rules are locked: tasks, completions and creations are public-read and server-write; volunteers are private; emails are hidden; PocketBase's own password login for volunteers is disabled. Passwords are verified by the app (scrypt, rate-limited).
+- Inputs are validated (lengths, zones, minutes 1–1440), uploads are limited to JPG/PNG/WebP/GIF ≤10 MB, filters are parameterised, redirects are restricted to the same site, and there are basic security headers.
+- Discord OAuth is one flow with a `state` check. Notifications are sent by the server only after real actions, mentions are disabled, and failures never block the user.
+- Removed `next-auth` and the unused `@supabase/supabase-js`, and ran `npm audit fix`. What remains is a postcss advisory bundled inside Next at build time.
+
+**Product**
+- Password accounts. Discord is optional and can be linked or unlinked in Settings.
+- QR flow: every task page is the QR target. Scan → (sign up inline) → Claim → "I finished it" (time chips, credit helpers, optional photo). Old printed `/claim/<n>` codes still work; duplicate task numbers get a picker.
+- Completed work is featured on the home page ("Wins around the shop"), on maker profiles, and in the kiosk spotlight. Completion photos are new.
+- Creations: multi-photo upload (photos are shrunk on the phone before upload), gallery, detail page, edit and delete, admin "feature" toggle.
+- `/me` dashboard, `/makers/<id>` public profiles, and `/admin` (tasks, activity, members, temporary passwords).
+- `/display` kiosk: touch-first, dark, auto-refreshes every 30 s, tap a task for a big QR, rotating spotlight, resets after 90 s idle.
+- The goals/courses UI was dropped (1 goal, 0 progress records). Its data is untouched.
+
+## 7. Needs a human
+1. **Discord bot token is invalid** (Discord returns 401). Channel announcements and the Zone-Leader→admin check have been silently failing, possibly for months. To fix: Discord Developer Portal → app `1425383085977112688` → Bot → Reset Token, put the new token in `DISCORD_BOT_TOKEN` in `tasksdashboard-redesign/.env.local`, then `sudo -u cfl pm2 restart cfl-dashboard`. Make sure the bot is in the server and can post in the announcements channel.
+2. **Rotate the PocketBase superuser password.** The old app put superuser tokens in browser cookies. Those tokens expire after 24 h and the token secret was rotated at go-live, but the password should change too. Change it in the PB admin UI, then update `POCKETBASE_ADMIN_PASSWORD` in both `.env.local` files.
+3. **5 members have neither Discord nor a password** (they were created by older flows). An admin can give them a temporary password: `/admin → Members → Temp password`.
+4. **Point the kiosk browser at `https://tasks.chicofl.org/display`** in full-screen/kiosk mode.
+5. **Duplicate task numbers** (#1, #31, #38, #65×3, #70) exist in the old data. New tasks always get a fresh number.

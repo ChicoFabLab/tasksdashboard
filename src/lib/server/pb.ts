@@ -17,6 +17,9 @@ const PB_URL =
 
 let adminClient: PocketBase | null = null;
 let authPromise: Promise<void> | null = null;
+let authedAt = 0;
+// Re-auth periodically so a rotated token secret or PB restart heals itself.
+const REAUTH_MS = 10 * 60 * 1000;
 
 async function authenticate(client: PocketBase) {
   await client
@@ -33,10 +36,15 @@ export async function adminPb(): Promise<PocketBase> {
     adminClient = new PocketBase(PB_URL);
     adminClient.autoCancellation(false);
   }
-  if (!adminClient.authStore.isValid) {
-    authPromise ??= authenticate(adminClient).finally(() => {
-      authPromise = null;
-    });
+  if (!adminClient.authStore.isValid || Date.now() - authedAt > REAUTH_MS) {
+    const client = adminClient;
+    authPromise ??= authenticate(client)
+      .then(() => {
+        authedAt = Date.now();
+      })
+      .finally(() => {
+        authPromise = null;
+      });
     await authPromise;
   }
   return adminClient;

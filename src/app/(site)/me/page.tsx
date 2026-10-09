@@ -25,7 +25,7 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
         <Avatar member={user} size={80} />
         <div className="flex-1">
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{user.name}</h1>
+          <h1 className="display text-[44px] font-extrabold uppercase leading-[0.9] sm:text-[60px]">{user.name}</h1>
           <p className="mt-1 text-muted">{user.isAdmin ? 'Admin · ' : ''}Your corner of the lab</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -35,12 +35,11 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
           <ButtonLink href="/creations/new" variant="secondary">
             <Plus className="size-5" aria-hidden /> Share
           </ButtonLink>
-          <ButtonLink href="/me/settings" variant="ghost" aria-label="Settings">
-            <Settings className="size-5" aria-hidden />
-            <span className="sm:hidden">Settings</span>
+          <ButtonLink href="/me/settings" variant="secondary">
+            <Settings className="size-5" aria-hidden /> Settings
           </ButtonLink>
           {user.isAdmin && (
-            <ButtonLink href="/admin" variant="ghost">
+            <ButtonLink href="/admin" variant="secondary">
               Admin
             </ButtonLink>
           )}

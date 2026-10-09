@@ -1,14 +1,14 @@
 import Link from 'next/link';
 import type { ComponentProps, ReactNode } from 'react';
 import type { Member, TaskStatus } from '@/lib/types';
-import { zoneColor } from '@/lib/format';
+import { zoneCode, zoneColor } from '@/lib/format';
 
 export function cx(...xs: (string | false | null | undefined)[]) {
   return xs.filter(Boolean).join(' ');
 }
 
 const base =
-  'inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-[background,box-shadow,transform] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none select-none';
+  'inline-flex items-center justify-center gap-2 rounded-xl font-semibold whitespace-nowrap disabled:opacity-50 disabled:pointer-events-none select-none';
 const sizes = {
   sm: 'h-10 px-3.5 text-sm',
   md: 'h-12 px-5 text-[15px]',
@@ -16,11 +16,12 @@ const sizes = {
   xl: 'h-16 px-8 text-lg',
 };
 const variants = {
-  primary: 'bg-accent text-accent-ink hover:bg-accent-strong shadow-[inset_0_-2px_0_rgb(0_0_0/0.12)]',
-  dark: 'bg-ink text-paper hover:bg-ink-2',
-  secondary: 'bg-surface text-ink border border-line-strong hover:bg-surface-2',
-  ghost: 'text-ink hover:bg-surface-2',
-  danger: 'bg-surface text-bad border border-line-strong hover:bg-bad-soft',
+  primary: 'pressable bg-accent text-accent-ink hover:bg-accent-strong [--press:0_3px_0_var(--accent-strong)] hover:[--press:0_3px_0_var(--ink)]',
+  dark: 'pressable bg-ink text-paper hover:bg-ink-2 [--press:0_3px_0_var(--line-strong)]',
+  secondary: 'pressable bg-surface text-ink border-[1.5px] border-line-strong hover:bg-surface-2',
+  ghost: 'text-ink hover:bg-surface-2 active:bg-surface-2',
+  danger: 'pressable bg-surface text-bad border-[1.5px] border-line-strong hover:bg-bad-soft',
+  hivis: 'pressable bg-hivis text-hivis-ink hover:brightness-95 [--press:0_3px_0_#7a9a12]',
 };
 
 export type ButtonStyle = { variant?: keyof typeof variants; size?: keyof typeof sizes; block?: boolean };
@@ -80,38 +81,45 @@ export function names(members: Member[], max = 3) {
   return `${ns.slice(0, max).join(', ')} +${ns.length - max}`;
 }
 
-export function ZoneTag({ zone, className }: { zone: string; className?: string }) {
+/** Machine-label style zone tag: solid colour chip with a mono code, plus the zone name. */
+export function ZoneTag({ zone, className, bare }: { zone: string; className?: string; bare?: boolean }) {
   return (
-    <span className={cx('inline-flex items-center gap-1.5 text-[13px] font-medium text-ink-2', className)}>
-      <span className="size-2.5 rounded-full" style={{ background: zoneColor(zone) }} aria-hidden />
-      {zone}
+    <span className={cx('inline-flex items-center gap-2 text-[14px] font-medium text-ink-2', className)}>
+      <span
+        className="inline-flex h-[1.6em] items-center rounded-[2px] px-1.5 font-mono text-[0.8em] font-semibold tracking-wide text-[#111]"
+        style={{ background: zoneColor(zone) }}
+        aria-hidden={!bare}
+      >
+        {zoneCode(zone)}
+      </span>
+      {!bare && zone}
     </span>
   );
 }
 
 const STATUS: Record<TaskStatus, { label: string; cls: string }> = {
-  open: { label: 'Open', cls: 'bg-accent-soft text-ink' },
+  open: { label: 'Open', cls: 'bg-accent-soft text-accent-strong' },
   in_progress: { label: 'In progress', cls: 'bg-warn-soft text-warn' },
-  completed: { label: 'Done', cls: 'bg-good-soft text-good' },
-  pending_approval: { label: 'Awaiting review', cls: 'bg-surface-2 text-muted' },
+  completed: { label: 'Done', cls: 'bg-hivis text-hivis-ink' },
+  pending_approval: { label: 'In review', cls: 'bg-surface-2 text-muted' },
 };
 
 export function StatusPill({ status, className }: { status: TaskStatus; className?: string }) {
   const s = STATUS[status] ?? STATUS.open;
-  return <span className={cx('inline-flex h-7 items-center rounded-full px-2.5 text-[13px] font-semibold', s.cls, className)}>{s.label}</span>;
+  return <span className={cx('inline-flex h-7 items-center rounded-[2px] px-2 font-mono text-[12px] font-semibold uppercase tracking-wider', s.cls, className)}>{s.label}</span>;
 }
 
 export function Card({ className, ...props }: ComponentProps<'div'>) {
-  return <div className={cx('rounded-2xl border border-line bg-surface', className)} {...props} />;
+  return <div className={cx('rounded-2xl border-[1.5px] border-line bg-surface', className)} {...props} />;
 }
 
 export function SectionHeader({ title, action, kicker }: { title: string; action?: ReactNode; kicker?: string }) {
   return (
-    <div className="mb-4 flex items-end justify-between gap-4">
-      <div>
-        {kicker && <p className="mb-1 text-[13px] font-semibold uppercase tracking-[0.08em] text-muted">{kicker}</p>}
-        <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">{title}</h2>
-      </div>
+    <div className="mb-4 flex items-end justify-between gap-4 border-b-[1.5px] border-ink pb-2.5">
+      <h2 className="display flex items-baseline gap-3 text-[28px] font-extrabold uppercase leading-none sm:text-[34px]">
+        {title}
+        {kicker && <span className="font-mono text-[13px] font-medium normal-case tracking-normal text-muted">{kicker}</span>}
+      </h2>
       {action}
     </div>
   );
@@ -119,8 +127,8 @@ export function SectionHeader({ title, action, kicker }: { title: string; action
 
 export function EmptyState({ title, body, action }: { title: string; body?: string; action?: ReactNode }) {
   return (
-    <div className="mat rounded-2xl border border-dashed border-line-strong px-6 py-12 text-center">
-      <p className="text-lg font-semibold">{title}</p>
+    <div className="mat rounded-2xl border-[1.5px] border-dashed border-line-strong px-6 py-12 text-center">
+      <p className="display text-2xl font-bold">{title}</p>
       {body && <p className="mx-auto mt-1 max-w-md text-muted">{body}</p>}
       {action && <div className="mt-5 flex justify-center">{action}</div>}
     </div>
@@ -140,7 +148,7 @@ export function PageHeader({ title, subtitle, action }: { title: string; subtitl
   return (
     <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h1>
+        <h1 className="display text-[40px] font-extrabold uppercase leading-[0.95] sm:text-[56px]">{title}</h1>
         {subtitle && <p className="mt-1.5 text-muted sm:text-lg">{subtitle}</p>}
       </div>
       {action}
@@ -149,7 +157,7 @@ export function PageHeader({ title, subtitle, action }: { title: string; subtitl
 }
 
 export const inputClass =
-  'block w-full rounded-xl border border-line-strong bg-surface px-4 h-12 text-base text-ink placeholder:text-muted/70 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30';
+  'block w-full rounded-xl border-[1.5px] border-line-strong bg-surface px-4 h-12 text-base text-ink placeholder:text-muted/80 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30';
 
 export function Field({ label, hint, children, htmlFor }: { label: string; hint?: ReactNode; children: ReactNode; htmlFor?: string }) {
   return (

@@ -12,11 +12,11 @@ export function ActivityStats({ a }: { a: MemberActivity }) {
     { v: a.creations.length, l: 'creations' },
   ];
   return (
-    <dl className="grid grid-cols-3 gap-3">
-      {items.map((s) => (
-        <div key={s.l} className="rounded-2xl border border-line bg-surface p-4 sm:p-5">
-          <dd className="text-3xl font-semibold tracking-tight">{s.v}</dd>
-          <dt className="mt-1 text-sm text-muted">{s.l}</dt>
+    <dl className="grid grid-cols-3 border-[1.5px] border-ink bg-surface sm:max-w-xl">
+      {items.map((s, i) => (
+        <div key={s.l} className={i ? 'border-l-[1.5px] border-ink p-4' : 'p-4'}>
+          <dd className="display text-[44px] font-extrabold leading-none">{s.v}</dd>
+          <dt className="mt-1.5 text-sm font-semibold">{s.l}</dt>
         </div>
       ))}
     </dl>

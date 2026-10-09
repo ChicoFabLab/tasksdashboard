@@ -1,9 +1,8 @@
 import Link from 'next/link';
-import { ArrowRight, Plus, QrCode } from 'lucide-react';
+import { ArrowRight, Plus } from 'lucide-react';
 import { labStats, listCreations, listTasks, recentWins } from '@/lib/server/data';
 import { getCurrentUser } from '@/lib/server/session';
-import { siteConfig } from '@/lib/site-config';
-import { formatHours, formatMinutes, plural } from '@/lib/format';
+import { formatMinutes, plural, timeAgo } from '@/lib/format';
 import { CreationCard, TaskCard, WinCard } from '@/components/cards';
 import { Avatar, ButtonLink, EmptyState, SectionHeader } from '@/components/ui';
 
@@ -17,74 +16,76 @@ export default async function HomePage() {
     listCreations({ limit: 8 }),
     listTasks({ status: 'open', limit: 6 }),
   ]);
-
   // In quiet months, all-time totals tell a truer story than "1 task this month".
-  const busy = stats.tasksDone30d >= 5;
+  const busy = stats.tasksDone30d >= 10;
+  const totals = busy
+    ? [
+        [stats.tasksDone30d, 'tasks done', '30 days'],
+        [stats.hours30d, 'hours given', '30 days'],
+        [stats.makers30d, 'makers', '30 days'],
+      ]
+    : [
+        [stats.tasksDoneAllTime, 'tasks done', 'all time'],
+        [stats.hoursAllTime, 'hours given', 'all time'],
+        [creations.length, 'creations', 'shared'],
+      ];
 
   return (
-    <div className="space-y-14 sm:space-y-20">
-      {/* Hero */}
-      <section className="mat -mx-4 -mt-6 border-b border-line px-4 pb-10 pt-8 sm:-mx-6 sm:-mt-10 sm:px-6 sm:pb-14 sm:pt-14 lg:-mx-8 lg:px-8">
-        <div className="grid gap-10 lg:grid-cols-[1.3fr_1fr] lg:items-end">
-          <div className="rise">
-            <p className="text-[13px] font-semibold uppercase tracking-[0.1em] text-muted">
-              {user ? `Welcome back, ${user.name}` : siteConfig.name}
-            </p>
-            <h1 className="mt-3 max-w-3xl text-4xl font-semibold leading-[1.05] tracking-tight text-balance sm:text-6xl">
-              {siteConfig.tagline}
-            </h1>
-            <p className="mt-4 max-w-xl text-lg text-muted">
-              Grab a quick job around the shop, get credit for your time, and show off what you’ve built.
-            </p>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <ButtonLink href="/tasks" size="lg">
-                Find a task <ArrowRight className="size-5" aria-hidden />
-              </ButtonLink>
-              <ButtonLink href="/creations/new" size="lg" variant="secondary">
-                <Plus className="size-5" aria-hidden /> Share a creation
-              </ButtonLink>
-            </div>
-            <p className="mt-5 flex items-center gap-2 text-sm text-muted">
-              <QrCode className="size-4" aria-hidden /> At the lab? Scan any task’s QR code on the big screen to claim it.
-            </p>
-          </div>
-
-          <dl className="grid grid-cols-3 gap-3 rise [animation-delay:80ms]">
-            {busy ? (
+    <div className="space-y-14 sm:space-y-16">
+      {/* Live headline — what needs doing, and who did the last thing */}
+      <section className="rise grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div>
+          {user && <p className="mb-2 font-mono text-[13px] font-semibold uppercase tracking-wider text-muted">Hey {user.name}</p>}
+          <h1 className="display text-[52px] font-extrabold uppercase leading-[0.9] sm:text-[88px]">
+            {stats.openTasks > 0 ? (
               <>
-                <Stat value={stats.tasksDone30d} label="tasks done" />
-                <Stat value={formatHours(stats.hours30d * 60)} label="hours given" />
-                <Stat value={stats.makers30d} label="makers" />
+                <span className="text-accent">{stats.openTasks}</span> {stats.openTasks === 1 ? 'job needs' : 'jobs need'} a hand
               </>
             ) : (
-              <>
-                <Stat value={stats.tasksDoneAllTime} label="tasks done" />
-                <Stat value={stats.hoursAllTime} label="hours given" />
-                <Stat value={stats.openTasks} label="open now" />
-              </>
+              'The board is clear'
             )}
-            <p className="col-span-3 text-sm text-muted">
-              {busy ? `Last 30 days · ${plural(stats.tasksDoneAllTime, 'task')} and ${stats.hoursAllTime} hours all-time` : 'Since the board started · every hour counts'}
-            </p>
-          </dl>
+          </h1>
+          {stats.lastWin && (
+            <Link href={`/makers/${stats.lastWin.member.id}`} className="mt-5 inline-flex items-center gap-3 rounded-xl text-[17px] hover:underline">
+              <Avatar member={stats.lastWin.member} size={36} />
+              <span>
+                Last job finished <strong>{timeAgo(stats.lastWin.created)}</strong> by <strong>{stats.lastWin.member.name}</strong>
+              </span>
+            </Link>
+          )}
+          <div className="mt-7 flex flex-wrap gap-3">
+            <ButtonLink href="/tasks" size="lg">
+              Grab a task <ArrowRight className="size-5" aria-hidden />
+            </ButtonLink>
+            <ButtonLink href="/creations/new" size="lg" variant="secondary">
+              <Plus className="size-5" aria-hidden /> Share a creation
+            </ButtonLink>
+          </div>
         </div>
+        <dl className="grid grid-cols-3 border-[1.5px] border-ink bg-surface lg:w-[420px]">
+          {totals.map(([v, l, w], i) => (
+            <div key={String(l)} className={i ? 'border-l-[1.5px] border-ink p-4' : 'p-4'}>
+              <dd className="display text-[44px] font-extrabold leading-none">{v}</dd>
+              <dt className="mt-1.5 text-sm font-semibold leading-tight">{l}</dt>
+              <dt className="font-mono text-[11px] uppercase tracking-wider text-muted">{w}</dt>
+            </div>
+          ))}
+        </dl>
       </section>
 
-      {/* Recent wins */}
       <section>
         <SectionHeader
-          kicker="Recently finished"
-          title="Wins around the shop"
+          title="Recent wins"
           action={
-            <Link href="/tasks?status=completed" className="text-[15px] font-semibold text-ink underline-offset-4 hover:underline">
+            <Link href="/tasks?status=completed" className="text-[15px] font-semibold underline-offset-4 hover:underline">
               See all
             </Link>
           }
         />
         {wins.length ? (
-          <div className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4">
+          <div className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4">
             {wins.map((w) => (
-              <WinCard key={w.key} win={w} className="w-[78vw] max-w-[320px] shrink-0 snap-start sm:w-auto sm:max-w-none" />
+              <WinCard key={w.key} win={w} className="w-[80vw] max-w-[330px] shrink-0 snap-start sm:w-auto sm:max-w-none" />
             ))}
           </div>
         ) : (
@@ -92,11 +93,9 @@ export default async function HomePage() {
         )}
       </section>
 
-      {/* Creations */}
       <section>
         <SectionHeader
-          kicker="Made here"
-          title="Fresh from the shop"
+          title="Made here"
           action={
             <Link href="/creations" className="text-[15px] font-semibold underline-offset-4 hover:underline">
               Gallery
@@ -119,11 +118,10 @@ export default async function HomePage() {
       </section>
 
       <div className="grid gap-14 lg:grid-cols-[2fr_1fr] lg:gap-10">
-        {/* Open tasks */}
         <section>
           <SectionHeader
+            title="Open jobs"
             kicker={`${stats.openTasks} open`}
-            title="Jobs that need a hand"
             action={
               <ButtonLink href="/tasks" variant="secondary" size="sm">
                 All tasks
@@ -131,7 +129,7 @@ export default async function HomePage() {
             }
           />
           {tasks.length ? (
-            <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               {tasks.map((t) => (
                 <TaskCard key={t.id} task={t} />
               ))}
@@ -141,21 +139,20 @@ export default async function HomePage() {
           )}
         </section>
 
-        {/* Top makers */}
         <section>
-          <SectionHeader kicker={stats.topMakersWindow} title="Shop heroes" />
+          <SectionHeader title="Shop heroes" kicker={stats.topMakersWindow.toLowerCase()} />
           {stats.topMakers.length ? (
-            <ol className="divide-y divide-line rounded-2xl border border-line bg-surface">
+            <ol className="border-[1.5px] border-line-strong bg-surface">
               {stats.topMakers.map((t, i) => (
-                <li key={t.member.id}>
+                <li key={t.member.id} className={i ? 'border-t border-line' : undefined}>
                   <Link href={`/makers/${t.member.id}`} className="flex items-center gap-3 px-4 py-3.5 hover:bg-surface-2">
-                    <span className="w-5 font-mono text-sm text-muted">{i + 1}</span>
+                    <span className="display w-6 text-2xl font-extrabold text-muted">{i + 1}</span>
                     <Avatar member={t.member} size={40} />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-semibold">{t.member.name}</span>
                       <span className="block text-sm text-muted">{plural(t.tasks, 'task')}</span>
                     </span>
-                    <span className="text-sm font-semibold">{formatMinutes(t.minutes)}</span>
+                    <span className="font-mono text-sm font-semibold">{formatMinutes(t.minutes)}</span>
                   </Link>
                 </li>
               ))}
@@ -165,15 +162,6 @@ export default async function HomePage() {
           )}
         </section>
       </div>
-    </div>
-  );
-}
-
-function Stat({ value, label }: { value: number | string; label: string }) {
-  return (
-    <div className="rounded-2xl border border-line bg-surface p-4 sm:p-5">
-      <dd className="text-3xl font-semibold tracking-tight sm:text-4xl">{value}</dd>
-      <dt className="mt-1 text-sm text-muted">{label}</dt>
     </div>
   );
 }

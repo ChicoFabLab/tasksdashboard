@@ -46,7 +46,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
 const table = 'w-full text-left text-[15px] [&_td]:px-4 [&_td]:py-3 [&_th]:px-4 [&_th]:py-3 [&_th]:font-semibold [&_th]:text-muted [&_tr]:border-b [&_tr]:border-line';
 
 async function TasksTab() {
-  const tasks = await listTasks({ limit: 500 });
+  const tasks = await listTasks({ limit: 500, includeArchived: true });
   return (
     <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
       <table className={table}>

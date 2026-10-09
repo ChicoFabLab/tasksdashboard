@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, Clock, Pencil, PartyPopper, Smartphone } from 'lucide-react';
+import { ArrowLeft, Pencil, PartyPopper, Smartphone } from 'lucide-react';
 import { completionsForTask, getTask, groupWins, listMembersForPicker } from '@/lib/server/data';
 import { getCurrentUser } from '@/lib/server/session';
 import { absoluteUrl } from '@/lib/site-config';
-import { formatMinutes, shortDate, taskNo, timeAgo } from '@/lib/format';
-import { Avatar, ButtonLink, Card, Notice, StatusPill, ZoneTag, names } from '@/components/ui';
+import { capitalize, formatMinutes, shortDate, taskNo, timeAgo, zoneColor } from '@/lib/format';
+import { Avatar, ButtonLink, Card, Notice, StatusPill, names } from '@/components/ui';
+import { DoneStamp, SpecPlate } from '@/components/cards';
+import { CollapsibleText } from '@/components/collapsible';
 import { ClaimButtons, FinishForm } from '@/components/task-actions';
 import { QR } from '@/components/qr';
 
@@ -63,37 +65,89 @@ export default async function TaskPage({
         </div>
       )}
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
-        <article>
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="font-mono text-lg font-medium text-muted">{taskNo(task.number)}</span>
-            <StatusPill status={task.status} />
+      <div className="grid gap-x-10 gap-y-6 lg:grid-cols-[1fr_360px]">
+        <header className="lg:col-start-1">
+          <div className="h-2.5 w-24 rounded-[2px]" style={{ background: zoneColor(task.zone) }} aria-hidden />
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <SpecPlate zone={task.zone} number={task.number} className="text-[13px]" />
+            {task.status === 'completed' ? <DoneStamp /> : <StatusPill status={task.status} />}
             {canEdit && (
               <Link href={`/tasks/${task.id}/edit`} className="ml-auto inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-sm font-semibold text-muted hover:bg-surface-2 hover:text-ink">
                 <Pencil className="size-4" aria-hidden /> Edit
               </Link>
             )}
           </div>
-          <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-balance sm:text-5xl">{task.title}</h1>
-          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[15px]">
-            <ZoneTag zone={task.zone} className="text-[15px]" />
-            {task.estimatedMinutes > 0 && (
-              <span className="inline-flex items-center gap-1.5 text-muted">
-                <Clock className="size-4" aria-hidden /> About {formatMinutes(task.estimatedMinutes)}
-              </span>
-            )}
-            <span className="text-muted">Posted {timeAgo(task.created)}</span>
-          </div>
+          <h1 className="cap display mt-3 text-[40px] font-extrabold leading-[0.95] text-balance sm:text-[64px]">{task.title}</h1>
+          <p className="mt-3 text-[15px] text-muted">
+            {task.zone}
+            {task.estimatedMinutes > 0 && <> · <span className="dim font-mono text-[13px] font-semibold uppercase text-ink-2">{formatMinutes(task.estimatedMinutes)}</span></>} · posted {timeAgo(task.created)}
+          </p>
+        </header>
 
+        {/* Action panel */}
+        <aside className="space-y-4 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:sticky lg:top-24 lg:self-start">
+          {!done && !user && (
+            <Card className="space-y-3 p-5">
+              <p className="text-lg font-semibold">Want to take this on?</p>
+              <p className="text-[15px] text-muted">Sign in or make a quick account — no Discord needed — and you’ll come right back here.</p>
+              <ButtonLink href={`/signup?next=${next}`} size="lg" block>
+                Create account
+              </ButtonLink>
+              <ButtonLink href={`/login?next=${next}`} size="lg" variant="secondary" block>
+                I have an account
+              </ButtonLink>
+            </Card>
+          )}
+
+          {!done && user && (
+            <div className="space-y-3">
+              {(mine || sp.finish) ? (
+                <FinishForm taskId={task.id} estimate={task.estimatedMinutes} members={members} me={user.id} defaultOpen={Boolean(sp.finish)} />
+              ) : (
+                <ClaimButtons taskId={task.id} mine={mine} status={task.status} />
+              )}
+              {mine ? (
+                <ClaimButtons taskId={task.id} mine status={task.status} />
+              ) : (
+                !sp.finish && (
+                  <ButtonLink href={`/tasks/${task.id}?finish=1`} variant="ghost" block scroll={false}>
+                    Already did it? Log it now
+                  </ButtonLink>
+                )
+              )}
+            </div>
+          )}
+
+          {done && (
+            <Card className="p-5">
+              <p className="display text-2xl font-extrabold uppercase">This one’s done</p>
+              <p className="mt-1 text-[15px] text-muted">There’s always more on the board.</p>
+              <ButtonLink href="/tasks" variant="secondary" block className="mt-4">
+                Find another task
+              </ButtonLink>
+            </Card>
+          )}
+
+          <Card className="hidden items-center gap-4 p-5 md:flex lg:flex-col lg:items-start">
+            <QR value={url} size={120} label="QR code linking to this task" />
+            <div>
+              <p className="flex items-center gap-2 font-semibold">
+                <Smartphone className="size-4" aria-hidden /> Continue on your phone
+              </p>
+              <p className="mt-1 text-sm text-muted">Point your camera at the code to open this task.</p>
+            </div>
+          </Card>
+        </aside>
+        <article className="lg:col-start-1">
           {task.image && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={task.image} alt="" className="mt-6 max-h-[480px] w-full rounded-2xl border border-line object-cover" />
+            <img src={task.image} alt="" className="mb-6 max-h-[480px] w-full rounded-2xl border-[1.5px] border-line object-cover" />
           )}
 
           {task.description ? (
-            <div className="mt-6 whitespace-pre-line text-lg leading-relaxed text-ink-2">{task.description}</div>
+            <CollapsibleText text={capitalize(task.description)} className="whitespace-pre-line text-lg leading-relaxed text-ink-2" />
           ) : (
-            <p className="mt-6 text-muted">No extra details — the title says it all.</p>
+            <p className="text-muted">No extra details — the title says it all.</p>
           )}
 
           {!done && task.assignees.length > 0 && (
@@ -140,61 +194,6 @@ export default async function TaskPage({
             </section>
           )}
         </article>
-
-        {/* Action panel */}
-        <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
-          {!done && !user && (
-            <Card className="space-y-3 p-5">
-              <p className="text-lg font-semibold">Want to take this on?</p>
-              <p className="text-[15px] text-muted">Sign in or make a quick account — no Discord needed — and you’ll come right back here.</p>
-              <ButtonLink href={`/signup?next=${next}`} size="lg" block>
-                Create account
-              </ButtonLink>
-              <ButtonLink href={`/login?next=${next}`} size="lg" variant="secondary" block>
-                I have an account
-              </ButtonLink>
-            </Card>
-          )}
-
-          {!done && user && (
-            <div className="space-y-3">
-              {(mine || sp.finish) ? (
-                <FinishForm taskId={task.id} estimate={task.estimatedMinutes} members={members} me={user.id} defaultOpen={Boolean(sp.finish)} />
-              ) : (
-                <ClaimButtons taskId={task.id} mine={mine} status={task.status} />
-              )}
-              {mine ? (
-                <ClaimButtons taskId={task.id} mine status={task.status} />
-              ) : (
-                !sp.finish && (
-                  <ButtonLink href={`/tasks/${task.id}?finish=1`} variant="ghost" block scroll={false}>
-                    Already did it? Log it now
-                  </ButtonLink>
-                )
-              )}
-            </div>
-          )}
-
-          {done && (
-            <Card className="p-5">
-              <p className="font-semibold">This one’s done 🎉</p>
-              <p className="mt-1 text-[15px] text-muted">There’s always more on the board.</p>
-              <ButtonLink href="/tasks" variant="secondary" block className="mt-4">
-                Find another task
-              </ButtonLink>
-            </Card>
-          )}
-
-          <Card className="hidden items-center gap-4 p-5 md:flex lg:flex-col lg:items-start">
-            <QR value={url} size={120} label="QR code linking to this task" />
-            <div>
-              <p className="flex items-center gap-2 font-semibold">
-                <Smartphone className="size-4" aria-hidden /> Continue on your phone
-              </p>
-              <p className="mt-1 text-sm text-muted">Point your camera at the code to open this task.</p>
-            </div>
-          </Card>
-        </aside>
       </div>
     </div>
   );

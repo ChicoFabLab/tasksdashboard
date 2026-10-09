@@ -19,7 +19,7 @@ export default async function MakerPage({ params }: { params: Promise<{ id: stri
     <div className="space-y-10">
       <div className="flex items-center gap-5">
         <Avatar member={member} size={80} />
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{member.name}</h1>
+        <h1 className="display text-[44px] font-extrabold uppercase leading-[0.9] sm:text-[60px]">{member.name}</h1>
       </div>
       <ActivityStats a={a} />
       <ActivityBody a={a} />

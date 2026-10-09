@@ -22,9 +22,13 @@ function boardFilter(pb: Awaited<ReturnType<typeof adminPb>>) {
 
 // ---------- Tasks ----------
 
-export async function listTasks(opts: { status?: TaskStatus | TaskStatus[]; zone?: string; limit?: number } = {}) {
+export async function listTasks(
+  opts: { status?: TaskStatus | TaskStatus[]; zone?: string; limit?: number; includeArchived?: boolean } = {},
+) {
   const pb = await adminPb();
   const parts = [boardFilter(pb)];
+  // Tasks retired by renaming them "[ARCHIVED] …" stay out of public views.
+  if (!opts.includeArchived) parts.push('title !~ "[ARCHIVED]%"');
   const statuses = opts.status ? (Array.isArray(opts.status) ? opts.status : [opts.status]) : [];
   if (statuses.length) {
     parts.push('(' + statuses.map((s, i) => pb.filter(`status = {:s${i}}`, { [`s${i}`]: s })).join(' || ') + ')');
@@ -149,6 +153,8 @@ export interface LabStats {
   topMakers: { member: Member; minutes: number; tasks: number }[];
   /** 'last 90 days' or 'all time' — whichever gives a meaningful leaderboard. */
   topMakersWindow: string;
+  /** Most recent completion, for "last finished 3 days ago by …". */
+  lastWin: { member: Member; created: string } | null;
 }
 
 export async function labStats(): Promise<LabStats> {
@@ -197,6 +203,10 @@ export async function labStats(): Promise<LabStats> {
       .slice(0, 5)
       .map((t) => ({ member: t.member, minutes: t.minutes, tasks: t.tasks.size })),
     topMakersWindow: cutoff ? 'Last 90 days' : 'All time',
+    lastWin: (() => {
+      const last = all.reduce<RecordModel | null>((a, c) => (!a || c.created > a.created ? c : a), null);
+      return last ? { member: toMember(last.expand?.volunteer as RecordModel), created: last.created } : null;
+    })(),
   };
 }
 

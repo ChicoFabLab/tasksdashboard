@@ -4,75 +4,90 @@
  * Design tokens. Deployers rebrand by overriding --accent (and optionally
  * --accent-ink, the text colour used on top of the accent).
  */
+/*
+ * "Layout blue & hi-vis": machinist's marking-fluid blue for actions,
+ * safety-vest lime for wins, concrete/graphite surfaces.
+ * Deployers rebrand by overriding --accent / --accent-strong / --accent-soft / --accent-ink.
+ */
 :root {
-  --paper: #f6f4ef;
-  --surface: #ffffff;
-  --surface-2: #efece5;
-  --line: #e2ded4;
-  --line-strong: #cfc9bc;
-  --ink: #1b1a17;
-  --ink-2: #3a3833;
-  --muted: #6b665c;
-  --accent: #f26a1b;
-  --accent-strong: #d9560c;
-  --accent-soft: #fde7d8;
-  --accent-ink: #1b1a17;
-  --good: #1f8a4c;
-  --good-soft: #dcf2e4;
-  --warn: #a15c00;
-  --warn-soft: #fbefd5;
-  --bad: #b42318;
-  --bad-soft: #fde4e1;
-  --focus: #f26a1b;
-  --shadow: 0 1px 2px rgb(27 26 23 / 0.06), 0 4px 16px rgb(27 26 23 / 0.06);
+  --paper: #e9eae5;
+  --surface: #fafaf7;
+  --surface-2: #dcded8;
+  --line: #c8cac3;
+  --line-strong: #8e928c;
+  --ink: #15171a;
+  --ink-2: #2d3135;
+  --muted: #555a5f;
+  --accent: #2b3bd6;
+  --accent-strong: #1d2898;
+  --accent-soft: #dde1fb;
+  --accent-ink: #ffffff;
+  --hivis: #c8f53a;
+  --hivis-ink: #15171a;
+  --good: #2e6b0f;
+  --good-soft: #e4f5c4;
+  --warn: #7f5200;
+  --warn-soft: #fbeccb;
+  --bad: #a8231b;
+  --bad-soft: #fbe1de;
+  --focus: #2b3bd6;
+  --press: 0 3px 0 var(--line-strong);
+  --mat-line: rgb(21 23 26 / 0.07);
   color-scheme: light;
 }
 
-/* Dark theme: used by the kiosk display, and by visitors who prefer dark. */
 [data-theme="dark"] {
-  --paper: #131311;
-  --surface: #1c1b19;
-  --surface-2: #262522;
-  --line: #2f2e2a;
-  --line-strong: #45433d;
-  --ink: #f4f2ed;
-  --ink-2: #d9d6ce;
-  --muted: #a39e93;
-  --accent: #ff7a2e;
-  --accent-strong: #ff8f4f;
-  --accent-soft: #3a2416;
-  --accent-ink: #160d07;
-  --good: #4cc983;
-  --good-soft: #15301f;
-  --warn: #f0b44c;
-  --warn-soft: #33270f;
-  --bad: #ff8a80;
-  --bad-soft: #3a1714;
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.3);
+  --paper: #0e0f10;
+  --surface: #17191b;
+  --surface-2: #212427;
+  --line: #2c3034;
+  --line-strong: #4a5056;
+  --ink: #f1f2ee;
+  --ink-2: #cfd3cd;
+  --muted: #9ba19c;
+  --accent: #8a96ff;
+  --accent-strong: #aab3ff;
+  --accent-soft: #1d2150;
+  --accent-ink: #0e0f10;
+  --hivis: #c8f53a;
+  --hivis-ink: #15171a;
+  --good: #c8f53a;
+  --good-soft: #253013;
+  --warn: #ffc24d;
+  --warn-soft: #33270d;
+  --bad: #ff8f84;
+  --bad-soft: #3a1613;
+  --focus: #c8f53a;
+  --press: 0 3px 0 #000;
+  --mat-line: transparent;
   color-scheme: dark;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #131311;
-    --surface: #1c1b19;
-    --surface-2: #262522;
-    --line: #2f2e2a;
-    --line-strong: #45433d;
-    --ink: #f4f2ed;
-    --ink-2: #d9d6ce;
-    --muted: #a39e93;
-    --accent: #ff7a2e;
-    --accent-strong: #ff8f4f;
-    --accent-soft: #3a2416;
-    --accent-ink: #160d07;
-    --good: #4cc983;
-    --good-soft: #15301f;
-    --warn: #f0b44c;
-    --warn-soft: #33270f;
-    --bad: #ff8a80;
-    --bad-soft: #3a1714;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.3);
+    --paper: #0e0f10;
+    --surface: #17191b;
+    --surface-2: #212427;
+    --line: #2c3034;
+    --line-strong: #4a5056;
+    --ink: #f1f2ee;
+    --ink-2: #cfd3cd;
+    --muted: #9ba19c;
+    --accent: #8a96ff;
+    --accent-strong: #aab3ff;
+    --accent-soft: #1d2150;
+    --accent-ink: #0e0f10;
+    --hivis: #c8f53a;
+    --hivis-ink: #15171a;
+    --good: #c8f53a;
+    --good-soft: #253013;
+    --warn: #ffc24d;
+    --warn-soft: #33270d;
+    --bad: #ff8f84;
+    --bad-soft: #3a1613;
+    --focus: #c8f53a;
+    --press: 0 3px 0 #000;
+    --mat-line: transparent;
     color-scheme: dark;
   }
 }
@@ -90,15 +105,25 @@
   --color-accent-strong: var(--accent-strong);
   --color-accent-soft: var(--accent-soft);
   --color-accent-ink: var(--accent-ink);
+  --color-hivis: var(--hivis);
+  --color-hivis-ink: var(--hivis-ink);
   --color-good: var(--good);
   --color-good-soft: var(--good-soft);
   --color-warn: var(--warn);
   --color-warn-soft: var(--warn-soft);
   --color-bad: var(--bad);
   --color-bad-soft: var(--bad-soft);
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
-  --shadow-card: var(--shadow);
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+  --shadow-press: var(--press);
+}
+
+/* Squared-off shop geometry: cards 4px, controls 6px. */
+@theme {
+  --radius-lg: 4px;
+  --radius-xl: 6px;
+  --radius-2xl: 4px;
+  --radius-3xl: 6px;
 }
 
 html {
@@ -109,22 +134,59 @@ html {
 body {
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  font-feature-settings: "ss01", "cv11";
+  font-family: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
   text-rendering: optimizeLegibility;
 }
 
 :focus-visible {
-  outline: 3px solid var(--focus);
+  /* Two-tone ring stays visible on any background, including accent buttons. */
+  outline: 3px solid var(--ink);
   outline-offset: 2px;
-  border-radius: 6px;
+  box-shadow: 0 0 0 6px var(--focus);
+}
+
+/* Condensed display face (Archivo width axis). */
+.display {
+  font-family: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  font-stretch: 72%;
+  letter-spacing: -0.01em;
+}
+
+/* Hard "press" shadow that collapses when tapped. */
+.pressable {
+  box-shadow: var(--press);
+  transition: transform 80ms ease, box-shadow 80ms ease, background-color 120ms ease;
+}
+.pressable:active {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+
+/* Display titles from real-world data are often lowercase. */
+.cap::first-letter { text-transform: uppercase; }
+
+/* Dimension line: |——— 90 MIN ———| */
+.dim {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+}
+.dim::before, .dim::after {
+  content: "";
+  width: 1.4em;
+  height: 0.6em;
+  border: 1px solid currentColor;
+  border-top: 0;
+  border-bottom: 0;
+  background: linear-gradient(currentColor, currentColor) center / 100% 1px no-repeat;
+  opacity: 0.55;
 }
 
 /* Cutting-mat grid used behind hero areas. */
 .mat {
   background-image:
-    linear-gradient(to right, color-mix(in srgb, var(--ink) 6%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in srgb, var(--ink) 6%, transparent) 1px, transparent 1px);
+    linear-gradient(to right, var(--mat-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--mat-line) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
@@ -138,6 +200,28 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+@keyframes stamp {
+  from { opacity: 0; transform: rotate(-4deg) scale(1.4); }
+  to { opacity: 1; transform: rotate(-4deg) scale(1); }
+}
+.stamp-in { animation: stamp 0.35s cubic-bezier(.2,.9,.3,1.2) both; }
+
+@keyframes kenburns {
+  from { transform: scale(1.04); }
+  to { transform: scale(1); }
+}
+.kenburns { animation: kenburns 9s ease-out both; }
+
+@keyframes flash {
+  from { background-color: var(--hivis); color: var(--hivis-ink); }
+}
+.flash { animation: flash 0.9s ease-out both; }
+
+@keyframes progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
 }
 
 @keyframes rise {
