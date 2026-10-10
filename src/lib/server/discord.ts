@@ -100,36 +100,38 @@ export async function hasDiscordAdminRole(discordUserId: string): Promise<boolea
   }
 }
 
-const ACCENT = 0xf2610c;
+/** Escape Discord markdown in user-supplied text. */
+function md(s: string, max = 120) {
+  const clipped = s.length > max ? s.slice(0, max - 1) + '…' : s;
+  return clipped.replace(/([\\*_~`|>\[\]()#-])/g, '\\$1').replace(/\s+/g, ' ');
+}
 
-/** Fire-and-forget channel post. Never throws. */
-export function announce(embed: {
-  title: string;
-  description?: string;
-  url?: string;
-  fields?: { name: string; value: string; inline?: boolean }[];
-  image?: string | null;
-}) {
+/**
+ * Brief one-line post to the lab's general channel. Only two things are ever
+ * announced: new tasks and new creations. Never throws; never pings anyone.
+ */
+function post(content: string) {
   const channel = process.env.DISCORD_ANNOUNCEMENTS_CHANNEL_ID;
   if (!channel || !process.env.DISCORD_BOT_TOKEN) return;
-  const clip = (s: string, n: number) => (s.length > n ? s.slice(0, n - 1) + '…' : s);
   void bot(`/channels/${channel}/messages`, {
     method: 'POST',
     body: JSON.stringify({
-      // Never ping anyone from user-supplied text.
+      content,
       allowed_mentions: { parse: [] },
-      embeds: [
-        {
-          title: clip(embed.title, 250),
-          description: embed.description ? clip(embed.description, 1000) : undefined,
-          url: embed.url,
-          color: ACCENT,
-          fields: embed.fields?.map((f) => ({ ...f, name: clip(f.name, 250), value: clip(f.value, 1000) })),
-          image: embed.image ? { url: embed.image } : undefined,
-          footer: { text: siteConfig.name },
-          timestamp: new Date().toISOString(),
-        },
-      ],
+      flags: 1 << 2, // SUPPRESS_EMBEDS: keep it to one line, no link preview card
     }),
   }).catch(() => {});
+}
+
+function siteLink(path: string) {
+  return `${siteConfig.baseUrl.replace(/\/$/, '')}${path}`;
+}
+
+export function announceNewTask(t: { id: string; title: string; zone: string; minutes: number; by: string }) {
+  const time = t.minutes >= 60 ? `~${Math.round((t.minutes / 60) * 10) / 10} hr` : `~${t.minutes} min`;
+  post(`🛠️ **${md(t.by, 40)}** posted a task: [${md(t.title)}](<${siteLink(`/tasks/${t.id}`)}>) · ${md(t.zone, 30)} · ${time}`);
+}
+
+export function announceNewCreation(c: { id: string; title: string; by: string }) {
+  post(`✨ **${md(c.by, 40)}** shared a creation: [${md(c.title)}](<${siteLink(`/creations/${c.id}`)}>)`);
 }

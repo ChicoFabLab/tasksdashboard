@@ -2,19 +2,14 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import type { RecordModel } from 'pocketbase';
-import { adminPb, isNotFound } from '@/lib/server/pb';
+import { adminPb } from '@/lib/server/pb';
 import { getCurrentUser, type CurrentUser } from '@/lib/server/session';
-import { nextTaskNumber } from '@/lib/server/data';
-import { announce } from '@/lib/server/discord';
+import { assigneeIds, createTaskRecord, finishTaskRecord, loadTask } from '@/lib/server/task-ops';
 import { int, readImages, text } from '@/lib/server/uploads';
 import { rateLimit } from '@/lib/server/rate-limit';
-import { absoluteUrl } from '@/lib/site-config';
 import { ZONES } from '@/lib/types';
-import { fileUrl } from '@/lib/files';
 import type { FormState } from './auth';
 
-const ID_RE = /^[a-z0-9]{15}$/;
 
 async function requireUser(next: string): Promise<CurrentUser> {
   const user = await getCurrentUser();
@@ -22,23 +17,9 @@ async function requireUser(next: string): Promise<CurrentUser> {
   return user;
 }
 
-async function loadTask(id: string): Promise<RecordModel | null> {
-  if (!ID_RE.test(id)) return null;
-  try {
-    return await (await adminPb()).collection('tasks').getOne(id);
-  } catch (err) {
-    if (isNotFound(err)) return null;
-    throw err;
-  }
-}
-
 function refresh(taskId?: string) {
   revalidatePath('/', 'layout');
   if (taskId) revalidatePath(`/tasks/${taskId}`);
-}
-
-function assigneeIds(rec: RecordModel): string[] {
-  return Array.isArray(rec.assigned_to) ? rec.assigned_to : rec.assigned_to ? [rec.assigned_to] : [];
 }
 
 export async function claimTask(taskId: string): Promise<FormState> {
@@ -77,56 +58,15 @@ export async function finishTask(_: FormState, form: FormData): Promise<FormStat
   const { files, error } = readImages(form, 'photo', 1);
   if (error) return { error };
 
-  const helperIds = [
-    ...new Set(
-      form
-        .getAll('helpers')
-        .map(String)
-        .filter((id) => ID_RE.test(id) && id !== user.id),
-    ),
-  ].slice(0, 10);
-
-  const pb = await adminPb();
-  const task = await loadTask(taskId);
-  if (!task) return { error: 'That task no longer exists.' };
-  if (task.status === 'completed') return { error: 'This task was already marked finished.' };
-
-  // Only credit helpers who actually exist.
-  const helpers = helperIds.length
-    ? await pb.collection('volunteers').getFullList({
-        filter: helperIds.map((id, i) => pb.filter(`id = {:h${i}}`, { [`h${i}`]: id })).join(' || '),
-        fields: 'id,username,discord_username',
-      })
-    : [];
-  const team = [user.id, ...helpers.map((h) => h.id)];
-
-  // Mark the task done first so a double-tap can't credit twice.
-  await pb.collection('tasks').update(taskId, { status: 'completed', assigned_to: [...new Set([...assigneeIds(task), ...team])] });
-
-  let photoUrl: string | null = null;
-  for (const vid of team) {
-    const data = new FormData();
-    data.set('task', taskId);
-    data.set('volunteer', vid);
-    data.set('actual_minutes', String(minutes));
-    data.set('completion_note', note);
-    if (vid === user.id && files[0]) data.set('photo', files[0]);
-    const rec = await pb.collection('completions').create(data);
-    if (rec.photo) photoUrl = fileUrl('completions', rec.id, rec.photo);
-    await pb.collection('volunteers').update(vid, { 'total_minutes+': minutes });
-  }
-
-  const names = [user.name, ...helpers.map((h) => h.username || h.discord_username || 'a friend')];
-  announce({
-    title: `✅ #${task.task_number} ${task.title}`,
-    description: note || undefined,
-    url: absoluteUrl(`/tasks/${taskId}`),
-    fields: [
-      { name: 'Finished by', value: names.join(', '), inline: true },
-      { name: 'Time', value: `${minutes} min${team.length > 1 ? ' each' : ''}`, inline: true },
-    ],
-    image: photoUrl,
+  const result = await finishTaskRecord({
+    taskId,
+    userId: user.id,
+    minutes,
+    note,
+    helperIds: form.getAll('helpers').map(String),
+    photo: files[0],
   });
+  if (!result.ok) return { error: result.error };
 
   refresh(taskId);
   redirect(`/tasks/${taskId}?done=1`);
@@ -151,27 +91,13 @@ export async function createTask(_: FormState, form: FormData): Promise<FormStat
   const { files, error } = readImages(form, 'image', 1);
   if (error) return { error };
 
-  const pb = await adminPb();
-  const data = new FormData();
-  data.set('task_number', String(await nextTaskNumber()));
-  data.set('title', fields.title);
-  data.set('description', fields.description);
-  data.set('zone', fields.zone);
-  data.set('estimated_minutes', String(fields.estimated_minutes));
-  data.set('status', 'open');
-  data.set('created_by', user.id);
-  data.set('board', process.env.BOARD_ID || 'main');
-  if (files[0]) data.set('image', files[0]);
-  const rec = await pb.collection('tasks').create(data);
-
-  announce({
-    title: `🛠️ New task #${rec.task_number}: ${rec.title}`,
-    description: fields.description || undefined,
-    url: absoluteUrl(`/tasks/${rec.id}`),
-    fields: [
-      { name: 'Zone', value: fields.zone, inline: true },
-      { name: 'Estimate', value: `${fields.estimated_minutes} min`, inline: true },
-    ],
+  const rec = await createTaskRecord({
+    title: fields.title,
+    description: fields.description,
+    zone: fields.zone,
+    estimatedMinutes: fields.estimated_minutes,
+    createdBy: { id: user.id, name: user.name },
+    image: files[0],
   });
   refresh();
   redirect(`/tasks/${rec.id}?created=1`);

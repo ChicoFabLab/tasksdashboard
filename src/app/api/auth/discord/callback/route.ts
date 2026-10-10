@@ -1,10 +1,8 @@
-import { randomBytes } from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
-import type { RecordModel } from 'pocketbase';
-import { adminPb, isNotFound } from '@/lib/server/pb';
+import { adminPb } from '@/lib/server/pb';
 import { exchangeDiscordCode, hasDiscordAdminRole } from '@/lib/server/discord';
 import { getCurrentUser, safeNext, startSession } from '@/lib/server/session';
-import { findByName } from '@/lib/server/members';
+import { findOrCreateDiscordVolunteer } from '@/lib/server/members';
 import { siteConfig } from '@/lib/site-config';
 
 function to(path: string) {
@@ -12,14 +10,6 @@ function to(path: string) {
   const res = NextResponse.redirect(`${siteConfig.baseUrl.replace(/\/$/, '')}${path}`);
   res.cookies.delete({ name: 'cfl_oauth', path: '/api/auth/discord' });
   return res;
-}
-
-async function uniqueName(base: string): Promise<string> {
-  const clean = base.replace(/[^\p{L}\p{N} ._'-]/gu, '').trim().slice(0, 26) || 'Maker';
-  const padded = clean.length < 2 ? `${clean}_maker` : clean;
-  if (!(await findByName(padded))) return padded;
-  for (let i = 2; i < 50; i++) if (!(await findByName(`${padded} ${i}`))) return `${padded} ${i}`;
-  return `${padded} ${randomBytes(2).toString('hex')}`;
 }
 
 export async function GET(req: NextRequest) {
@@ -60,41 +50,7 @@ export async function GET(req: NextRequest) {
   }
 
   // ----- Sign in (or sign up) with Discord -----
-  let found: RecordModel | null = matches[0] ?? null;
-  let isNew = false;
-  if (!found) {
-    try {
-      const byEmail = await pb.collection('volunteers').getFirstListItem(pb.filter('email = {:e}', { e: `${du.id}@discord.user` }));
-      await pb.collection('volunteers').update(byEmail.id, { discord_id: du.id });
-      found = byEmail;
-    } catch (err) {
-      if (!isNotFound(err)) throw err;
-    }
-  }
-  let rec: RecordModel;
-  if (found) {
-    rec = found;
-    // Keep the Discord handle current, and give older accounts with no name one.
-    const patch: Record<string, string> = {};
-    if (rec.discord_username !== du.username) patch.discord_username = du.username;
-    if (!String(rec.username || '').trim()) patch.username = await uniqueName(du.global_name || du.username);
-    if (Object.keys(patch).length) rec = await pb.collection('volunteers').update(rec.id, patch);
-  } else {
-    const pw = randomBytes(24).toString('base64url');
-    rec = await pb.collection('volunteers').create({
-      username: await uniqueName(du.global_name || du.username),
-      discord_id: du.id,
-      discord_username: du.username,
-      email: `${du.id}@discord.user`,
-      emailVisibility: false,
-      password: pw,
-      passwordConfirm: pw,
-      total_minutes: 0,
-      active: true,
-      board: process.env.BOARD_ID || 'main',
-    });
-    isNew = true;
-  }
+  const { rec, isNew } = await findOrCreateDiscordVolunteer(du);
 
   // Zone Leaders on Discord become admins here. (Removal is manual, from /admin.)
   if (!rec.is_admin && (await hasDiscordAdminRole(du.id))) {

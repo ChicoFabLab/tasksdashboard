@@ -4,11 +4,9 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { adminPb, isNotFound } from '@/lib/server/pb';
 import { getCurrentUser } from '@/lib/server/session';
-import { announce } from '@/lib/server/discord';
+import { announceNewCreation } from '@/lib/server/discord';
 import { readImages, text } from '@/lib/server/uploads';
 import { rateLimit } from '@/lib/server/rate-limit';
-import { absoluteUrl } from '@/lib/site-config';
-import { fileUrl } from '@/lib/files';
 import type { FormState } from './auth';
 
 const ID_RE = /^[a-z0-9]{15}$/;
@@ -34,13 +32,7 @@ export async function createCreation(_: FormState, form: FormData): Promise<Form
   for (const f of files) data.append('photos', f);
 
   const rec = await (await adminPb()).collection('creations').create(data);
-  const photos: string[] = rec.photos || [];
-  announce({
-    title: `✨ ${user.name} shared “${title}”`,
-    description: description || undefined,
-    url: absoluteUrl(`/creations/${rec.id}`),
-    image: photos[0] ? fileUrl('creations', rec.id, photos[0]) : null,
-  });
+  announceNewCreation({ id: rec.id, title, by: user.name });
   revalidatePath('/', 'layout');
   redirect(`/creations/${rec.id}?shared=1`);
 }
