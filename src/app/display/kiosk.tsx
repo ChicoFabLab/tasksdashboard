@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Clock, X } from 'lucide-react';
+import { Clock, Sparkles, Star, X } from 'lucide-react';
 import type { Creation, Task } from '@/lib/types';
 import type { LoggedRow, Win } from '@/lib/server/data';
 import { capitalize, formatMinutes, zoneColor } from '@/lib/format';
@@ -53,6 +53,7 @@ export function Kiosk({
   const [zone, setZone] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
   const [selectedCreation, setSelectedCreation] = useState<string | null>(null);
+  const [gallery, setGallery] = useState(false);
   const [period, setPeriod] = useState<'month' | 'all'>(boards.month.length >= 3 ? 'month' : 'all');
   const [now, setNow] = useState<Date | null>(null);
   const [more, setMore] = useState(false);
@@ -72,6 +73,7 @@ export function Kiosk({
   const reset = useCallback(() => {
     setSelectedTask(null);
     setSelectedCreation(null);
+    setGallery(false);
     setZone(null);
     setView('open');
     grid.current?.scrollTo({ top: 0 });
@@ -148,7 +150,14 @@ export function Kiosk({
           <p className="ml-4 text-[26px] font-semibold text-ink">
             Volunteer jobs — <span className="text-accent">tap one</span>, scan, claim it on your phone
           </p>
-          <time className="ml-auto text-right text-[34px] font-semibold tabular-nums text-ink-2" suppressHydrationWarning>
+          <button
+            onClick={() => setGallery(true)}
+            className="pressable ml-auto inline-flex h-16 items-center gap-3 rounded-2xl bg-sun px-6 text-[24px] font-bold text-sun-ink shadow-sm"
+          >
+            <Sparkles className="size-7" aria-hidden /> Creations
+            {creations.length > 0 && <span className="rounded-full bg-sun-ink/15 px-2.5 text-[20px] tabular-nums">{creations.length}</span>}
+          </button>
+          <time className="ml-4 text-right text-[34px] font-semibold tabular-nums text-ink-2" suppressHydrationWarning>
             {now?.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }).replace(/\s?[AP]M/, '') ?? ''}
           </time>
         </div>
@@ -345,16 +354,20 @@ export function Kiosk({
         </Modal>
       )}
 
+      {gallery && (
+        <CreationGallery
+          creations={creations}
+          shareUrl={urls.share}
+          onOpen={(id) => setSelectedCreation(id)}
+          onClose={() => setGallery(false)}
+          paused={Boolean(selectedCreation)}
+          lastTouch={lastTouch}
+        />
+      )}
+
       {creation && (
         <Modal onClose={() => setSelectedCreation(null)} label={creation.title}>
-          <div className="min-w-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            {creation.thumbs[0] && <img src={creation.photos[0] ?? creation.thumbs[0]} alt="" className="max-h-[520px] w-full rounded-xl object-contain" />}
-            <h2 className="cap mt-4 text-[34px] font-bold">{creation.title}</h2>
-            <p className="mt-2 flex items-center gap-3 text-[20px] text-ink-2">
-              <Avatar member={creation.member} size={36} /> {creation.member.name} · {ago(creation.created)}
-            </p>
-          </div>
+          <CreationView key={creation.id} creation={creation} />
           <ScanBox url={`${urls.base}/creations/${creation.id}`} title="See it on your phone" body="All photos and the story behind it." />
         </Modal>
       )}
@@ -427,6 +440,138 @@ function ScanBox({ url, title, body }: { url: string; title: string; body: strin
       <p className="text-[32px] font-bold text-accent">{title}</p>
       <QR value={url} size={290} label={title} />
       <p className="text-[19px] text-muted">{body}</p>
+    </div>
+  );
+}
+
+/** Full-screen, photo-first gallery of everything people have made. */
+function CreationGallery({
+  creations,
+  shareUrl,
+  onOpen,
+  onClose,
+  paused,
+  lastTouch,
+}: {
+  creations: Creation[];
+  shareUrl: string;
+  onOpen: (id: string) => void;
+  onClose: () => void;
+  paused: boolean;
+  lastTouch: React.RefObject<number>;
+}) {
+  const scroller = useRef<HTMLDivElement>(null);
+  // When nobody is touching, drift slowly down the wall of photos, then start over.
+  useEffect(() => {
+    const t = setInterval(() => {
+      const el = scroller.current;
+      if (!el || paused || Date.now() - lastTouch.current < 15_000) return;
+      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 4) el.scrollTo({ top: 0, behavior: 'smooth' });
+      else el.scrollBy({ top: 220, behavior: 'smooth' });
+    }, 4_000);
+    return () => clearInterval(t);
+  }, [paused, lastTouch]);
+
+  return (
+    <div role="dialog" aria-modal="true" aria-label="Creations" className="rise fixed inset-0 z-40 flex flex-col bg-paper">
+      <div className="flex shrink-0 items-center gap-6 bg-surface px-8 py-5">
+        <div>
+          <h2 className="text-[40px] font-bold leading-tight tracking-tight">Made at the lab</h2>
+          <p className="text-[20px] text-muted">
+            {creations.length} {creations.length === 1 ? 'creation' : 'creations'} shared by members — tap one to see it up close
+          </p>
+        </div>
+        <div className="ml-auto flex items-center gap-4 rounded-2xl bg-sun p-3 pr-5 text-sun-ink">
+          <QR value={shareUrl} size={92} label="Scan to share your creation" />
+          <div>
+            <p className="text-[22px] font-bold leading-tight">Made something?</p>
+            <p className="text-[17px] opacity-80">Scan to share it</p>
+          </div>
+        </div>
+        <button onClick={onClose} className="pressable inline-flex h-16 items-center gap-2 rounded-2xl bg-surface-2 px-6 text-[22px] font-semibold">
+          <X className="size-7" /> Back to tasks
+        </button>
+      </div>
+      <div className="stripes" aria-hidden />
+
+      <div ref={scroller} className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain px-8 py-7">
+        {creations.length ? (
+          <div
+            className={cx('mx-auto gap-6', creations.length < 3 && 'max-w-[1300px]')}
+            // Fewer creations get bigger cards; never more than 4 columns on the wall.
+            style={{ columnCount: Math.min(4, Math.max(2, creations.length)) }}
+          >
+            {creations.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => onOpen(c.id)}
+                className="pressable group mb-6 block w-full break-inside-avoid overflow-hidden rounded-2xl bg-surface text-left shadow-lg ring-1 ring-line"
+              >
+                <span className="relative block">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  {c.thumbs[0] && <img src={c.thumbs[0]} alt="" className="block w-full" loading="lazy" />}
+                  {c.featured && (
+                    <span className="absolute left-3 top-3 inline-flex h-9 items-center gap-1.5 rounded-full bg-sun px-3.5 text-[16px] font-bold text-sun-ink shadow">
+                      <Star className="size-4 fill-current" /> Featured
+                    </span>
+                  )}
+                  {c.photos.length > 1 && (
+                    <span className="absolute right-3 top-3 rounded-full bg-black/65 px-3 py-1 text-[16px] font-semibold text-white">{c.photos.length} photos</span>
+                  )}
+                </span>
+                <span className="block p-5">
+                  <span className="cap line-clamp-2 block text-[24px] font-semibold leading-snug">{c.title}</span>
+                  <span className="mt-3 flex items-center gap-3 text-[18px] text-ink-2">
+                    <Avatar member={c.member} size={36} />
+                    <span className="min-w-0 truncate font-medium">{c.member.name}</span>
+                    <span className="ml-auto shrink-0 text-muted">{ago(c.created)}</span>
+                  </span>
+                </span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="grid h-full place-items-center text-center">
+            <div>
+              <p className="text-[36px] font-semibold">No creations yet</p>
+              <p className="mt-2 text-[22px] text-muted">Scan the yellow code to share the first one.</p>
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="stripes" aria-hidden />
+    </div>
+  );
+}
+
+/** One creation, large: every photo (tap a thumbnail to switch), the story, who made it. */
+function CreationView({ creation }: { creation: Creation }) {
+  const [i, setI] = useState(0);
+  const src = creation.photos[i] ?? creation.thumbs[i];
+  return (
+    <div className="min-w-0">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      {src && <img src={src} alt="" className="max-h-[560px] w-full rounded-xl bg-surface-2 object-contain" />}
+      {creation.thumbs.length > 1 && (
+        <div className="no-scrollbar mt-3 flex gap-3 overflow-x-auto">
+          {creation.thumbs.map((t, idx) => (
+            <button
+              key={t}
+              onClick={() => setI(idx)}
+              aria-label={`Photo ${idx + 1}`}
+              className={cx('size-24 shrink-0 overflow-hidden rounded-lg ring-4', idx === i ? 'ring-sun' : 'ring-transparent opacity-70')}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={t} alt="" className="size-full object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
+      <h2 className="cap mt-5 text-[38px] font-bold leading-tight">{creation.title}</h2>
+      <p className="mt-2 flex items-center gap-3 text-[21px] text-ink-2">
+        <Avatar member={creation.member} size={40} /> {creation.member.name} · {ago(creation.created)}
+      </p>
+      {creation.description.trim() && <p className="mt-4 line-clamp-5 whitespace-pre-line text-[21px] leading-relaxed text-ink-2">{capitalize(creation.description.trim())}</p>}
     </div>
   );
 }

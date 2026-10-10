@@ -10,7 +10,7 @@ export default async function DisplayPage() {
   const [tasks, wins, creations, stats, month, allTime] = await Promise.all([
     listTasks({ status: ['open', 'in_progress'], limit: 200 }),
     recentWins(7),
-    listCreations({ limit: 24 }),
+    listCreations({ limit: 60 }),
     labStats(),
     tasksLogged('month', 200),
     tasksLogged('all', 200),
