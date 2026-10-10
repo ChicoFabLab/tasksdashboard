@@ -76,3 +76,6 @@ docs/
 # Build cache / migration snapshots
 *.tsbuildinfo
 pb-snapshot-*.json
+.next-test/
+.next-build/
+.next-prev/

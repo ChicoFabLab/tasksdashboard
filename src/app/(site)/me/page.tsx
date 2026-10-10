@@ -25,7 +25,7 @@ export default async function MePage({ searchParams }: { searchParams: Promise<{
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
         <Avatar member={user} size={80} />
         <div className="flex-1">
-          <h1 className="display text-[44px] font-extrabold uppercase leading-[0.9] sm:text-[60px]">{user.name}</h1>
+          <h1 className="display text-3xl font-bold sm:text-4xl">{user.name}</h1>
           <p className="mt-1 text-muted">{user.isAdmin ? 'Admin · ' : ''}Your corner of the lab</p>
         </div>
         <div className="flex flex-wrap gap-2">

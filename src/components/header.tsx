@@ -9,7 +9,7 @@ export async function SiteHeader() {
   const user = await getCurrentUser();
   return (
     <>
-      <header className="sticky top-0 z-40 border-b-[1.5px] border-line-strong bg-paper/95 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-line bg-surface/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
           <Logo />
           <div className="ml-2 min-w-0 flex-1 lg:ml-6">

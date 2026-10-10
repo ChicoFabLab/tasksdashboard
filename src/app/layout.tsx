@@ -1,10 +1,9 @@
 import type { Metadata, Viewport } from 'next';
-import { Archivo, IBM_Plex_Mono } from 'next/font/google';
+import { Inter, IBM_Plex_Mono } from 'next/font/google';
 import './globals.css';
 import { siteConfig } from '@/lib/site-config';
 
-// Archivo's width axis gives us a condensed display face from the same family.
-const archivo = Archivo({ variable: '--font-archivo', subsets: ['latin'], axes: ['wdth'] });
+const inter = Inter({ variable: '--font-inter', subsets: ['latin'] });
 const plexMono = IBM_Plex_Mono({ variable: '--font-plex-mono', subsets: ['latin'], weight: ['500', '600'] });
 
 export const metadata: Metadata = {
@@ -18,14 +17,14 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: 'cover',
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#e9eae5' },
-    { media: '(prefers-color-scheme: dark)', color: '#0e0f10' },
+    { media: '(prefers-color-scheme: light)', color: '#f4f5f7' },
+    { media: '(prefers-color-scheme: dark)', color: '#0b0e13' },
   ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${archivo.variable} ${plexMono.variable}`}>
+    <html lang="en" className={`${inter.variable} ${plexMono.variable}`}>
       <body className="min-h-dvh antialiased">{children}</body>
     </html>
   );

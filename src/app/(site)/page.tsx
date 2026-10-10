@@ -1,167 +1,125 @@
 import Link from 'next/link';
-import { ArrowRight, Plus } from 'lucide-react';
-import { labStats, listCreations, listTasks, recentWins } from '@/lib/server/data';
+import { Plus } from 'lucide-react';
+import { labStats, leaderboard, listCreations, listTasks, recentWins } from '@/lib/server/data';
 import { getCurrentUser } from '@/lib/server/session';
-import { formatMinutes, plural, timeAgo } from '@/lib/format';
-import { CreationCard, TaskCard, WinCard } from '@/components/cards';
-import { Avatar, ButtonLink, EmptyState, SectionHeader } from '@/components/ui';
+import { timeAgo } from '@/lib/format';
+import { CreationCard, TaskCard, WinRow } from '@/components/cards';
+import { ButtonLink, EmptyState, LeaderList, Panel, StatTile } from '@/components/ui';
 
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  const [user, stats, wins, creations, tasks] = await Promise.all([
+  const [user, stats, wins, creations, tasks, monthBoard] = await Promise.all([
     getCurrentUser(),
     labStats(),
-    recentWins(8),
-    listCreations({ limit: 8 }),
+    recentWins(6),
+    listCreations({ limit: 4 }),
     listTasks({ status: 'open', limit: 6 }),
+    leaderboard('month', 5),
   ]);
-  // In quiet months, all-time totals tell a truer story than "1 task this month".
-  const busy = stats.tasksDone30d >= 10;
-  const totals = busy
-    ? [
-        [stats.tasksDone30d, 'tasks done', '30 days'],
-        [stats.hours30d, 'hours given', '30 days'],
-        [stats.makers30d, 'makers', '30 days'],
-      ]
-    : [
-        [stats.tasksDoneAllTime, 'tasks done', 'all time'],
-        [stats.hoursAllTime, 'hours given', 'all time'],
-        [creations.length, 'creations', 'shared'],
-      ];
+  // Fall back to all-time when this month is still empty, so the board is never blank.
+  const board = monthBoard.length >= 3 ? monthBoard : await leaderboard('all', 5);
+  const boardLabel = board === monthBoard ? 'This month' : 'All time';
 
   return (
-    <div className="space-y-14 sm:space-y-16">
-      {/* Live headline — what needs doing, and who did the last thing */}
-      <section className="rise grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          {user && <p className="mb-2 font-mono text-[13px] font-semibold uppercase tracking-wider text-muted">Hey {user.name}</p>}
-          <h1 className="display text-[52px] font-extrabold uppercase leading-[0.9] sm:text-[88px]">
-            {stats.openTasks > 0 ? (
+          <h1 className="display text-3xl font-bold sm:text-4xl">{user ? `Welcome back, ${user.name}` : 'Task board'}</h1>
+          <p className="mt-1 text-muted">
+            {stats.lastWin ? (
               <>
-                <span className="text-accent">{stats.openTasks}</span> {stats.openTasks === 1 ? 'job needs' : 'jobs need'} a hand
+                Last task finished {timeAgo(stats.lastWin.created)} by{' '}
+                <Link href={`/makers/${stats.lastWin.member.id}`} className="font-medium text-ink hover:underline">
+                  {stats.lastWin.member.name}
+                </Link>
               </>
             ) : (
-              'The board is clear'
+              'Pick a task, get it done, get credit.'
             )}
-          </h1>
-          {stats.lastWin && (
-            <Link href={`/makers/${stats.lastWin.member.id}`} className="mt-5 inline-flex items-center gap-3 rounded-xl text-[17px] hover:underline">
-              <Avatar member={stats.lastWin.member} size={36} />
-              <span>
-                Last job finished <strong>{timeAgo(stats.lastWin.created)}</strong> by <strong>{stats.lastWin.member.name}</strong>
-              </span>
-            </Link>
-          )}
-          <div className="mt-7 flex flex-wrap gap-3">
-            <ButtonLink href="/tasks" size="lg">
-              Grab a task <ArrowRight className="size-5" aria-hidden />
-            </ButtonLink>
-            <ButtonLink href="/creations/new" size="lg" variant="secondary">
-              <Plus className="size-5" aria-hidden /> Share a creation
-            </ButtonLink>
-          </div>
+          </p>
         </div>
-        <dl className="grid grid-cols-3 border-[1.5px] border-ink bg-surface lg:w-[420px]">
-          {totals.map(([v, l, w], i) => (
-            <div key={String(l)} className={i ? 'border-l-[1.5px] border-ink p-4' : 'p-4'}>
-              <dd className="display text-[44px] font-extrabold leading-none">{v}</dd>
-              <dt className="mt-1.5 text-sm font-semibold leading-tight">{l}</dt>
-              <dt className="font-mono text-[11px] uppercase tracking-wider text-muted">{w}</dt>
-            </div>
-          ))}
-        </dl>
-      </section>
+        <div className="flex gap-2">
+          <ButtonLink href="/tasks/new" variant="secondary">
+            <Plus className="size-4" aria-hidden /> Post a task
+          </ButtonLink>
+          <ButtonLink href="/creations/new">
+            <Plus className="size-4" aria-hidden /> Share a creation
+          </ButtonLink>
+        </div>
+      </div>
 
-      <section>
-        <SectionHeader
-          title="Recent wins"
-          action={
-            <Link href="/tasks?status=completed" className="text-[15px] font-semibold underline-offset-4 hover:underline">
-              See all
-            </Link>
-          }
-        />
-        {wins.length ? (
-          <div className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4">
-            {wins.map((w) => (
-              <WinCard key={w.key} win={w} className="w-[80vw] max-w-[330px] shrink-0 snap-start sm:w-auto sm:max-w-none" />
-            ))}
-          </div>
-        ) : (
-          <EmptyState title="No finished tasks yet" body="Be the first — pick something from the board." action={<ButtonLink href="/tasks">Browse tasks</ButtonLink>} />
-        )}
-      </section>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatTile label="Open tasks" value={stats.openTasks} hint="Ready to claim" />
+        <StatTile label="In progress" value={stats.inProgressTasks} hint="Someone’s on it" />
+        <StatTile label="Tasks done" value={stats.tasksDoneAllTime} hint={`${stats.tasksDone30d} in the last 30 days`} />
+        <StatTile label="Hours logged" value={stats.hoursAllTime} hint={`${stats.makers30d} active in the last 30 days`} />
+      </div>
 
-      <section>
-        <SectionHeader
-          title="Made here"
-          action={
-            <Link href="/creations" className="text-[15px] font-semibold underline-offset-4 hover:underline">
-              Gallery
-            </Link>
-          }
-        />
-        {creations.length ? (
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-            {creations.map((c) => (
-              <CreationCard key={c.id} creation={c} />
-            ))}
-          </div>
-        ) : (
-          <EmptyState
-            title="Show us what you made"
-            body="Snap a photo of your project and it’ll show up here and on the big screen."
-            action={<ButtonLink href="/creations/new">Share a creation</ButtonLink>}
-          />
-        )}
-      </section>
-
-      <div className="grid gap-14 lg:grid-cols-[2fr_1fr] lg:gap-10">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
         <section>
-          <SectionHeader
-            title="Open jobs"
-            kicker={`${stats.openTasks} open`}
-            action={
-              <ButtonLink href="/tasks" variant="secondary" size="sm">
-                All tasks
-              </ButtonLink>
-            }
-          />
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Open tasks</h2>
+            <Link href="/tasks" className="text-sm font-medium text-accent hover:underline">
+              View all {stats.openTasks}
+            </Link>
+          </div>
           {tasks.length ? (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               {tasks.map((t) => (
                 <TaskCard key={t.id} task={t} />
               ))}
             </div>
           ) : (
-            <EmptyState title="The board is clear" body="Nothing open right now. Spotted something that needs doing?" action={<ButtonLink href="/tasks/new">Post a task</ButtonLink>} />
+            <EmptyState title="No open tasks" body="Spotted something that needs doing? Post it so someone can pick it up." action={<ButtonLink href="/tasks/new">Post a task</ButtonLink>} />
           )}
         </section>
 
-        <section>
-          <SectionHeader title="Shop heroes" kicker={stats.topMakersWindow.toLowerCase()} />
-          {stats.topMakers.length ? (
-            <ol className="border-[1.5px] border-line-strong bg-surface">
-              {stats.topMakers.map((t, i) => (
-                <li key={t.member.id} className={i ? 'border-t border-line' : undefined}>
-                  <Link href={`/makers/${t.member.id}`} className="flex items-center gap-3 px-4 py-3.5 hover:bg-surface-2">
-                    <span className="display w-6 text-2xl font-extrabold text-muted">{i + 1}</span>
-                    <Avatar member={t.member} size={40} />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate font-semibold">{t.member.name}</span>
-                      <span className="block text-sm text-muted">{plural(t.tasks, 'task')}</span>
-                    </span>
-                    <span className="font-mono text-sm font-semibold">{formatMinutes(t.minutes)}</span>
-                  </Link>
-                </li>
-              ))}
-            </ol>
-          ) : (
-            <EmptyState title="Your name here" body="Finish a task to get on the board." />
-          )}
-        </section>
+        <div className="space-y-6">
+          <Panel
+            title="Recently finished"
+            action={
+              <Link href="/leaderboard#activity" className="text-sm font-medium text-accent hover:underline">
+                All activity
+              </Link>
+            }
+          >
+            {wins.length ? (
+              wins.map((w) => <WinRow key={w.key} win={w} />)
+            ) : (
+              <p className="p-3 text-sm text-muted">Nothing finished yet — be the first.</p>
+            )}
+          </Panel>
+          <Panel
+            title={`Leaderboard · ${boardLabel}`}
+            action={
+              <Link href="/leaderboard" className="text-sm font-medium text-accent hover:underline">
+                Full board
+              </Link>
+            }
+          >
+            {board.length ? <LeaderList rows={board} /> : <p className="p-3 text-sm text-muted">Finish a task to get on the board.</p>}
+          </Panel>
+        </div>
       </div>
+
+      <section>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Latest creations</h2>
+          <Link href="/creations" className="text-sm font-medium text-accent hover:underline">
+            Gallery
+          </Link>
+        </div>
+        {creations.length ? (
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {creations.map((c) => (
+              <CreationCard key={c.id} creation={c} />
+            ))}
+          </div>
+        ) : (
+          <EmptyState title="No creations yet" body="Made something at the lab? Share a photo." action={<ButtonLink href="/creations/new">Share a creation</ButtonLink>} />
+        )}
+      </section>
     </div>
   );
 }

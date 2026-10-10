@@ -148,6 +148,7 @@ export interface LabStats {
   hours30d: number;
   makers30d: number;
   openTasks: number;
+  inProgressTasks: number;
   tasksDoneAllTime: number;
   hoursAllTime: number;
   topMakers: { member: Member; minutes: number; tasks: number }[];
@@ -160,13 +161,17 @@ export interface LabStats {
 export async function labStats(): Promise<LabStats> {
   const pb = await adminPb();
   const since = new Date(Date.now() - 30 * 864e5);
-  const [all, open] = await Promise.all([
+  const [all, open, busyTasks] = await Promise.all([
     pb.collection('completions').getFullList({
       fields: 'id,task,volunteer,actual_minutes,created,expand.volunteer.id,expand.volunteer.username,expand.volunteer.discord_username,expand.volunteer.profile_photo',
       expand: 'volunteer',
     }),
     pb.collection('tasks').getList(1, 1, {
-      filter: `status = "open" && ${boardFilter(pb)}`,
+      filter: `status = "open" && title !~ "[ARCHIVED]%" && ${boardFilter(pb)}`,
+      fields: 'id',
+    }),
+    pb.collection('tasks').getList(1, 1, {
+      filter: `status = "in_progress" && title !~ "[ARCHIVED]%" && ${boardFilter(pb)}`,
       fields: 'id',
     }),
   ]);
@@ -195,6 +200,7 @@ export async function labStats(): Promise<LabStats> {
     hours30d: Math.round(minutes(recent) / 60),
     makers30d: new Set(recent.map((c) => c.volunteer)).size,
     openTasks: open.totalItems,
+    inProgressTasks: busyTasks.totalItems,
     tasksDoneAllTime: new Set(all.map((c) => c.task)).size,
     hoursAllTime: Math.round(minutes(all) / 60),
     topMakers: [...tally.values()]
@@ -295,4 +301,51 @@ export async function listMembersForPicker(): Promise<Member[]> {
     sort: 'username',
   });
   return res.map(toMember).filter((m) => m.name !== 'A maker');
+}
+
+// ---------- Leaderboard ----------
+
+export type Period = 'month' | '90d' | 'all';
+export const PERIODS: { key: Period; label: string }[] = [
+  { key: 'month', label: 'This month' },
+  { key: '90d', label: 'Last 90 days' },
+  { key: 'all', label: 'All time' },
+];
+
+export interface LeaderRow {
+  member: Member;
+  minutes: number;
+  tasks: number;
+  last: string;
+}
+
+export async function leaderboard(period: Period, limit = 20): Promise<LeaderRow[]> {
+  const pb = await adminPb();
+  let since = '';
+  if (period === 'month') {
+    const d = new Date();
+    since = pbDate(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1)));
+  } else if (period === '90d') {
+    since = pbDate(new Date(Date.now() - 90 * 864e5));
+  }
+  const rows = await pb.collection('completions').getFullList({
+    filter: since ? pb.filter('created >= {:s}', { s: since }) : '',
+    fields:
+      'task,volunteer,actual_minutes,created,expand.volunteer.id,expand.volunteer.username,expand.volunteer.discord_username,expand.volunteer.profile_photo',
+    expand: 'volunteer',
+  });
+  const tally = new Map<string, { member: Member; minutes: number; tasks: Set<string>; last: string }>();
+  for (const c of rows) {
+    if (!c.volunteer) continue;
+    const t = tally.get(c.volunteer) ?? { member: toMember(c.expand?.volunteer as RecordModel), minutes: 0, tasks: new Set<string>(), last: '' };
+    t.minutes += Number(c.actual_minutes) || 0;
+    t.tasks.add(c.task);
+    if (c.created > t.last) t.last = c.created;
+    tally.set(c.volunteer, t);
+  }
+  return [...tally.values()]
+    .filter((t) => t.member.id)
+    .sort((a, b) => b.minutes - a.minutes || b.tasks.size - a.tasks.size)
+    .slice(0, limit)
+    .map((t) => ({ member: t.member, minutes: t.minutes, tasks: t.tasks.size, last: t.last }));
 }

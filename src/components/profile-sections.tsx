@@ -1,25 +1,21 @@
-import Link from 'next/link';
 import type { MemberActivity } from '@/lib/server/data';
 import { groupWins } from '@/lib/server/data';
-import { formatHours, formatMinutes, shortDate, taskNo } from '@/lib/format';
-import { CreationCard, TaskCard } from './cards';
-import { EmptyState, SectionHeader, ZoneTag } from './ui';
+import { formatHours } from '@/lib/format';
+import { CreationCard, TaskCard, WinRow } from './cards';
+import { EmptyState, SectionHeader, StatTile } from './ui';
 
 export function ActivityStats({ a }: { a: MemberActivity }) {
   const items = [
-    { v: formatHours(a.minutes), l: 'hours given' },
-    { v: a.tasksDone, l: 'tasks done' },
-    { v: a.creations.length, l: 'creations' },
+    { v: formatHours(a.minutes), l: 'Hours logged' },
+    { v: a.tasksDone, l: 'Tasks done' },
+    { v: a.creations.length, l: 'Creations' },
   ];
   return (
-    <dl className="grid grid-cols-3 border-[1.5px] border-ink bg-surface sm:max-w-xl">
-      {items.map((s, i) => (
-        <div key={s.l} className={i ? 'border-l-[1.5px] border-ink p-4' : 'p-4'}>
-          <dd className="display text-[44px] font-extrabold leading-none">{s.v}</dd>
-          <dt className="mt-1.5 text-sm font-semibold">{s.l}</dt>
-        </div>
+    <div className="grid grid-cols-3 gap-3 lg:max-w-2xl">
+      {items.map((s) => (
+        <StatTile key={s.l} label={s.l} value={s.v} />
       ))}
-    </dl>
+    </div>
   );
 }
 
@@ -54,28 +50,11 @@ export function ActivityBody({ a, self }: { a: MemberActivity; self?: boolean })
       <section>
         <SectionHeader title="Finished tasks" />
         {wins.length ? (
-          <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+          <div className="rounded-2xl border border-line bg-surface p-2">
             {wins.map((w) => (
-              <li key={w.key}>
-                <Link href={w.task ? `/tasks/${w.task.id}` : '#'} className="flex items-center gap-4 px-4 py-3.5 hover:bg-surface-2 sm:px-5">
-                  {w.photo ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={w.photo} alt="" className="size-12 rounded-lg object-cover" />
-                  ) : (
-                    <span className="grid size-12 place-items-center rounded-lg bg-surface-2 font-mono text-sm text-muted">{w.task ? taskNo(w.task.number) : '✓'}</span>
-                  )}
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate font-semibold">{w.task?.title ?? 'Task'}</span>
-                    <span className="flex flex-wrap items-center gap-x-3 text-sm text-muted">
-                      {w.task && <ZoneTag zone={w.task.zone} className="text-sm" />}
-                      {shortDate(w.created)}
-                    </span>
-                  </span>
-                  <span className="shrink-0 text-sm font-semibold">{formatMinutes(w.minutes)}</span>
-                </Link>
-              </li>
+              <WinRow key={w.key} win={w} />
             ))}
-          </ul>
+          </div>
         ) : (
           <EmptyState title={self ? 'No tasks finished yet' : 'No finished tasks yet'} body={self ? 'Pick one from the board — most take under an hour.' : undefined} />
         )}

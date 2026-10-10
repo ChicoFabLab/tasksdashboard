@@ -1,12 +1,11 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, Pencil, PartyPopper, Smartphone } from 'lucide-react';
+import { ArrowLeft, Clock, Pencil, PartyPopper, Smartphone } from 'lucide-react';
 import { completionsForTask, getTask, groupWins, listMembersForPicker } from '@/lib/server/data';
 import { getCurrentUser } from '@/lib/server/session';
 import { absoluteUrl } from '@/lib/site-config';
-import { capitalize, formatMinutes, shortDate, taskNo, timeAgo, zoneColor } from '@/lib/format';
-import { Avatar, ButtonLink, Card, Notice, StatusPill, names } from '@/components/ui';
-import { DoneStamp, SpecPlate } from '@/components/cards';
+import { capitalize, formatMinutes, shortDate, taskNo, timeAgo } from '@/lib/format';
+import { Avatar, ButtonLink, Card, Notice, StatusPill, ZoneTag, names } from '@/components/ui';
 import { CollapsibleText } from '@/components/collapsible';
 import { ClaimButtons, FinishForm } from '@/components/task-actions';
 import { QR } from '@/components/qr';
@@ -67,21 +66,27 @@ export default async function TaskPage({
 
       <div className="grid gap-x-10 gap-y-6 lg:grid-cols-[1fr_360px]">
         <header className="lg:col-start-1">
-          <div className="h-2.5 w-24 rounded-[2px]" style={{ background: zoneColor(task.zone) }} aria-hidden />
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <SpecPlate zone={task.zone} number={task.number} className="text-[13px]" />
-            {task.status === 'completed' ? <DoneStamp /> : <StatusPill status={task.status} />}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[15px] text-muted">
+            <StatusPill status={task.status} />
+            <span className="tabular-nums">Task #{task.number}</span>
+            <ZoneTag zone={task.zone} />
+            {task.estimatedMinutes > 0 && (
+              <span className="inline-flex items-center gap-1.5">
+                <Clock className="size-4" aria-hidden /> About {formatMinutes(task.estimatedMinutes)}
+              </span>
+            )}
+            <span>Posted {timeAgo(task.created)}</span>
             {canEdit && (
-              <Link href={`/tasks/${task.id}/edit`} className="ml-auto inline-flex h-10 items-center gap-1.5 rounded-xl px-3 text-sm font-semibold text-muted hover:bg-surface-2 hover:text-ink">
+              <Link href={`/tasks/${task.id}/edit`} className="ml-auto inline-flex h-10 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-muted hover:bg-surface-2 hover:text-ink">
                 <Pencil className="size-4" aria-hidden /> Edit
               </Link>
             )}
           </div>
-          <h1 className="cap display mt-3 text-[40px] font-extrabold leading-[0.95] text-balance sm:text-[64px]">{task.title}</h1>
-          <p className="mt-3 text-[15px] text-muted">
-            {task.zone}
-            {task.estimatedMinutes > 0 && <> · <span className="dim font-mono text-[13px] font-semibold uppercase text-ink-2">{formatMinutes(task.estimatedMinutes)}</span></>} · posted {timeAgo(task.created)}
-          </p>
+          <h1 className="cap display mt-3 text-3xl font-bold leading-tight text-balance sm:text-4xl">{task.title}</h1>
+          {task.image && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={task.image} alt="" className="mt-5 max-h-[260px] w-full rounded-2xl border border-line object-cover sm:max-h-[440px]" />
+          )}
         </header>
 
         {/* Action panel */}
@@ -120,7 +125,7 @@ export default async function TaskPage({
 
           {done && (
             <Card className="p-5">
-              <p className="display text-2xl font-extrabold uppercase">This one’s done</p>
+              <p className="text-lg font-semibold">This one’s done</p>
               <p className="mt-1 text-[15px] text-muted">There’s always more on the board.</p>
               <ButtonLink href="/tasks" variant="secondary" block className="mt-4">
                 Find another task
@@ -139,11 +144,6 @@ export default async function TaskPage({
           </Card>
         </aside>
         <article className="lg:col-start-1">
-          {task.image && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={task.image} alt="" className="mb-6 max-h-[480px] w-full rounded-2xl border-[1.5px] border-line object-cover" />
-          )}
-
           {task.description ? (
             <CollapsibleText text={capitalize(task.description)} className="whitespace-pre-line text-lg leading-relaxed text-ink-2" />
           ) : (
@@ -167,7 +167,7 @@ export default async function TaskPage({
 
           {done && (
             <section className="mt-10">
-              <h2 className="mb-4 text-xl font-semibold">Finished</h2>
+              <h2 className="mb-4 text-lg font-semibold">Who finished it</h2>
               {wins.length === 0 && <p className="text-muted">Marked done {timeAgo(task.updated)}.</p>}
               <div className="space-y-4">
                 {wins.map((w) => (

@@ -1,111 +1,161 @@
 import Link from 'next/link';
-import { Images, Star } from 'lucide-react';
-import type { Creation, Member, Task } from '@/lib/types';
+import { Check, Clock, Images, Star } from 'lucide-react';
+import type { Creation, Task } from '@/lib/types';
 import type { Win } from '@/lib/server/data';
-import { capitalize, formatMinutes, shortMinutes, taskNo, timeAgo, zoneCode, zoneColor } from '@/lib/format';
-import { Avatar, AvatarStack, StatusPill, cx, names } from './ui';
+import { capitalize, formatMinutes, timeAgo, zoneColor } from '@/lib/format';
+import { Avatar, AvatarStack, ZoneTag, cx, names } from './ui';
 
-/** Mono "spec plate" strip: LSR · TASK 156 · ~1H30 */
-export function SpecPlate({ zone, number, minutes, className }: { zone: string; number: number; minutes?: number; className?: string }) {
+/** Trello-style zone label. */
+export function ZoneLabel({ zone, large }: { zone: string; large?: boolean }) {
   return (
-    <span className={cx('flex items-center gap-2 font-mono text-[12px] font-semibold uppercase tracking-wider text-muted', className)}>
-      <span className="rounded-[2px] px-1.5 py-0.5 text-[#111]" style={{ background: zoneColor(zone) }}>
-        {zoneCode(zone)}
-      </span>
-      <span>Task {number}</span>
-      {minutes ? <span aria-label={`about ${formatMinutes(minutes)}`}>· ~{shortMinutes(minutes)}</span> : null}
+    <span
+      className={cx('inline-flex items-center rounded-md font-semibold text-[#111]', large ? 'h-8 px-3 text-[17px]' : 'h-6 px-2 text-xs')}
+      style={{ background: zoneColor(zone) }}
+    >
+      {zone}
     </span>
   );
 }
 
-export function TaskCard({ task, href }: { task: Task; href?: string }) {
+/** Card body shared by the site board (links) and the kiosk board (buttons). */
+export function TaskCardBody({ task, large }: { task: Task; large?: boolean }) {
   return (
-    <Link
-      href={href ?? `/tasks/${task.id}`}
-      className="pressable group relative flex min-h-[164px] flex-col overflow-hidden rounded-2xl border-[1.5px] border-line-strong bg-surface hover:border-ink"
-    >
-      <span className="h-2.5 w-full shrink-0" style={{ background: zoneColor(task.zone) }} aria-hidden />
-      <div className="flex flex-1 flex-col p-4 sm:p-5">
-        <div className="flex items-center justify-between gap-3">
-          <SpecPlate zone={task.zone} number={task.number} minutes={task.estimatedMinutes} />
-          {task.status !== 'open' && <StatusPill status={task.status} />}
-        </div>
-        <h3 className="cap display mt-3 line-clamp-3 text-[24px] font-bold leading-[1.05]">{task.title}</h3>
-        <div className="mt-auto flex items-center gap-3 pt-4 text-sm text-muted">
-          <span>{task.zone}</span>
-          {task.assignees.length > 0 && task.status !== 'completed' && (
-            <span className="ml-auto flex items-center gap-2">
-              <span className="text-[13px]">{names(task.assignees, 1)}</span>
-              <AvatarStack members={task.assignees} size={28} />
+    <>
+      {task.image && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={task.image} alt="" className={cx('w-full object-cover', large ? 'h-44' : 'aspect-[16/9]')} loading="lazy" />
+      )}
+      <span className={cx('flex flex-col', large ? 'gap-3 p-4' : 'gap-2 p-3')}>
+        <span className="flex flex-wrap items-center gap-1.5">
+          <ZoneLabel zone={task.zone} large={large} />
+        </span>
+        <span className={cx('cap font-semibold leading-snug', large ? 'text-[22px]' : 'text-[15px]')}>{task.title}</span>
+        <span className={cx('flex items-center gap-3 text-muted', large ? 'text-[17px]' : 'text-[13px]')}>
+          {task.estimatedMinutes > 0 && (
+            <span className="inline-flex items-center gap-1">
+              <Clock className={large ? 'size-5' : 'size-3.5'} aria-hidden /> {formatMinutes(task.estimatedMinutes)}
             </span>
           )}
-        </div>
-      </div>
+          <span className="tabular-nums">#{task.number}</span>
+          {task.assignees.length > 0 && task.status !== 'completed' && (
+            <span className="ml-auto">
+              <AvatarStack members={task.assignees} size={large ? 36 : 24} max={3} />
+            </span>
+          )}
+        </span>
+      </span>
+    </>
+  );
+}
+
+export const cardClass =
+  'pressable block w-full overflow-hidden rounded-xl border border-line bg-surface text-left shadow-[0_1px_2px_rgb(0_0_0/0.06)] hover:border-line-strong hover:shadow-md';
+
+export function TaskCard({ task, href }: { task: Task; href?: string }) {
+  return (
+    <Link href={href ?? `/tasks/${task.id}`} className={cardClass}>
+      <TaskCardBody task={task} />
     </Link>
   );
 }
 
-/** The hi-vis DONE stamp. */
-export function DoneStamp({ className, big }: { className?: string; big?: boolean }) {
+/** "Done" column card: what was finished and by whom. */
+export function DoneCardBody({ win, large }: { win: Win; large?: boolean }) {
   return (
-    <span
-      className={cx(
-        'stamp-in inline-block -rotate-[4deg] rounded-[3px] border-2 border-hivis-ink bg-hivis font-mono font-semibold uppercase tracking-widest text-hivis-ink',
-        big ? 'px-3 py-1 text-xl' : 'px-2 py-0.5 text-[12px]',
-        className,
+    <>
+      {win.photo && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={win.photo} alt="" className={cx('w-full object-cover', large ? 'h-44' : 'aspect-[16/9]')} loading="lazy" />
       )}
-    >
-      Done
-    </span>
-  );
-}
-
-/** Big face for a photo-less win: avatar or initials on the zone colour. */
-export function MakerFace({ member, zone, size }: { member: Member; zone: string; size: number }) {
-  if (member.photo) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={member.photo.replace('160x160', '400x400')} alt="" className="rounded-[4px] object-cover" style={{ width: size, height: size }} />;
-  }
-  return (
-    <span
-      className="display grid place-items-center rounded-[4px] font-extrabold text-[#111]"
-      style={{ width: size, height: size, background: zoneColor(zone), fontSize: size * 0.42 }}
-      aria-hidden
-    >
-      {member.initials}
-    </span>
-  );
-}
-
-export function WinCard({ win, className }: { win: Win; className?: string }) {
-  const zone = win.task?.zone ?? 'General';
-  const lead = win.members[0];
-  const cls = cx('pressable relative flex flex-col overflow-hidden rounded-2xl border-[1.5px] border-line-strong bg-surface hover:border-ink', className);
-  const body = win.photo ? (
-    <>
-      <div className="relative">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={win.photo} alt="" className="aspect-[4/3] w-full object-cover" loading="lazy" />
-        <DoneStamp className="absolute left-3 top-3" />
-      </div>
-      <WinFooter win={win} />
+      <span className={cx('flex flex-col', large ? 'gap-3 p-4' : 'gap-2 p-3')}>
+        {win.task && (
+          <span className="flex items-center gap-1.5">
+            <ZoneLabel zone={win.task.zone} large={large} />
+          </span>
+        )}
+        <span className={cx('cap font-semibold leading-snug', large ? 'text-[22px]' : 'text-[15px]')}>{win.task?.title ?? 'A task'}</span>
+        <span className={cx('flex items-center gap-2', large ? 'text-[18px]' : 'text-[13px]')}>
+          <AvatarStack members={win.members} size={large ? 36 : 24} max={3} />
+          <span className="min-w-0 flex-1 truncate">
+            <strong>{names(win.members, 2)}</strong>
+          </span>
+          <span className="inline-flex shrink-0 items-center gap-1 font-medium text-good">
+            <Check className={large ? 'size-5' : 'size-3.5'} strokeWidth={3} aria-hidden /> {timeAgo(win.created)}
+          </span>
+        </span>
+      </span>
     </>
+  );
+}
+
+export function DoneCard({ win }: { win: Win }) {
+  return win.task ? (
+    <Link href={`/tasks/${win.task.id}`} className={cardClass}>
+      <DoneCardBody win={win} />
+    </Link>
   ) : (
-    // "Time card": the person is the hero, not the task number.
+    <div className={cardClass}>
+      <DoneCardBody win={win} />
+    </div>
+  );
+}
+
+/** A Trello-style list column. */
+export function BoardColumn({
+  title,
+  count,
+  dot,
+  children,
+  className,
+}: {
+  title: string;
+  count: number;
+  dot: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={cx('flex min-w-0 flex-col rounded-2xl bg-surface-2 p-2.5', className)}>
+      <h2 className="flex items-center gap-2 px-1.5 pb-2.5 pt-1 text-[15px] font-semibold">
+        <span className="size-2.5 rounded-full" style={{ background: dot }} aria-hidden />
+        {title}
+        <span className="rounded-full bg-surface px-2 text-[13px] font-medium tabular-nums text-muted">{count}</span>
+      </h2>
+      <div className="flex flex-col gap-2">{children}</div>
+    </section>
+  );
+}
+
+/** One line of "who finished what" — the core of recognising people's work. */
+export function WinRow({ win, size = 'md' }: { win: Win; size?: 'md' | 'lg' }) {
+  const lg = size === 'lg';
+  const body = (
     <>
-      <div className="relative flex aspect-[4/3] items-end gap-4 bg-surface-2 p-4">
-        <span className="absolute inset-x-0 top-0 h-2.5" style={{ background: zoneColor(zone) }} aria-hidden />
-        <MakerFace member={lead} zone={zone} size={96} />
-        <div className="min-w-0 pb-1">
-          <p className="display truncate text-[30px] font-extrabold leading-none">{lead.name}</p>
-          {win.members.length > 1 && <p className="mt-1 truncate text-sm text-muted">+ {names(win.members.slice(1), 2)}</p>}
-          <p className="mt-2 font-mono text-[22px] font-semibold leading-none">{formatMinutes(win.minutes)}</p>
-        </div>
-        <DoneStamp className="absolute right-3 top-5" />
-      </div>
-      <WinFooter win={win} hideNames />
+      <span className="relative shrink-0">
+        <Avatar member={win.members[0]} size={lg ? 56 : 44} />
+        <span className="absolute -bottom-1 -right-1 grid size-5 place-items-center rounded-full bg-good text-paper ring-2 ring-surface" aria-hidden>
+          <Check className="size-3" strokeWidth={3.5} />
+        </span>
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className={cx('block leading-snug', lg ? 'text-xl' : 'text-[15px]')}>
+          <strong>{names(win.members, 2)}</strong> <span className="text-muted">finished</span>{' '}
+          <span className="cap font-semibold">{win.task?.title ?? 'a task'}</span>
+        </span>
+        <span className={cx('mt-0.5 flex flex-wrap items-center gap-x-3 text-muted', lg ? 'text-base' : 'text-sm')}>
+          {timeAgo(win.created)}
+          <span>{formatMinutes(win.minutes)}</span>
+          {win.task && <ZoneTag zone={win.task.zone} className={lg ? 'text-base' : 'text-sm'} />}
+        </span>
+        {win.note && <span className={cx('mt-1 line-clamp-2 block text-ink-2', lg ? 'text-base' : 'text-sm')}>“{capitalize(win.note)}”</span>}
+      </span>
+      {win.photo && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={win.photo} alt="" className={cx('shrink-0 rounded-xl object-cover', lg ? 'size-20' : 'size-16')} loading="lazy" />
+      )}
     </>
   );
+  const cls = 'flex items-start gap-3.5 rounded-xl p-3 hover:bg-surface-2';
   return win.task ? (
     <Link href={`/tasks/${win.task.id}`} className={cls}>
       {body}
@@ -115,51 +165,31 @@ export function WinCard({ win, className }: { win: Win; className?: string }) {
   );
 }
 
-function WinFooter({ win, hideNames }: { win: Win; hideNames?: boolean }) {
-  return (
-    <div className="flex flex-1 flex-col gap-2 p-4">
-      <p className="font-mono text-[12px] font-semibold uppercase tracking-wider text-muted">
-        {win.task ? `${zoneCode(win.task.zone)} · ${taskNo(win.task.number)} · ` : ''}
-        {timeAgo(win.created)}
-      </p>
-      <h3 className="cap line-clamp-2 text-[17px] font-semibold leading-snug">{win.task?.title ?? 'A task'}</h3>
-      {win.note && <p className="line-clamp-2 text-sm text-muted">“{capitalize(win.note)}”</p>}
-      {!hideNames && (
-        <div className="mt-auto flex items-center gap-2.5 pt-1">
-          <AvatarStack members={win.members} size={28} max={3} />
-          <p className="min-w-0 truncate text-sm font-semibold">{names(win.members, 2)}</p>
-          <span className="ml-auto shrink-0 font-mono text-sm">{formatMinutes(win.minutes)}</span>
-        </div>
-      )}
-    </div>
-  );
-}
-
 export function CreationCard({ creation, className }: { creation: Creation; className?: string }) {
   return (
     <Link
       href={`/creations/${creation.id}`}
-      className={cx('pressable group block overflow-hidden rounded-2xl border-[1.5px] border-line-strong bg-surface hover:border-ink', className)}
+      className={cx('pressable group block overflow-hidden rounded-2xl border border-line-strong/70 bg-surface hover:border-ink', className)}
     >
       <div className="relative bg-surface-2">
         {creation.thumbs[0] ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={creation.thumbs[0]} alt={creation.title} className="aspect-square w-full object-cover" loading="lazy" />
         ) : (
-          <div className="mat aspect-square w-full" />
+          <div className="aspect-square w-full" />
         )}
         {creation.featured && (
-          <span className="absolute left-2.5 top-2.5 inline-flex h-7 items-center gap-1 rounded-[2px] bg-hivis px-2 font-mono text-[11px] font-semibold uppercase tracking-wider text-hivis-ink">
+          <span className="absolute left-2.5 top-2.5 inline-flex h-7 items-center gap-1 rounded-full bg-hivis px-2.5 text-xs font-semibold text-hivis-ink">
             <Star className="size-3.5 fill-current" aria-hidden /> Featured
           </span>
         )}
         {creation.photos.length > 1 && (
-          <span className="absolute right-2.5 top-2.5 inline-flex h-7 items-center gap-1 rounded-[2px] bg-black/70 px-2 font-mono text-[11px] font-semibold text-white">
+          <span className="absolute right-2.5 top-2.5 inline-flex h-7 items-center gap-1 rounded-full bg-black/70 px-2.5 text-xs font-semibold text-white">
             <Images className="size-3.5" aria-hidden /> {creation.photos.length}
           </span>
         )}
       </div>
-      <div className="flex items-center gap-3 border-t-[1.5px] border-line p-3.5">
+      <div className="flex items-center gap-3 p-3.5">
         <Avatar member={creation.member} size={34} />
         <div className="min-w-0">
           <h3 className="cap truncate font-semibold leading-tight">{creation.title}</h3>

@@ -62,7 +62,7 @@ async function TasksTab() {
         <tbody>
           {tasks.map((t) => (
             <tr key={t.id}>
-              <td className="font-mono text-muted">{taskNo(t.number)}</td>
+              <td className="tabular-nums text-muted">{taskNo(t.number)}</td>
               <td className="min-w-64">
                 <Link href={`/tasks/${t.id}`} className="font-medium hover:underline">
                   {t.title}

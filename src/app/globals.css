@@ -5,88 +5,86 @@
  * --accent-ink, the text colour used on top of the accent).
  */
 /*
- * "Layout blue & hi-vis": machinist's marking-fluid blue for actions,
- * safety-vest lime for wins, concrete/graphite surfaces.
- * Deployers rebrand by overriding --accent / --accent-strong / --accent-soft / --accent-ink.
+ * Neutral dashboard theme. Deployers rebrand by overriding --accent / --accent-strong / --accent-soft / --accent-ink.
  */
 :root {
-  --paper: #e9eae5;
-  --surface: #fafaf7;
-  --surface-2: #dcded8;
-  --line: #c8cac3;
-  --line-strong: #8e928c;
-  --ink: #15171a;
-  --ink-2: #2d3135;
-  --muted: #555a5f;
-  --accent: #2b3bd6;
-  --accent-strong: #1d2898;
-  --accent-soft: #dde1fb;
+  --paper: #f4f5f7;
+  --surface: #ffffff;
+  --surface-2: #eef0f3;
+  --line: #e3e6eb;
+  --line-strong: #c8cdd6;
+  --ink: #111827;
+  --ink-2: #374151;
+  --muted: #5f6877;
+  --accent: #2563eb;
+  --accent-strong: #1d4ed8;
+  --accent-soft: #e5edff;
   --accent-ink: #ffffff;
-  --hivis: #c8f53a;
-  --hivis-ink: #15171a;
-  --good: #2e6b0f;
-  --good-soft: #e4f5c4;
-  --warn: #7f5200;
-  --warn-soft: #fbeccb;
-  --bad: #a8231b;
-  --bad-soft: #fbe1de;
-  --focus: #2b3bd6;
-  --press: 0 3px 0 var(--line-strong);
-  --mat-line: rgb(21 23 26 / 0.07);
+  --hivis: #fde68a;
+  --hivis-ink: #713f12;
+  --good: #15803d;
+  --good-soft: #dcfce7;
+  --warn: #92400e;
+  --warn-soft: #fef3c7;
+  --bad: #b91c1c;
+  --bad-soft: #fee2e2;
+  --focus: #2563eb;
+  --press: none;
+  --mat-line: transparent;
   color-scheme: light;
 }
 
 [data-theme="dark"] {
-  --paper: #0e0f10;
-  --surface: #17191b;
-  --surface-2: #212427;
-  --line: #2c3034;
-  --line-strong: #4a5056;
-  --ink: #f1f2ee;
-  --ink-2: #cfd3cd;
-  --muted: #9ba19c;
-  --accent: #8a96ff;
-  --accent-strong: #aab3ff;
-  --accent-soft: #1d2150;
-  --accent-ink: #0e0f10;
-  --hivis: #c8f53a;
-  --hivis-ink: #15171a;
-  --good: #c8f53a;
-  --good-soft: #253013;
-  --warn: #ffc24d;
-  --warn-soft: #33270d;
-  --bad: #ff8f84;
-  --bad-soft: #3a1613;
-  --focus: #c8f53a;
-  --press: 0 3px 0 #000;
+  --paper: #0b0e13;
+  --surface: #131821;
+  --surface-2: #1b212c;
+  --line: #252c38;
+  --line-strong: #364152;
+  --ink: #f3f4f6;
+  --ink-2: #d1d5db;
+  --muted: #9aa3b2;
+  --accent: #60a5fa;
+  --accent-strong: #93c5fd;
+  --accent-soft: #172a4f;
+  --accent-ink: #0b0e13;
+  --hivis: #fbbf24;
+  --hivis-ink: #1f1300;
+  --good: #4ade80;
+  --good-soft: #0f2a1a;
+  --warn: #fbbf24;
+  --warn-soft: #2e2208;
+  --bad: #f87171;
+  --bad-soft: #3a1515;
+  --focus: #60a5fa;
+  --press: none;
   --mat-line: transparent;
   color-scheme: dark;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #0e0f10;
-    --surface: #17191b;
-    --surface-2: #212427;
-    --line: #2c3034;
-    --line-strong: #4a5056;
-    --ink: #f1f2ee;
-    --ink-2: #cfd3cd;
-    --muted: #9ba19c;
-    --accent: #8a96ff;
-    --accent-strong: #aab3ff;
-    --accent-soft: #1d2150;
-    --accent-ink: #0e0f10;
-    --hivis: #c8f53a;
-    --hivis-ink: #15171a;
-    --good: #c8f53a;
-    --good-soft: #253013;
-    --warn: #ffc24d;
-    --warn-soft: #33270d;
-    --bad: #ff8f84;
-    --bad-soft: #3a1613;
-    --focus: #c8f53a;
-    --press: 0 3px 0 #000;
+    --paper: #0b0e13;
+    --surface: #131821;
+    --surface-2: #1b212c;
+    --line: #252c38;
+    --line-strong: #364152;
+    --ink: #f3f4f6;
+    --ink-2: #d1d5db;
+    --muted: #9aa3b2;
+    --accent: #60a5fa;
+    --accent-strong: #93c5fd;
+    --accent-soft: #172a4f;
+    --accent-ink: #0b0e13;
+    --hivis: #fbbf24;
+    --hivis-ink: #1f1300;
+    --good: #4ade80;
+    --good-soft: #0f2a1a;
+    --warn: #fbbf24;
+    --warn-soft: #2e2208;
+    --bad: #f87171;
+    --bad-soft: #3a1515;
+    --focus: #60a5fa;
+    --press: none;
     --mat-line: transparent;
     color-scheme: dark;
   }
@@ -113,17 +111,17 @@
   --color-warn-soft: var(--warn-soft);
   --color-bad: var(--bad);
   --color-bad-soft: var(--bad-soft);
-  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, monospace;
   --shadow-press: var(--press);
 }
 
-/* Squared-off shop geometry: cards 4px, controls 6px. */
+/* Radius scale. */
 @theme {
-  --radius-lg: 4px;
-  --radius-xl: 6px;
-  --radius-2xl: 4px;
-  --radius-3xl: 6px;
+  --radius-lg: 6px;
+  --radius-xl: 8px;
+  --radius-2xl: 10px;
+  --radius-3xl: 12px;
 }
 
 html {
@@ -134,7 +132,8 @@ html {
 body {
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: "cv11", "ss01";
   text-rendering: optimizeLegibility;
 }
 
@@ -145,21 +144,18 @@ body {
   box-shadow: 0 0 0 6px var(--focus);
 }
 
-/* Condensed display face (Archivo width axis). */
+/* Headings. */
 .display {
-  font-family: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
-  font-stretch: 72%;
-  letter-spacing: -0.01em;
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.02em;
 }
 
-/* Hard "press" shadow that collapses when tapped. */
+/* Interactive surfaces: quiet hover, slight press feedback for touch. */
 .pressable {
-  box-shadow: var(--press);
-  transition: transform 80ms ease, box-shadow 80ms ease, background-color 120ms ease;
+  transition: transform 80ms ease, background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
 }
 .pressable:active {
-  transform: translateY(3px);
-  box-shadow: none;
+  transform: scale(0.99);
 }
 
 /* Display titles from real-world data are often lowercase. */

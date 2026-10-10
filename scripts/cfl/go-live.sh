@@ -22,7 +22,8 @@ set -a; . "$OLD/.env.local"; set +a
 cd "$BK"
 PB_URL=$PB_LOCAL PB_EMAIL="$POCKETBASE_ADMIN_EMAIL" PB_PASSWORD="$POCKETBASE_ADMIN_PASSWORD" \
   node "$NEW/scripts/pb-migrate-2026.mjs"
-ln -sf "$BK"/pb-snapshot-*.json /var/backups/taskdashboard/LATEST-pb-snapshot.json
+# Keep the FIRST snapshot as the rollback target (later ones already contain the locked rules).
+[ -e /var/backups/taskdashboard/LATEST-pb-snapshot.json ] || ln -s "$BK"/pb-snapshot-*.json /var/backups/taskdashboard/LATEST-pb-snapshot.json
 
 echo "== 3. Build the new app as user cfl"
 chown -R cfl:cfl "$NEW"

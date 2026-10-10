@@ -1,96 +1,68 @@
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
-import { listTasks } from '@/lib/server/data';
-import { TaskCard } from '@/components/cards';
-import { ButtonLink, EmptyState, PageHeader, cx } from '@/components/ui';
+import { listTasks, recentWins } from '@/lib/server/data';
+import { BoardColumn, DoneCard, TaskCard } from '@/components/cards';
+import { ButtonLink, PageHeader, cx } from '@/components/ui';
 import { zoneColor } from '@/lib/format';
-import type { TaskStatus } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Tasks' };
 
-const TABS: { key: string; label: string; statuses: TaskStatus[] }[] = [
-  { key: 'open', label: 'Open', statuses: ['open'] },
-  { key: 'in_progress', label: 'In progress', statuses: ['in_progress', 'pending_approval'] },
-  { key: 'completed', label: 'Done', statuses: ['completed'] },
-];
-
-export default async function TasksPage({ searchParams }: { searchParams: Promise<{ status?: string; zone?: string }> }) {
+export default async function TasksPage({ searchParams }: { searchParams: Promise<{ zone?: string }> }) {
   const sp = await searchParams;
-  const tab = TABS.find((t) => t.key === sp.status) ?? TABS[0];
-  const all = await listTasks({ status: tab.statuses, limit: tab.key === 'completed' ? 60 : 200 });
-  const zones = [...new Set(all.map((t) => t.zone))].sort();
+  const [live, wins] = await Promise.all([listTasks({ status: ['open', 'in_progress', 'pending_approval'], limit: 300 }), recentWins(20)]);
+  const zones = [...new Set(live.map((t) => t.zone))].sort();
   const zone = sp.zone && zones.includes(sp.zone as never) ? sp.zone : undefined;
-  const tasks = zone ? all.filter((t) => t.zone === zone) : all;
+  const inZone = <T extends { zone: string }>(xs: T[]) => (zone ? xs.filter((t) => t.zone === zone) : xs);
 
-  const href = (status: string, z?: string) => {
-    const p = new URLSearchParams();
-    if (status !== 'open') p.set('status', status);
-    if (z) p.set('zone', z);
-    const s = p.toString();
-    return `/tasks${s ? `?${s}` : ''}`;
-  };
+  const todo = inZone(live.filter((t) => t.status === 'open'));
+  const doing = inZone(live.filter((t) => t.status !== 'open'));
+  const done = zone ? wins.filter((w) => w.task?.zone === zone) : wins;
 
   return (
     <>
       <PageHeader
-        title="Tasks"
-        subtitle="Small jobs that keep the lab running. Claim one, finish it, get credit."
+        title="Task board"
+        subtitle="Pick something from To do, claim it, and it moves along as you go."
         action={
-          <ButtonLink href="/tasks/new" variant="dark">
-            <Plus className="size-5" aria-hidden /> Post a task
+          <ButtonLink href="/tasks/new">
+            <Plus className="size-5" aria-hidden /> Add a task
           </ButtonLink>
         }
       />
 
-      <div className="mb-6 space-y-3">
-        <div role="tablist" aria-label="Status" className="inline-flex rounded-xl border border-line bg-surface p-1">
-          {TABS.map((t) => (
-            <Link
-              key={t.key}
-              role="tab"
-              aria-selected={t.key === tab.key}
-              href={href(t.key, zone)}
-              className={cx(
-                'inline-flex h-11 items-center rounded-lg px-4 text-[15px] font-semibold transition',
-                t.key === tab.key ? 'bg-ink text-paper' : 'text-muted hover:text-ink',
-              )}
-            >
-              {t.label}
-            </Link>
-          ))}
-        </div>
-
-        {zones.length > 1 && (
-          <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0">
-            <Chip href={href(tab.key)} active={!zone}>
-              All zones
+      {zones.length > 1 && (
+        <div className="no-scrollbar -mx-4 mb-5 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0">
+          <Chip href="/tasks" active={!zone}>
+            All zones
+          </Chip>
+          {zones.map((z) => (
+            <Chip key={z} href={`/tasks?zone=${encodeURIComponent(z)}`} active={zone === z}>
+              <span className="size-2.5 rounded-full" style={{ background: zoneColor(z) }} aria-hidden />
+              {z}
             </Chip>
-            {zones.map((z) => (
-              <Chip key={z} href={href(tab.key, z)} active={zone === z}>
-                <span className="size-2.5 rounded-full" style={{ background: zoneColor(z) }} aria-hidden />
-                {z}
-              </Chip>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {tasks.length ? (
-        <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
-          {tasks.map((t) => (
-            <TaskCard key={t.id} task={t} />
           ))}
         </div>
-      ) : (
-        <EmptyState
-          title={tab.key === 'open' ? 'Nothing open right now' : tab.key === 'in_progress' ? 'Nobody’s mid-task' : 'No finished tasks yet'}
-          body={tab.key === 'open' ? 'Spotted something that needs doing? Post it so someone can pick it up.' : undefined}
-          action={tab.key === 'open' ? <ButtonLink href="/tasks/new">Post a task</ButtonLink> : undefined}
-        />
       )}
+
+      {/* Columns: side by side on desktop, swipeable on phones */}
+      <div className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-4 md:mx-0 md:grid md:grid-cols-3 md:items-start md:overflow-visible md:px-0">
+        <BoardColumn title="To do" count={todo.length} dot="#94a3b8" className="w-[85vw] shrink-0 snap-start md:w-auto">
+          {todo.length ? todo.map((t) => <TaskCard key={t.id} task={t} />) : <EmptyCol text="Nothing to do here — add a task?" />}
+        </BoardColumn>
+        <BoardColumn title="In progress" count={doing.length} dot="#f59e0b" className="w-[85vw] shrink-0 snap-start md:w-auto">
+          {doing.length ? doing.map((t) => <TaskCard key={t.id} task={t} />) : <EmptyCol text="Nobody’s working on anything right now." />}
+        </BoardColumn>
+        <BoardColumn title="Done" count={done.length} dot="#22c55e" className="w-[85vw] shrink-0 snap-start md:w-auto">
+          {done.length ? done.map((w) => <DoneCard key={w.key} win={w} />) : <EmptyCol text="Finished tasks show up here." />}
+        </BoardColumn>
+      </div>
     </>
   );
+}
+
+function EmptyCol({ text }: { text: string }) {
+  return <p className="rounded-xl border border-dashed border-line-strong px-3 py-6 text-center text-sm text-muted">{text}</p>;
 }
 
 function Chip({ href, active, children }: { href: string; active: boolean; children: React.ReactNode }) {
@@ -99,8 +71,8 @@ function Chip({ href, active, children }: { href: string; active: boolean; child
       href={href}
       aria-current={active ? 'true' : undefined}
       className={cx(
-        'inline-flex h-11 shrink-0 items-center gap-2 rounded-full border px-4 text-[15px] font-medium transition',
-        active ? 'border-ink bg-ink text-paper' : 'border-line-strong bg-surface text-ink-2 hover:border-ink',
+        'inline-flex h-10 shrink-0 items-center gap-2 rounded-full border px-3.5 text-sm font-medium transition',
+        active ? 'border-accent bg-accent-soft text-ink' : 'border-line bg-surface text-ink-2 hover:border-line-strong',
       )}
     >
       {children}
