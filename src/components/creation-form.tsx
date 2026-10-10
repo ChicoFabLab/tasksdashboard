@@ -24,7 +24,7 @@ export function CreationForm({ creation }: { creation?: { id: string; title: str
         <textarea id="description" name="description" rows={5} maxLength={3000} defaultValue={creation?.description.trim()} className={cx(inputClass, 'h-auto py-3')} />
       </Field>
       <div className="border-t border-line pt-6">
-        <Submit size="lg" pending={creation ? 'Saving…' : 'Uploading…'}>
+        <Submit size="lg" variant={creation ? "primary" : "sun"} pending={creation ? "Saving…" : "Uploading…"}>
           {creation ? 'Save changes' : 'Share it'}
         </Submit>
       </div>

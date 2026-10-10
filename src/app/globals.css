@@ -1,24 +1,22 @@
 @import "tailwindcss";
 
 /*
- * Design tokens. Deployers rebrand by overriding --accent (and optionally
- * --accent-ink, the text colour used on top of the accent).
- */
-/*
- * Neutral dashboard theme. Deployers rebrand by overriding --accent / --accent-strong / --accent-soft / --accent-ink.
+ * Colours from the Chico Fab Lab logo: teal = tasks (find, claim), sunny yellow =
+ * creations (share, view), red-pink as a small accent; cream paper, navy ink.
+ * Deployers rebrand by overriding --accent* and --sun* / --pop.
  */
 :root {
-  --paper: #f4f5f7;
+  --paper: #fbf7ef;
   --surface: #ffffff;
-  --surface-2: #eef0f3;
-  --line: #e3e6eb;
-  --line-strong: #c8cdd6;
-  --ink: #111827;
-  --ink-2: #374151;
-  --muted: #5f6877;
-  --accent: #2563eb;
-  --accent-strong: #1d4ed8;
-  --accent-soft: #e5edff;
+  --surface-2: #f4eee3;
+  --line: #e9e1d3;
+  --line-strong: #d3c8b4;
+  --ink: #16232e;
+  --ink-2: #33424e;
+  --muted: #5c6872;
+  --accent: #0a7487;
+  --accent-strong: #075b6a;
+  --accent-soft: #dcf1f4;
   --accent-ink: #ffffff;
   --hivis: #fde68a;
   --hivis-ink: #713f12;
@@ -28,25 +26,29 @@
   --warn-soft: #fef3c7;
   --bad: #b91c1c;
   --bad-soft: #fee2e2;
-  --focus: #2563eb;
+  --focus: #0a7487;
   --press: none;
   --mat-line: transparent;
+  --sun: #ffc21f;
+  --sun-strong: #f2ad00;
+  --sun-ink: #2b1d00;
+  --pop: #e5234a;
   color-scheme: light;
 }
 
 [data-theme="dark"] {
-  --paper: #0b0e13;
-  --surface: #131821;
-  --surface-2: #1b212c;
-  --line: #252c38;
-  --line-strong: #364152;
-  --ink: #f3f4f6;
-  --ink-2: #d1d5db;
-  --muted: #9aa3b2;
-  --accent: #60a5fa;
-  --accent-strong: #93c5fd;
-  --accent-soft: #172a4f;
-  --accent-ink: #0b0e13;
+  --paper: #0b1820;
+  --surface: #12232d;
+  --surface-2: #1a2f3b;
+  --line: #213847;
+  --line-strong: #305062;
+  --ink: #f6f2ea;
+  --ink-2: #d6dde1;
+  --muted: #9fb1bc;
+  --accent: #3cc6da;
+  --accent-strong: #7fdbe8;
+  --accent-soft: #0f3a45;
+  --accent-ink: #06161b;
   --hivis: #fbbf24;
   --hivis-ink: #1f1300;
   --good: #4ade80;
@@ -55,7 +57,7 @@
   --warn-soft: #2e2208;
   --bad: #f87171;
   --bad-soft: #3a1515;
-  --focus: #60a5fa;
+  --focus: #3cc6da;
   --press: none;
   --mat-line: transparent;
   color-scheme: dark;
@@ -63,18 +65,18 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #0b0e13;
-    --surface: #131821;
-    --surface-2: #1b212c;
-    --line: #252c38;
-    --line-strong: #364152;
-    --ink: #f3f4f6;
-    --ink-2: #d1d5db;
-    --muted: #9aa3b2;
-    --accent: #60a5fa;
-    --accent-strong: #93c5fd;
-    --accent-soft: #172a4f;
-    --accent-ink: #0b0e13;
+    --paper: #0b1820;
+    --surface: #12232d;
+    --surface-2: #1a2f3b;
+    --line: #213847;
+    --line-strong: #305062;
+    --ink: #f6f2ea;
+    --ink-2: #d6dde1;
+    --muted: #9fb1bc;
+    --accent: #3cc6da;
+    --accent-strong: #7fdbe8;
+    --accent-soft: #0f3a45;
+    --accent-ink: #06161b;
     --hivis: #fbbf24;
     --hivis-ink: #1f1300;
     --good: #4ade80;
@@ -83,7 +85,7 @@
     --warn-soft: #2e2208;
     --bad: #f87171;
     --bad-soft: #3a1515;
-    --focus: #60a5fa;
+    --focus: #3cc6da;
     --press: none;
     --mat-line: transparent;
     color-scheme: dark;
@@ -103,6 +105,10 @@
   --color-accent-strong: var(--accent-strong);
   --color-accent-soft: var(--accent-soft);
   --color-accent-ink: var(--accent-ink);
+  --color-sun: var(--sun);
+  --color-sun-strong: var(--sun-strong);
+  --color-sun-ink: var(--sun-ink);
+  --color-pop: var(--pop);
   --color-hivis: var(--hivis);
   --color-hivis-ink: var(--hivis-ink);
   --color-good: var(--good);
@@ -142,6 +148,12 @@ body {
   outline: 3px solid var(--ink);
   outline-offset: 2px;
   box-shadow: 0 0 0 6px var(--focus);
+}
+
+/* Retro stripe band from the logo (teal / yellow / red). Decorative only. */
+.stripes {
+  height: 5px;
+  background: repeating-linear-gradient(-45deg, var(--accent) 0 12px, var(--sun) 12px 24px, var(--pop) 24px 36px);
 }
 
 /* Headings. */

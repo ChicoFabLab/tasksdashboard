@@ -79,3 +79,6 @@ pb-snapshot-*.json
 .next-test/
 .next-build/
 .next-prev/
+
+# Deployment-specific branding (kept out of the generic repo)
+public/brand/

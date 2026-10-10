@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { ArrowRight, Camera, Plus } from 'lucide-react';
-import { labStats, leaderboard, listCreations, listTasks, recentWins } from '@/lib/server/data';
+import { labStats, listCreations, listTasks, recentWins, tasksLogged } from '@/lib/server/data';
 import { TaskTile } from '@/components/cards';
-import { Avatar, ButtonLink, LeaderList, Panel, cx, names } from '@/components/ui';
+import { Avatar, ButtonLink, LoggedList, Panel, cx, names } from '@/components/ui';
 import { timeAgo, zoneColor } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
@@ -21,9 +21,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     listTasks({ status: 'open', limit: 200 }),
     recentWins(4),
     listCreations({ limit: 4 }),
-    leaderboard('month', 5),
+    tasksLogged('month', 5),
   ]);
-  const board = monthBoard.length >= 3 ? monthBoard : await leaderboard('all', 5);
+  const board = monthBoard.length >= 3 ? monthBoard : await tasksLogged('all', 5);
   const boardLabel = board === monthBoard ? 'this month' : 'all time';
 
   const zones = [...new Set(open.map((t) => t.zone))].sort();
@@ -46,7 +46,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </ButtonLink>
           </span>
           {/* On phones, sharing a creation is the second job — keep it one tap away. */}
-          <ButtonLink href="/creations/new" size="sm" className="sm:hidden">
+          <ButtonLink href="/creations/new" variant="sun" size="sm" className="sm:hidden">
             <Camera className="size-4" aria-hidden /> Share a creation
           </ButtonLink>
         </div>
@@ -110,7 +110,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               View all
             </Link>
           </div>
-          <ButtonLink href="/creations/new" block className="mt-3">
+          <ButtonLink href="/creations/new" variant="sun" block className="mt-3">
             <Camera className="size-5" aria-hidden /> Share a creation
           </ButtonLink>
           {creations.length > 0 && (
@@ -132,7 +132,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         <Panel
           title="Recently finished"
           action={
-            <Link href="/leaderboard#activity" className="text-sm font-medium text-accent hover:underline">
+            <Link href="/activity#activity" className="text-sm font-medium text-accent hover:underline">
               All
             </Link>
           }
@@ -141,7 +141,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             <ul>
               {wins.map((w) => (
                 <li key={w.key}>
-                  <Link href={w.task ? `/tasks/${w.task.id}` : '/leaderboard#activity'} className="flex items-start gap-2.5 rounded-lg px-2 py-2 hover:bg-surface-2">
+                  <Link href={w.task ? `/tasks/${w.task.id}` : '/activity#activity'} className="flex items-start gap-2.5 rounded-lg px-2 py-2 hover:bg-surface-2">
                     <Avatar member={w.members[0]} size={28} />
                     <span className="min-w-0 text-[13px] leading-snug">
                       <strong>{names(w.members, 2)}</strong> <span className="text-muted">finished</span>{' '}
@@ -158,14 +158,14 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         </Panel>
 
         <Panel
-          title={`Leaderboard · ${boardLabel}`}
+          title={`Tasks logged · ${boardLabel}`}
           action={
-            <Link href="/leaderboard" className="text-sm font-medium text-accent hover:underline">
-              Full
+            <Link href="/activity" className="text-sm font-medium text-accent hover:underline">
+              All
             </Link>
           }
         >
-          {board.length ? <LeaderList rows={board} /> : <p className="p-2 text-sm text-muted">Finish a task to get on the board.</p>}
+          {board.length ? <LoggedList rows={board} /> : <p className="p-2 text-sm text-muted">Finish a task to get on the board.</p>}
         </Panel>
       </aside>
     </div>

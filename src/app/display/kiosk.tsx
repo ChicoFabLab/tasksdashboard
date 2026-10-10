@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Clock, X } from 'lucide-react';
 import type { Creation, Task } from '@/lib/types';
-import type { LeaderRow, Win } from '@/lib/server/data';
+import type { LoggedRow, Win } from '@/lib/server/data';
 import { capitalize, formatMinutes, zoneColor } from '@/lib/format';
 import { QR } from '@/components/qr';
 import { Logo } from '@/components/logo';
@@ -23,14 +23,9 @@ function ago(d: string) {
   return new Date(d.replace(' ', 'T')).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-function hours(min: number) {
-  const h = min / 60;
-  return h < 1 ? `${Math.round(min)}m` : `${h < 10 ? Math.round(h * 10) / 10 : Math.round(h)}h`;
-}
-
 /**
  * Wall touchscreen, 1920×1080. Space budget: header <8%, task grid ~72% (4×4 tiles),
- * right rail ~20%: phone QRs (join / share), creations, who finished what, top makers.
+ * right rail ~20%: phone QRs (join / share), creations, who finished what, tasks logged.
  * The only per-task QR is in the sheet that opens when a task is tapped.
  */
 export function Kiosk({
@@ -44,7 +39,7 @@ export function Kiosk({
   tasks: Task[];
   wins: Win[];
   creations: Creation[];
-  boards: { month: LeaderRow[]; all: LeaderRow[] };
+  boards: { month: LoggedRow[]; all: LoggedRow[] };
   stats: { open: number; inProgress: number; done: number; hours: number };
   urls: { base: string; join: string; share: string };
 }) {
@@ -128,24 +123,19 @@ export function Kiosk({
   return (
     <div data-theme="dark" className="flex h-dvh select-none flex-col overflow-hidden bg-paper text-ink" onContextMenu={(e) => e.preventDefault()}>
       {/* Header — kept short so tasks get the space */}
-      <header className="flex h-[84px] shrink-0 items-center gap-8 border-b border-line bg-surface px-6">
-        <button onClick={reset} aria-label="Back to start" className="rounded-lg">
-          <Logo href={null} />
-        </button>
-        <p className="text-[26px] font-semibold text-ink">Volunteer jobs — tap one, scan, claim it on your phone</p>
-        <dl className="ml-auto flex items-baseline gap-6 text-[20px] text-muted">
-          <div className="flex items-baseline gap-2">
-            <dd className="text-[30px] font-semibold tabular-nums text-ink">{stats.done}</dd>
-            <dt>tasks done</dt>
-          </div>
-          <div className="flex items-baseline gap-2">
-            <dd className="text-[30px] font-semibold tabular-nums text-ink">{stats.hours}</dd>
-            <dt>hours logged</dt>
-          </div>
-        </dl>
-        <time className="w-28 text-right text-[34px] font-semibold tabular-nums text-ink-2" suppressHydrationWarning>
-          {now?.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }).replace(/\s?[AP]M/, '') ?? ''}
-        </time>
+      <header className="shrink-0 bg-surface">
+        <div className="flex h-[88px] items-center gap-6 px-6">
+          <button onClick={reset} aria-label="Back to start" className="rounded-full">
+            <Logo size="lg" href={null} />
+          </button>
+          <p className="ml-4 text-[26px] font-semibold text-ink">
+            Volunteer jobs — <span className="text-accent">tap one</span>, scan, claim it on your phone
+          </p>
+          <time className="ml-auto text-right text-[34px] font-semibold tabular-nums text-ink-2" suppressHydrationWarning>
+            {now?.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }).replace(/\s?[AP]M/, '') ?? ''}
+          </time>
+        </div>
+        <div className="stripes" aria-hidden />
       </header>
 
       <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_420px] gap-5 p-5">
@@ -255,7 +245,7 @@ export function Kiosk({
           </RailPanel>
 
           <RailPanel
-            title="Top makers"
+            title="Tasks logged"
             action={
               <div className="flex rounded-lg bg-surface-2 p-0.5">
                 {(
@@ -273,12 +263,13 @@ export function Kiosk({
           >
             {board.length ? (
               <ol className="px-2 pb-2">
-                {board.map((r, i) => (
+                {board.map((r) => (
                   <li key={r.member.id} className="flex items-center gap-3 px-2 py-1.5">
-                    <span className="w-5 text-center text-[19px] font-semibold text-accent">{i + 1}</span>
                     <Avatar member={r.member} size={38} />
                     <span className="min-w-0 flex-1 truncate text-[19px] font-semibold">{r.member.name}</span>
-                    <span className="text-[19px] font-semibold tabular-nums">{hours(r.minutes)}</span>
+                    <span className="text-[19px] tabular-nums">
+                      {r.tasks} {r.tasks === 1 ? 'task' : 'tasks'}
+                    </span>
                   </li>
                 ))}
               </ol>
@@ -341,10 +332,10 @@ export function Kiosk({
 
 function PhoneQR({ url, title, body, accent }: { url: string; title: string; body: string; accent?: boolean }) {
   return (
-    <div className={cx('flex flex-col items-center gap-2 rounded-2xl border p-3 text-center', accent ? 'border-accent bg-accent-soft' : 'border-line bg-surface')}>
+    <div className={cx('flex flex-col items-center gap-2 rounded-2xl border p-3 text-center', accent ? 'border-sun bg-sun text-sun-ink' : 'border-line bg-surface')}>
       <QR value={url} size={132} label={`${title}: scan with your phone`} />
       <p className="text-[19px] font-semibold leading-tight">{title}</p>
-      <p className="-mt-1 text-[15px] text-muted">{body}</p>
+      <p className={cx('-mt-1 text-[15px]', accent ? 'opacity-80' : 'text-muted')}>{body}</p>
     </div>
   );
 }

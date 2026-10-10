@@ -3,14 +3,14 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Camera, Hammer, Home, Plus, Sparkles, Trophy, User, X } from 'lucide-react';
+import { Camera, Hammer, Home, Plus, Sparkles, ListChecks, User, X } from 'lucide-react';
 import { cx } from './ui';
 
 const LINKS = [
   { href: '/', label: 'Home', icon: Home, match: (p: string) => p === '/' },
   { href: '/tasks', label: 'Tasks', icon: Hammer, match: (p: string) => p.startsWith('/tasks') },
   { href: '/creations', label: 'Creations', icon: Sparkles, match: (p: string) => p.startsWith('/creations') && p !== '/creations/new' },
-  { href: '/leaderboard', label: 'Leaderboard', icon: Trophy, match: (p: string) => p.startsWith('/leaderboard') },
+  { href: '/activity', label: 'Activity', icon: ListChecks, match: (p: string) => p.startsWith('/activity') },
 ];
 
 export function DesktopLinks() {
@@ -94,7 +94,7 @@ export function MobileTabBar({ signedIn }: { signedIn: boolean }) {
                 <li key="add">
                   {/* Sharing a creation is the #2 job: one tap, no menu. Posting tasks lives on the Tasks page. */}
                   <Link href="/creations/new" className="flex h-16 w-full flex-col items-center justify-center gap-1 text-[11px] font-semibold text-ink">
-                    <span className="grid h-8 w-11 place-items-center rounded-lg bg-accent text-accent-ink">
+                    <span className="grid h-8 w-11 place-items-center rounded-lg bg-sun text-sun-ink">
                       <Plus className="size-5" strokeWidth={2.5} aria-hidden />
                     </span>
                     Share

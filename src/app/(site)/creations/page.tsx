@@ -14,7 +14,7 @@ export default async function CreationsPage() {
         title="Creations"
         subtitle="Things people made at the lab. Yours belongs here too."
         action={
-          <ButtonLink href="/creations/new">
+          <ButtonLink href="/creations/new" variant="sun">
             <Plus className="size-5" aria-hidden /> Share yours
           </ButtonLink>
         }
@@ -29,7 +29,7 @@ export default async function CreationsPage() {
         <EmptyState
           title="The gallery is waiting"
           body="Laser-cut signs, 3D prints, furniture, circuits, half-finished experiments — it all counts."
-          action={<ButtonLink href="/creations/new">Share the first one</ButtonLink>}
+          action={<ButtonLink href="/creations/new" variant="sun">Share the first one</ButtonLink>}
         />
       )}
     </>

@@ -32,6 +32,7 @@ const nextConfig = {
   async redirects() {
     return [
       { source: '/claim', destination: '/tasks', permanent: false },
+      { source: '/leaderboard', destination: '/activity', permanent: true },
       { source: '/task/create', destination: '/tasks/new', permanent: false },
       { source: '/task/edit/:id', destination: '/tasks/:id/edit', permanent: false },
       { source: '/task/:id', destination: '/tasks/:id', permanent: false },

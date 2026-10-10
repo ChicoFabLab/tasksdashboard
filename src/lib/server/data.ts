@@ -152,7 +152,7 @@ export interface LabStats {
   tasksDoneAllTime: number;
   hoursAllTime: number;
   topMakers: { member: Member; minutes: number; tasks: number }[];
-  /** 'last 90 days' or 'all time' — whichever gives a meaningful leaderboard. */
+  /** 'last 90 days' or 'all time' — whichever has enough activity to show. */
   topMakersWindow: string;
   /** Most recent completion, for "last finished 3 days ago by …". */
   lastWin: { member: Member; created: string } | null;
@@ -178,7 +178,7 @@ export async function labStats(): Promise<LabStats> {
   const recent = all.filter((c) => c.created >= pbDate(since));
   const minutes = (xs: RecordModel[]) => xs.reduce((s, c) => s + (Number(c.actual_minutes) || 0), 0);
 
-  // Leaderboard: last 90 days, or all time if fewer than 3 people were active recently.
+  // Recent contributors: last 90 days, or all time if fewer than 3 people were active recently.
   const since90 = pbDate(new Date(Date.now() - 90 * 864e5));
   const recentMakers = new Set(all.filter((c) => c.created >= since90).map((c) => c.volunteer)).size;
   const cutoff = recentMakers >= 3 ? since90 : '';
@@ -303,7 +303,7 @@ export async function listMembersForPicker(): Promise<Member[]> {
   return res.map(toMember).filter((m) => m.name !== 'A maker');
 }
 
-// ---------- Leaderboard ----------
+// ---------- Tasks logged (who's been pitching in — not a ranking) ----------
 
 export type Period = 'month' | '90d' | 'all';
 export const PERIODS: { key: Period; label: string }[] = [
@@ -312,14 +312,14 @@ export const PERIODS: { key: Period; label: string }[] = [
   { key: 'all', label: 'All time' },
 ];
 
-export interface LeaderRow {
+export interface LoggedRow {
   member: Member;
   minutes: number;
   tasks: number;
   last: string;
 }
 
-export async function leaderboard(period: Period, limit = 20): Promise<LeaderRow[]> {
+export async function tasksLogged(period: Period, limit = 20): Promise<LoggedRow[]> {
   const pb = await adminPb();
   let since = '';
   if (period === 'month') {
@@ -345,7 +345,7 @@ export async function leaderboard(period: Period, limit = 20): Promise<LeaderRow
   }
   return [...tally.values()]
     .filter((t) => t.member.id)
-    .sort((a, b) => b.minutes - a.minutes || b.tasks.size - a.tasks.size)
+    .sort((a, b) => (b.last > a.last ? 1 : b.last < a.last ? -1 : 0)) // most recently active first
     .slice(0, limit)
     .map((t) => ({ member: t.member, minutes: t.minutes, tasks: t.tasks.size, last: t.last }));
 }

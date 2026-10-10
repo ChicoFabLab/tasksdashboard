@@ -20,12 +20,14 @@ export function LogoMark({ size = 36 }: { size?: number }) {
 
 export function Logo({ size = 'md', href = '/' }: { size?: 'md' | 'lg'; href?: string | null }) {
   const lg = size === 'lg';
-  const inner = siteConfig.logoPath ? (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={siteConfig.logoPath} alt={siteConfig.name} className={lg ? 'h-12 w-auto' : 'h-9 w-auto'} />
-  ) : (
+  const inner = (
     <span className="flex items-center gap-2.5 whitespace-nowrap">
-      <LogoMark size={lg ? 52 : 34} />
+      {siteConfig.logoPath ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={siteConfig.logoPath} alt="" className={cx('shrink-0 rounded-full object-cover shadow-sm', lg ? 'size-16' : 'size-10')} />
+      ) : (
+        <LogoMark size={lg ? 52 : 34} />
+      )}
       <span className="leading-tight">
         <span className={cx('block font-semibold tracking-tight', lg ? 'text-[26px]' : 'text-[16px]')}>{siteConfig.name}</span>
         <span className={cx('block text-muted', lg ? 'text-[18px]' : 'text-[12px]')}>Task board</span>

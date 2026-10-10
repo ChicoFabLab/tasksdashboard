@@ -22,6 +22,8 @@ const variants = {
   ghost: 'text-ink hover:bg-surface-2 active:bg-surface-2',
   danger: 'pressable bg-surface text-bad border border-line-strong hover:bg-bad-soft',
   hivis: 'pressable bg-hivis text-hivis-ink hover:brightness-95 [--press:0_3px_0_#7a9a12]',
+  /** Creations are yellow, tasks are teal — the colour tells you which job a button does. */
+  sun: 'pressable bg-sun text-sun-ink hover:bg-sun-strong shadow-sm',
 };
 
 export type ButtonStyle = { variant?: keyof typeof variants; size?: keyof typeof sizes; block?: boolean };
@@ -188,34 +190,26 @@ export function Panel({ title, action, children, className, bodyClass }: { title
   );
 }
 
-export function LeaderList({ rows, size = 'md' }: { rows: { member: Member; minutes: number; tasks: number }[]; size?: 'md' | 'lg' }) {
+/** Who has logged tasks — a list, not a ranking (no positions, no bars). */
+export function LoggedList({ rows, size = 'md' }: { rows: { member: Member; minutes: number; tasks: number }[]; size?: 'md' | 'lg' }) {
   const lg = size === 'lg';
-  const max = Math.max(1, ...rows.map((r) => r.minutes));
   return (
-    <ol>
-      {rows.map((r, i) => (
+    <ul>
+      {rows.map((r) => (
         <li key={r.member.id}>
           <Link href={`/makers/${r.member.id}`} className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-surface-2">
-            <span className={cx('w-6 text-center font-semibold tabular-nums', i < 3 ? 'text-accent' : 'text-muted', lg && 'text-xl')}>{i + 1}</span>
             <Avatar member={r.member} size={lg ? 48 : 36} />
-            <span className="min-w-0 flex-1">
-              <span className={cx('flex items-baseline justify-between gap-3', lg ? 'text-xl' : 'text-[15px]')}>
-                <span className="truncate font-semibold">{r.member.name}</span>
-                <span className="shrink-0 font-semibold tabular-nums">{formatHoursLabel(r.minutes)}</span>
+            <span className={cx('min-w-0 flex-1 truncate font-semibold', lg ? 'text-xl' : 'text-[15px]')}>{r.member.name}</span>
+            <span className={cx('shrink-0 text-right tabular-nums', lg ? 'text-lg' : 'text-[14px]')}>
+              <span className="font-semibold">
+                {r.tasks} {r.tasks === 1 ? 'task' : 'tasks'}
               </span>
-              <span className="mt-1 flex items-center gap-3">
-                <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-2">
-                  <span className="block h-full rounded-full bg-accent" style={{ width: `${Math.max(4, (r.minutes / max) * 100)}%` }} />
-                </span>
-                <span className={cx('shrink-0 text-muted tabular-nums', lg ? 'text-base' : 'text-[13px]')}>
-                  {r.tasks} {r.tasks === 1 ? 'task' : 'tasks'}
-                </span>
-              </span>
+              <span className="text-muted"> · {formatHoursLabel(r.minutes)}</span>
             </span>
           </Link>
         </li>
       ))}
-    </ol>
+    </ul>
   );
 }
 

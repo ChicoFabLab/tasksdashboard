@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { labStats, leaderboard, listCreations, listTasks, recentWins } from '@/lib/server/data';
+import { labStats, listCreations, listTasks, recentWins, tasksLogged } from '@/lib/server/data';
 import { absoluteUrl, siteConfig } from '@/lib/site-config';
 import { Kiosk } from './kiosk';
 
@@ -12,8 +12,8 @@ export default async function DisplayPage() {
     recentWins(7),
     listCreations({ limit: 24 }),
     labStats(),
-    leaderboard('month', 5),
-    leaderboard('all', 5),
+    tasksLogged('month', 5),
+    tasksLogged('all', 5),
   ]);
   return (
     <Kiosk
