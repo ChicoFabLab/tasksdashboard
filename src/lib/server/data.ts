@@ -273,7 +273,8 @@ export async function memberActivity(id: string): Promise<MemberActivity> {
     }),
     listCreations({ volunteerId: id }),
     pb.collection('tasks').getFullList({
-      filter: pb.filter('assigned_to ?= {:v} && status != "completed"', { v: id }),
+      // Multi-relation: match on the related id (`assigned_to ?= x` matches nothing here).
+      filter: pb.filter('assigned_to.id ?= {:v} && status != "completed" && title !~ "[ARCHIVED]%"', { v: id }),
       expand: 'assigned_to',
       sort: '-updated',
     }),
