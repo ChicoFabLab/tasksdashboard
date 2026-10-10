@@ -153,6 +153,14 @@ body {
 /* Retro stripe band from the logo (teal / yellow / red). Decorative only. */
 .stripes {
   height: 5px;
+  flex-shrink: 0;
+  background: repeating-linear-gradient(-45deg, var(--accent) 0 12px, var(--sun) 12px 24px, var(--pop) 24px 36px);
+}
+
+/* Vertical version: divides the task area from the side column. */
+.stripes-v {
+  width: 5px;
+  flex-shrink: 0;
   background: repeating-linear-gradient(-45deg, var(--accent) 0 12px, var(--sun) 12px 24px, var(--pop) 24px 36px);
 }
 

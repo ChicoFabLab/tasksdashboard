@@ -12,6 +12,8 @@ export const siteConfig = {
     'A community workspace where people come together to learn, share, and create.',
   /** Optional image logo. When unset, a typographic mark is used. */
   logoPath: process.env.NEXT_PUBLIC_LOGO_PATH || '',
+  /** Optional favicon directory with icon-32.png, icon-192.png, apple-icon.png (e.g. /brand). */
+  iconDir: process.env.NEXT_PUBLIC_ICON_DIR || '',
   baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
 } as const;
 

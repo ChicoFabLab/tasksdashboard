@@ -10,6 +10,15 @@ export const metadata: Metadata = {
   title: { default: siteConfig.name, template: `%s · ${siteConfig.name}` },
   description: siteConfig.description,
   metadataBase: new URL(siteConfig.baseUrl),
+  icons: siteConfig.iconDir
+    ? {
+        icon: [
+          { url: `${siteConfig.iconDir}/icon-32.png`, sizes: '32x32', type: 'image/png' },
+          { url: `${siteConfig.iconDir}/icon-192.png`, sizes: '192x192', type: 'image/png' },
+        ],
+        apple: `${siteConfig.iconDir}/apple-icon.png`,
+      }
+    : { icon: '/icon.svg' },
 };
 
 export const viewport: Viewport = {

@@ -108,7 +108,7 @@ export const tileClass =
 
 export function TaskTile({ task }: { task: Task }) {
   return (
-    <Link href={`/tasks/${task.id}`} className={tileClass} style={{ borderLeft: `5px solid ${zoneColor(task.zone)}` }}>
+    <Link href={`/tasks/${task.id}`} className={tileClass}>
       <TaskTileBody task={task} />
     </Link>
   );

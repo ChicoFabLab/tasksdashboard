@@ -155,7 +155,7 @@ export function Kiosk({
         <div className="stripes" aria-hidden />
       </header>
 
-      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_420px] gap-5 p-5">
+      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_5px_420px] gap-5 p-5">
         {/* A) Tasks */}
         <section className="flex min-h-0 flex-col gap-3">
           <div className="flex items-center gap-2">
@@ -210,7 +210,6 @@ export function Kiosk({
                       key={t.id}
                       onClick={() => setSelectedTask(t.id)}
                       className={cx(tileClass, 'min-h-[136px] !bg-surface')}
-                      style={{ borderLeft: `6px solid ${zoneColor(t.zone)}` }}
                     >
                       <TaskTileBody task={t} large />
                     </button>
@@ -229,6 +228,8 @@ export function Kiosk({
             )}
           </div>
         </section>
+
+        <div className="stripes-v -my-5" aria-hidden />
 
         {/* Rail */}
         <aside className="flex min-h-0 flex-col gap-4">

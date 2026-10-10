@@ -192,7 +192,6 @@ export function StatTile({ label, value, hint }: { label: string; value: ReactNo
 export function Panel({ title, action, children, className, bodyClass }: { title: string; action?: ReactNode; children: ReactNode; className?: string; bodyClass?: string }) {
   return (
     <section className={cx('overflow-hidden rounded-2xl border border-line bg-surface', className)}>
-      <div className="stripes !h-[3px]" aria-hidden />
       <div className="flex min-h-14 items-center justify-between gap-3 border-b border-line px-4 sm:px-5">
         <h2 className="text-base font-semibold">{title}</h2>
         {action}

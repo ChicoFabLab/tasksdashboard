@@ -32,7 +32,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const shown = tasks.slice(0, DESKTOP_TASKS);
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-8">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_5px_320px] lg:gap-8">
       {/* A) Find a task */}
       <section aria-labelledby="open-tasks" className="min-w-0">
         <div className="mb-3 flex items-center justify-between gap-3">
@@ -98,6 +98,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           </span>
         </div>
       </section>
+
+      {/* Ribbon joins the header and footer ribbons (desktop) */}
+      <div className="stripes-v hidden lg:block lg:-mb-16 lg:-mt-10" aria-hidden />
 
       {/* B) Creations, then recognition */}
       <aside className="min-w-0 space-y-5">
