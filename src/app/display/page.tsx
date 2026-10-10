@@ -12,8 +12,8 @@ export default async function DisplayPage() {
     recentWins(7),
     listCreations({ limit: 24 }),
     labStats(),
-    tasksLogged('month', 5),
-    tasksLogged('all', 5),
+    tasksLogged('month', 200),
+    tasksLogged('all', 200),
   ]);
   return (
     <Kiosk

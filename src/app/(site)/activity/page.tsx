@@ -12,13 +12,13 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
   let rows;
   if (PERIODS.some((p) => p.key === requested)) {
     period = requested as Period;
-    rows = await tasksLogged(period, 25);
+    rows = await tasksLogged(period, 500);
   } else {
     // Default to the most recent period that actually has a few people in it.
     period = 'month';
-    rows = await tasksLogged('month', 25);
-    if (rows.length < 3) [period, rows] = ['90d', await tasksLogged('90d', 25)];
-    if (rows.length < 3) [period, rows] = ['all', await tasksLogged('all', 25)];
+    rows = await tasksLogged('month', 500);
+    if (rows.length < 3) [period, rows] = ['90d', await tasksLogged('90d', 500)];
+    if (rows.length < 3) [period, rows] = ['all', await tasksLogged('all', 500)];
   }
   const wins = await recentWins(40);
 

@@ -21,9 +21,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     listTasks({ status: 'open', limit: 200 }),
     recentWins(4),
     listCreations({ limit: 4 }),
-    tasksLogged('month', 5),
+    tasksLogged('month', 8),
   ]);
-  const board = monthBoard.length >= 3 ? monthBoard : await tasksLogged('all', 5);
+  const board = monthBoard.length >= 3 ? monthBoard : await tasksLogged('all', 8);
   const boardLabel = board === monthBoard ? 'this month' : 'all time';
 
   const zones = [...new Set(open.map((t) => t.zone))].sort();

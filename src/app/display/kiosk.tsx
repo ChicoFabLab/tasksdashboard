@@ -14,6 +14,11 @@ import { TaskTileBody, tileClass } from '@/components/cards';
 const REFRESH_MS = 30_000;
 const IDLE_RESET_MS = 90_000;
 
+function fmtHours(min: number) {
+  const h = min / 60;
+  return h < 1 ? `${Math.round(min)}m` : `${h < 10 ? Math.round(h * 10) / 10 : Math.round(h)}h`;
+}
+
 function ago(d: string) {
   const s = (Date.now() - new Date(d.replace(' ', 'T')).getTime()) / 1000;
   if (s < 3600) return `${Math.max(1, Math.round(s / 60))}m ago`;
@@ -52,6 +57,7 @@ export function Kiosk({
   const [now, setNow] = useState<Date | null>(null);
   const [more, setMore] = useState(false);
   const grid = useRef<HTMLDivElement>(null);
+  const logged = useRef<HTMLOListElement>(null);
   const lastTouch = useRef(Date.now());
 
   const pool = tasks.filter((t) => (view === 'open' ? t.status === 'open' : t.status !== 'open'));
@@ -59,7 +65,7 @@ export function Kiosk({
   const shown = zone ? pool.filter((t) => t.zone === zone) : pool;
   const task = tasks.find((t) => t.id === selectedTask) ?? null;
   const creation = creations.find((c) => c.id === selectedCreation) ?? null;
-  const board = boards[period].slice(0, 3);
+  const board = boards[period];
   const openCount = tasks.filter((t) => t.status === 'open').length;
   const doingCount = tasks.length - openCount;
 
@@ -98,6 +104,17 @@ export function Kiosk({
       window.removeEventListener('keydown', key);
     };
   }, [router, reset]);
+
+  // Idle: gently scroll "Tasks logged" so everyone gets a moment on screen.
+  useEffect(() => {
+    const t = setInterval(() => {
+      const el = logged.current;
+      if (!el || Date.now() - lastTouch.current < 30_000 || selectedTask || selectedCreation) return;
+      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 4) el.scrollTo({ top: 0, behavior: 'smooth' });
+      else el.scrollBy({ top: 52, behavior: 'smooth' });
+    }, 3_000);
+    return () => clearInterval(t);
+  }, [selectedTask, selectedCreation]);
 
   // "More below" hint + slow auto-paging when nobody is touching, so every task gets seen.
   useEffect(() => {
@@ -189,7 +206,12 @@ export function Kiosk({
               {shown.length ? (
                 <div className="grid grid-cols-4 gap-3">
                   {shown.map((t) => (
-                    <button key={t.id} onClick={() => setSelectedTask(t.id)} className={cx(tileClass, 'min-h-[136px] !bg-surface')}>
+                    <button
+                      key={t.id}
+                      onClick={() => setSelectedTask(t.id)}
+                      className={cx(tileClass, 'min-h-[136px] !bg-surface')}
+                      style={{ borderLeft: `6px solid ${zoneColor(t.zone)}` }}
+                    >
                       <TaskTileBody task={t} large />
                     </button>
                   ))}
@@ -218,7 +240,7 @@ export function Kiosk({
           {creations.length > 0 && (
             <RailPanel title="Latest creations">
               <div className="grid grid-cols-2 gap-2.5 p-3 pt-0">
-                {creations.slice(0, 4).map((c) => (
+                {creations.slice(0, 2).map((c) => (
                   <button key={c.id} onClick={() => setSelectedCreation(c.id)} className="pressable overflow-hidden rounded-lg bg-surface-2 text-left">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     {c.thumbs[0] && <img src={c.thumbs[0]} alt="" className="aspect-[5/2] w-full object-cover" />}
@@ -229,7 +251,7 @@ export function Kiosk({
             </RailPanel>
           )}
 
-          <RailPanel title="Recently finished" className="min-h-[150px] flex-1 overflow-hidden">
+          <RailPanel title="Recently finished" className="shrink-0">
             <ul className="px-2">
               {wins.slice(0, 2).map((w) => (
                 <li key={w.key} className="flex items-start gap-3 rounded-lg px-2 py-2">
@@ -245,6 +267,7 @@ export function Kiosk({
           </RailPanel>
 
           <RailPanel
+            className="flex min-h-0 flex-1 flex-col"
             title="Tasks logged"
             action={
               <div className="flex rounded-lg bg-surface-2 p-0.5">
@@ -254,7 +277,10 @@ export function Kiosk({
                     ['all', 'All time'],
                   ] as const
                 ).map(([k, l]) => (
-                  <button key={k} onClick={() => setPeriod(k)} className={cx('h-14 rounded-md px-4 text-[18px] font-medium', period === k ? 'bg-surface text-ink shadow' : 'text-muted')}>
+                  <button key={k} onClick={() => {
+                      setPeriod(k);
+                      logged.current?.scrollTo({ top: 0 });
+                    }} className={cx('h-14 rounded-md px-4 text-[18px] font-medium', period === k ? 'bg-surface text-ink shadow' : 'text-muted')}>
                     {l}
                   </button>
                 ))}
@@ -262,13 +288,16 @@ export function Kiosk({
             }
           >
             {board.length ? (
-              <ol className="px-2 pb-2">
+              <ol ref={logged} className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-2">
                 {board.map((r) => (
                   <li key={r.member.id} className="flex items-center gap-3 px-2 py-1.5">
                     <Avatar member={r.member} size={38} />
                     <span className="min-w-0 flex-1 truncate text-[19px] font-semibold">{r.member.name}</span>
-                    <span className="text-[19px] tabular-nums">
-                      {r.tasks} {r.tasks === 1 ? 'task' : 'tasks'}
+                    <span className="text-right text-[18px] tabular-nums">
+                      <span className="font-semibold">
+                        {r.tasks} {r.tasks === 1 ? 'task' : 'tasks'}
+                      </span>
+                      <span className="text-muted"> · {fmtHours(r.minutes)}</span>
                     </span>
                   </li>
                 ))}
@@ -279,6 +308,8 @@ export function Kiosk({
           </RailPanel>
         </aside>
       </div>
+
+      <div className="stripes shrink-0" aria-hidden />
 
       {/* Task sheet — the only place a task QR appears */}
       {task && (
@@ -342,7 +373,7 @@ function PhoneQR({ url, title, body, accent }: { url: string; title: string; bod
 
 function RailPanel({ title, action, children, className }: { title: string; action?: React.ReactNode; children: React.ReactNode; className?: string }) {
   return (
-    <section className={cx('rounded-2xl border border-line bg-surface', className)}>
+    <section className={cx('overflow-hidden rounded-2xl border border-line bg-surface', className)}>
       <div className="flex min-h-[56px] items-center justify-between px-4">
         <h2 className="text-[20px] font-semibold">{title}</h2>
         {action}

@@ -50,12 +50,23 @@ export function Avatar({ member, size = 40, ring }: { member: Pick<Member, 'name
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={member.photo} alt="" className={cx(cls, 'object-cover')} style={style} loading="lazy" />;
   }
+  // Initials get a colour from the logo palette (stable per name) instead of grey.
+  const tone = AVATAR_TONES[[...member.name].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 7) % AVATAR_TONES.length];
   return (
-    <span className={cls} style={style} aria-hidden>
+    <span className={cls} style={{ ...style, background: tone[0], color: tone[1] }} aria-hidden>
       {member.initials}
     </span>
   );
 }
+
+const AVATAR_TONES: [string, string][] = [
+  ['#0a7487', '#ffffff'],
+  ['#ffc21f', '#2b1d00'],
+  ['#e5234a', '#ffffff'],
+  ['#4d8dff', '#ffffff'],
+  ['#2fbf71', '#062312'],
+  ['#9b7bff', '#ffffff'],
+];
 
 export function AvatarStack({ members, size = 32, max = 4 }: { members: Member[]; size?: number; max?: number }) {
   const shown = members.slice(0, max);
@@ -180,7 +191,8 @@ export function StatTile({ label, value, hint }: { label: string; value: ReactNo
 /** Bordered panel with a header row — the basic dashboard container. */
 export function Panel({ title, action, children, className, bodyClass }: { title: string; action?: ReactNode; children: ReactNode; className?: string; bodyClass?: string }) {
   return (
-    <section className={cx('rounded-2xl border border-line bg-surface', className)}>
+    <section className={cx('overflow-hidden rounded-2xl border border-line bg-surface', className)}>
+      <div className="stripes !h-[3px]" aria-hidden />
       <div className="flex min-h-14 items-center justify-between gap-3 border-b border-line px-4 sm:px-5">
         <h2 className="text-base font-semibold">{title}</h2>
         {action}
