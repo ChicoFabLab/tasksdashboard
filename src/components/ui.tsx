@@ -167,10 +167,10 @@ export function Field({ label, hint, children, htmlFor }: { label: string; hint?
 /** Dashboard KPI tile. */
 export function StatTile({ label, value, hint }: { label: string; value: ReactNode; hint?: ReactNode }) {
   return (
-    <div className="rounded-2xl border border-line bg-surface p-4 sm:p-5">
-      <p className="text-sm font-medium text-muted">{label}</p>
-      <p className="mt-1 text-3xl font-semibold tabular-nums tracking-tight sm:text-[34px]">{value}</p>
-      {hint && <p className="mt-1 truncate text-[13px] text-muted">{hint}</p>}
+    <div className="min-w-0 rounded-2xl border border-line bg-surface p-3 sm:p-5">
+      <p className="truncate text-xs font-medium text-muted sm:text-sm">{label}</p>
+      <p className="mt-0.5 text-2xl font-semibold tabular-nums tracking-tight sm:mt-1 sm:text-[34px]">{value}</p>
+      {hint && <p className="mt-1 hidden truncate text-[13px] text-muted sm:block">{hint}</p>}
     </div>
   );
 }

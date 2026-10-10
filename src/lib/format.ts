@@ -43,7 +43,7 @@ export function capitalize(s: string) {
   return s ? s[0].toUpperCase() + s.slice(1) : s;
 }
 
-/** Zone hues (≥3:1 on both concrete and graphite) and machine-label codes. */
+/** Zone label colours (dark text on these passes AA). */
 export const ZONE_STYLE: Record<string, { color: string; code: string }> = {
   General: { color: '#9aa0a6', code: 'GEN' },
   Woodshop: { color: '#b07444', code: 'WSH' },
@@ -62,18 +62,6 @@ export const ZONE_STYLE: Record<string, { color: string; code: string }> = {
 
 export function zoneColor(zone: string) {
   return (ZONE_STYLE[zone] ?? ZONE_STYLE.General).color;
-}
-
-export function zoneCode(zone: string) {
-  return (ZONE_STYLE[zone] ?? ZONE_STYLE.General).code;
-}
-
-/** Short mono-friendly duration: 90 -> "1H30", 45 -> "45M". */
-export function shortMinutes(m: number) {
-  const h = Math.floor(m / 60);
-  const r = Math.round(m % 60);
-  if (!h) return `${r}M`;
-  return r ? `${h}H${String(r).padStart(2, '0')}` : `${h}H`;
 }
 
 export function plural(n: number, one: string, many = `${one}s`) {

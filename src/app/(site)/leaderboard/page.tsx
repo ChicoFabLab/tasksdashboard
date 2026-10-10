@@ -8,8 +8,19 @@ export const metadata = { title: 'Leaderboard' };
 
 export default async function LeaderboardPage({ searchParams }: { searchParams: Promise<{ period?: string }> }) {
   const requested = (await searchParams).period;
-  const period: Period = PERIODS.some((p) => p.key === requested) ? (requested as Period) : 'month';
-  const [rows, wins] = await Promise.all([leaderboard(period, 25), recentWins(40)]);
+  let period: Period;
+  let rows;
+  if (PERIODS.some((p) => p.key === requested)) {
+    period = requested as Period;
+    rows = await leaderboard(period, 25);
+  } else {
+    // Default to the most recent period that actually has a few people on it.
+    period = 'month';
+    rows = await leaderboard('month', 25);
+    if (rows.length < 3) [period, rows] = ['90d', await leaderboard('90d', 25)];
+    if (rows.length < 3) [period, rows] = ['all', await leaderboard('all', 25)];
+  }
+  const wins = await recentWins(40);
 
   return (
     <>
@@ -24,7 +35,7 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
                   key={p.key}
                   role="tab"
                   aria-selected={p.key === period}
-                  href={p.key === 'month' ? '/leaderboard' : `/leaderboard?period=${p.key}`}
+                  href={`/leaderboard?period=${p.key}`}
                   className={cx('inline-flex h-9 items-center rounded-md px-3 text-sm font-medium', p.key === period ? 'bg-surface text-ink shadow-sm' : 'text-muted hover:text-ink')}
                 >
                   {p.label}
@@ -36,7 +47,15 @@ export default async function LeaderboardPage({ searchParams }: { searchParams: 
           {rows.length ? (
             <LeaderList rows={rows} />
           ) : (
-            <EmptyState title="No finished tasks in this period" body="Pick something from the board to get things moving." />
+            <EmptyState
+              title="Quiet stretch"
+              body="Nobody has finished a task in this period yet — be the first."
+              action={
+                <Link href="/leaderboard?period=all" className="font-semibold text-accent hover:underline">
+                  See the all-time board
+                </Link>
+              }
+            />
           )}
         </Panel>
 

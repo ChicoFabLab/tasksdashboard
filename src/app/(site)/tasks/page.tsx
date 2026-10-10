@@ -8,7 +8,7 @@ import { zoneColor } from '@/lib/format';
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Tasks' };
 
-export default async function TasksPage({ searchParams }: { searchParams: Promise<{ zone?: string }> }) {
+export default async function TasksPage({ searchParams }: { searchParams: Promise<{ zone?: string; col?: string }> }) {
   const sp = await searchParams;
   const [live, wins] = await Promise.all([listTasks({ status: ['open', 'in_progress', 'pending_approval'], limit: 300 }), recentWins(20)]);
   const zones = [...new Set(live.map((t) => t.zone))].sort();
@@ -18,6 +18,16 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
   const todo = inZone(live.filter((t) => t.status === 'open'));
   const doing = inZone(live.filter((t) => t.status !== 'open'));
   const done = zone ? wins.filter((w) => w.task?.zone === zone) : wins;
+  // Phones show one column at a time via tabs; desktop shows all three.
+  const col = sp.col === 'doing' || sp.col === 'done' ? sp.col : 'todo';
+  const colHref = (c: string) => {
+    const p = new URLSearchParams();
+    if (zone) p.set('zone', zone);
+    if (c !== 'todo') p.set('col', c);
+    const q = p.toString();
+    return `/tasks${q ? `?${q}` : ''}`;
+  };
+  const phoneOnly = (c: string) => (col === c ? 'flex w-full' : 'hidden md:flex');
 
   return (
     <>
@@ -33,11 +43,11 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
 
       {zones.length > 1 && (
         <div className="no-scrollbar -mx-4 mb-5 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0">
-          <Chip href="/tasks" active={!zone}>
+          <Chip href={col === 'todo' ? '/tasks' : `/tasks?col=${col}`} active={!zone}>
             All zones
           </Chip>
           {zones.map((z) => (
-            <Chip key={z} href={`/tasks?zone=${encodeURIComponent(z)}`} active={zone === z}>
+            <Chip key={z} href={`/tasks?zone=${encodeURIComponent(z)}${col === 'todo' ? '' : `&col=${col}`}`} active={zone === z}>
               <span className="size-2.5 rounded-full" style={{ background: zoneColor(z) }} aria-hidden />
               {z}
             </Chip>
@@ -45,15 +55,35 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
         </div>
       )}
 
-      {/* Columns: side by side on desktop, swipeable on phones */}
-      <div className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-4 md:mx-0 md:grid md:grid-cols-3 md:items-start md:overflow-visible md:px-0">
-        <BoardColumn title="To do" count={todo.length} dot="#94a3b8" className="w-[85vw] shrink-0 snap-start md:w-auto">
+      <div role="tablist" aria-label="Column" className="mb-3 grid grid-cols-3 rounded-xl bg-surface-2 p-1 md:hidden">
+        {(
+          [
+            ['todo', 'To do', todo.length],
+            ['doing', 'In progress', doing.length],
+            ['done', 'Done', done.length],
+          ] as const
+        ).map(([k, label, n]) => (
+          <Link
+            key={k}
+            role="tab"
+            aria-selected={col === k}
+            href={colHref(k)}
+            scroll={false}
+            className={cx('flex h-11 items-center justify-center gap-1.5 rounded-lg text-sm font-medium', col === k ? 'bg-surface text-ink shadow-sm' : 'text-muted')}
+          >
+            {label} <span className="tabular-nums text-muted">{n}</span>
+          </Link>
+        ))}
+      </div>
+
+      <div className="pb-4 md:grid md:grid-cols-3 md:items-start md:gap-3">
+        <BoardColumn title="To do" count={todo.length} dot="#94a3b8" className={phoneOnly('todo')}>
           {todo.length ? todo.map((t) => <TaskCard key={t.id} task={t} />) : <EmptyCol text="Nothing to do here — add a task?" />}
         </BoardColumn>
-        <BoardColumn title="In progress" count={doing.length} dot="#f59e0b" className="w-[85vw] shrink-0 snap-start md:w-auto">
+        <BoardColumn title="In progress" count={doing.length} dot="#f59e0b" className={phoneOnly('doing')}>
           {doing.length ? doing.map((t) => <TaskCard key={t.id} task={t} />) : <EmptyCol text="Nobody’s working on anything right now." />}
         </BoardColumn>
-        <BoardColumn title="Done" count={done.length} dot="#22c55e" className="w-[85vw] shrink-0 snap-start md:w-auto">
+        <BoardColumn title="Recently done" count={done.length} dot="#22c55e" className={phoneOnly('done')}>
           {done.length ? done.map((w) => <DoneCard key={w.key} win={w} />) : <EmptyCol text="Finished tasks show up here." />}
         </BoardColumn>
       </div>

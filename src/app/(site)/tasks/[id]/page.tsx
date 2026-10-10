@@ -83,9 +83,16 @@ export default async function TaskPage({
             )}
           </div>
           <h1 className="cap display mt-3 text-3xl font-bold leading-tight text-balance sm:text-4xl">{task.title}</h1>
+          <div className="mt-4">
+            {task.description ? (
+              <CollapsibleText text={capitalize(task.description)} className="whitespace-pre-line text-lg leading-relaxed text-ink-2" />
+            ) : (
+              <p className="text-muted">No extra details — the title says it all.</p>
+            )}
+          </div>
           {task.image && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={task.image} alt="" className="mt-5 max-h-[260px] w-full rounded-2xl border border-line object-cover sm:max-h-[440px]" />
+            <img src={task.image} alt="" className="mt-5 max-h-[180px] w-full rounded-2xl border border-line object-cover sm:max-h-[440px]" />
           )}
         </header>
 
@@ -144,14 +151,8 @@ export default async function TaskPage({
           </Card>
         </aside>
         <article className="lg:col-start-1">
-          {task.description ? (
-            <CollapsibleText text={capitalize(task.description)} className="whitespace-pre-line text-lg leading-relaxed text-ink-2" />
-          ) : (
-            <p className="text-muted">No extra details — the title says it all.</p>
-          )}
-
           {!done && task.assignees.length > 0 && (
-            <div className={`mt-8 flex items-center gap-3 rounded-2xl border p-4 ${mine ? 'border-accent bg-accent-soft' : 'border-line bg-surface'}`}>
+            <div className={`flex items-center gap-3 rounded-2xl border p-4 ${mine ? 'border-accent bg-accent-soft' : 'border-line bg-surface'}`}>
               <div className="flex -space-x-2">
                 {task.assignees.map((a) => (
                   <Avatar key={a.id} member={a} size={40} ring />

@@ -95,6 +95,18 @@ export function Kiosk({
     };
   }, [router, reset]);
 
+  // When nobody is touching the screen, slowly page through each column so every task gets seen.
+  useEffect(() => {
+    const t = setInterval(() => {
+      if (Date.now() - lastTouch.current < 30_000 || selectedTask || selectedCreation) return;
+      grid.current?.querySelectorAll<HTMLElement>('[data-col]').forEach((el) => {
+        if (el.scrollTop + el.clientHeight >= el.scrollHeight - 8) el.scrollTo({ top: 0, behavior: 'smooth' });
+        else el.scrollBy({ top: el.clientHeight * 0.7, behavior: 'smooth' });
+      });
+    }, 7_000);
+    return () => clearInterval(t);
+  }, [selectedTask, selectedCreation]);
+
   const board = boards[period];
 
   return (
@@ -108,7 +120,7 @@ export function Kiosk({
           {[
             ['Open tasks', stats.open],
             ['In progress', stats.inProgress],
-            ['Tasks done', stats.done],
+            ['Done all-time', stats.done],
             ['Hours logged', stats.hours],
           ].map(([l, v]) => (
             <div key={l} className="min-w-[150px] rounded-xl border border-line bg-surface-2 px-5 py-2.5">
@@ -126,13 +138,13 @@ export function Kiosk({
         {/* Board */}
         <section className="flex min-h-0 flex-col gap-4">
           {zones.length > 1 && (
-            <div className="flex flex-wrap gap-2">
+            <div className="no-scrollbar flex gap-2 overflow-x-auto">
               {[null, ...zones].map((z) => (
                 <button
                   key={z ?? 'all'}
                   onClick={() => setZone(z)}
                   className={cx(
-                    'inline-flex h-12 items-center gap-2 rounded-full border px-4 text-[18px] font-medium',
+                    'inline-flex h-14 shrink-0 items-center gap-2.5 rounded-full border px-5 text-[20px] font-medium',
                     zone === z ? 'border-accent bg-accent-soft text-ink' : 'border-line-strong bg-surface text-ink-2',
                   )}
                 >
@@ -143,7 +155,7 @@ export function Kiosk({
             </div>
           )}
           <div ref={grid} className="grid min-h-0 flex-1 grid-cols-3 gap-4">
-            <KColumn title="To do" count={todo.length} dot="#94a3b8">
+            <KColumn title="To do" count={todo.length} dot="#94a3b8" hint="Tap a card to claim">
               {todo.length ? (
                 todo.map((t) => (
                   <button key={t.id} onClick={() => setSelectedTask(t.id)} className={cx(cardClass, "!bg-surface-2 !border-line-strong")}>
@@ -165,7 +177,7 @@ export function Kiosk({
                 <KEmpty text="Nobody is mid-task." />
               )}
             </KColumn>
-            <KColumn title="Done" count={done.length} dot="#22c55e">
+            <KColumn title="Recently done" dot="#22c55e">
               {done.length ? (
                 done.map((w) => (
                   <div key={w.key} className={cx(cardClass, "!bg-surface-2 !border-line-strong")}>
@@ -180,7 +192,7 @@ export function Kiosk({
         </section>
 
         {/* Side panels */}
-        <aside className="hidden min-h-0 flex-col gap-6 xl:flex">
+        <aside className="hidden min-h-0 flex-col gap-4 overflow-hidden xl:flex">
           <KPanel
             title="Leaderboard"
             action={
@@ -191,7 +203,7 @@ export function Kiosk({
                     ['all', 'All time'],
                   ] as const
                 ).map(([k, l]) => (
-                  <button key={k} onClick={() => setPeriod(k)} className={cx('h-11 rounded-md px-4 text-[17px] font-medium', period === k ? 'bg-surface text-ink shadow' : 'text-muted')}>
+                  <button key={k} onClick={() => setPeriod(k)} className={cx('h-14 rounded-md px-4 text-[19px] font-medium', period === k ? 'bg-surface text-ink shadow' : 'text-muted')}>
                     {l}
                   </button>
                 ))}
@@ -201,12 +213,14 @@ export function Kiosk({
             {board.length ? (
               <ol>
                 {board.map((r, i) => (
-                  <li key={r.member.id} className="flex items-center gap-3 px-4 py-2.5">
-                    <span className={cx('w-6 text-center text-[20px] font-semibold tabular-nums', i < 3 ? 'text-accent' : 'text-muted')}>{i + 1}</span>
-                    <Avatar member={r.member} size={40} />
-                    <span className="min-w-0 flex-1 truncate text-[19px] font-semibold">{r.member.name}</span>
-                    <span className="text-[17px] text-muted tabular-nums">{r.tasks} tasks</span>
-                    <span className="w-16 text-right text-[19px] font-semibold tabular-nums">{hours(r.minutes)}</span>
+                  <li key={r.member.id} className="flex items-center gap-3 px-4 py-1.5">
+                    <span className={cx('w-7 text-center text-[22px] font-semibold tabular-nums', i < 3 ? 'text-accent' : 'text-muted')}>{i + 1}</span>
+                    <Avatar member={r.member} size={44} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[22px] font-semibold">{r.member.name}</span>
+                      <span className="block text-[18px] text-muted tabular-nums">{r.tasks} {r.tasks === 1 ? "task" : "tasks"}</span>
+                    </span>
+                    <span className="text-right text-[26px] font-semibold tabular-nums">{hours(r.minutes)}</span>
                   </li>
                 ))}
               </ol>
@@ -217,23 +231,23 @@ export function Kiosk({
 
           {creations.length > 0 && (
             <KPanel title="Latest creations">
-              <div className="grid grid-cols-3 gap-2 p-3">
-                {creations.slice(0, 3).map((c) => (
+              <div className="grid grid-cols-2 gap-3 p-3">
+                {creations.slice(0, 2).map((c) => (
                   <button key={c.id} onClick={() => setSelectedCreation(c.id)} className="pressable overflow-hidden rounded-lg bg-surface-2 text-left">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    {c.thumbs[0] && <img src={c.thumbs[0]} alt="" className="aspect-square w-full object-cover" />}
-                    <span className="cap block truncate px-2 py-1.5 text-[15px] font-medium">{c.title}</span>
+                    {c.thumbs[0] && <img src={c.thumbs[0]} alt="" className="aspect-[16/9] w-full object-cover" />}
+                    <span className="cap line-clamp-2 px-3 py-2 text-[19px] font-medium leading-snug">{c.title}</span>
                   </button>
                 ))}
               </div>
             </KPanel>
           )}
 
-          <div className="mt-auto flex items-center gap-5 rounded-2xl border border-line bg-surface p-5">
-            <QR value={urls.join} size={128} label="Scan to sign in or create an account" />
+          <div className="mt-auto flex items-center gap-5 rounded-2xl border border-line bg-surface p-4">
+            <QR value={urls.join} size={116} label="Scan to sign in or create an account" />
             <div>
-              <p className="text-[22px] font-semibold">Sign in or join</p>
-              <p className="mt-1 text-[17px] leading-snug text-muted">Scan with your phone to create an account, then tap any task here to claim it.</p>
+              <p className="text-[24px] font-semibold">New here? Join in</p>
+              <p className="mt-1 text-[19px] leading-snug text-muted">Scan to make an account. To claim a task, tap its card and scan that code.</p>
             </div>
           </div>
         </aside>
@@ -251,11 +265,10 @@ export function Kiosk({
                 {task.zone}
               </span>
               {task.estimatedMinutes > 0 && (
-                <span className="inline-flex items-center gap-1.5 text-muted">
-                  <Clock className="size-5" /> About {formatMinutes(task.estimatedMinutes)}
+                <span className="inline-flex items-center gap-1.5">
+                  <Clock className="size-6" /> Takes about {formatMinutes(task.estimatedMinutes)}
                 </span>
               )}
-              <span className="text-muted">Task #{task.number}</span>
             </div>
             <h2 className="cap mt-3 text-[40px] font-bold leading-tight tracking-tight">{task.title}</h2>
             {task.description && <p className="mt-4 line-clamp-6 whitespace-pre-line text-[21px] leading-relaxed text-ink-2">{capitalize(task.description)}</p>}
@@ -268,7 +281,7 @@ export function Kiosk({
               </p>
             )}
           </div>
-          <ScanBox url={`${urls.base}/tasks/${task.id}`} title="Scan to claim" body="Open your phone camera and point it at the code." />
+          <ScanBox url={`${urls.base}/tasks/${task.id}`} title="Scan to claim" body="Point your phone camera at the code — no app needed." />
         </Modal>
       )}
 
@@ -289,17 +302,38 @@ export function Kiosk({
   );
 }
 
-function KColumn({ title, count, dot, children }: { title: string; count: number; dot: string; children: React.ReactNode }) {
+function KColumn({ title, count, dot, hint, children }: { title: string; count?: number; dot: string; hint?: string; children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [more, setMore] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const check = () => setMore(el.scrollTop + el.clientHeight < el.scrollHeight - 12);
+    check();
+    el.addEventListener('scroll', check, { passive: true });
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => {
+      el.removeEventListener('scroll', check);
+      ro.disconnect();
+    };
+  }, [children]);
   return (
-    <section className="flex min-h-0 flex-col rounded-2xl bg-surface p-3">
-      <h2 className="flex items-center gap-2.5 px-2 pb-3 pt-1 text-[22px] font-semibold">
+    <section className="relative flex min-h-0 flex-col rounded-2xl bg-surface p-3">
+      <h2 className="flex items-center gap-2.5 px-2 pb-3 pt-1 text-[24px] font-semibold">
         <span className="size-3.5 rounded-full" style={{ background: dot }} />
         {title}
-        <span className="rounded-full bg-surface-2 px-2.5 text-[17px] font-medium tabular-nums text-muted">{count}</span>
+        {count !== undefined && <span className="rounded-full bg-surface-2 px-2.5 text-[20px] font-medium tabular-nums text-muted">{count}</span>}
+        {hint && <span className="ml-auto text-[18px] font-normal text-muted">{hint}</span>}
       </h2>
-      <div data-col className="no-scrollbar flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain [&>*]:shrink-0">
+      <div ref={ref} data-col className="no-scrollbar flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain [&>*]:shrink-0">
         {children}
       </div>
+      {more && (
+        <div className="pointer-events-none absolute inset-x-3 bottom-3 flex h-20 items-end justify-center rounded-b-xl bg-gradient-to-t from-surface to-transparent pb-2">
+          <span className="rounded-full bg-surface-2 px-4 py-1.5 text-[18px] font-medium text-ink-2 shadow">More below ↓</span>
+        </div>
+      )}
     </section>
   );
 }
@@ -311,8 +345,8 @@ function KEmpty({ text }: { text: string }) {
 function KPanel({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
     <section className="rounded-2xl border border-line bg-surface">
-      <div className="flex h-16 items-center justify-between border-b border-line px-5">
-        <h2 className="text-[22px] font-semibold">{title}</h2>
+      <div className="flex h-[68px] items-center justify-between border-b border-line px-5">
+        <h2 className="text-[24px] font-semibold">{title}</h2>
         {action}
       </div>
       <div className="py-1">{children}</div>
@@ -320,20 +354,38 @@ function KPanel({ title, action, children }: { title: string; action?: React.Rea
   );
 }
 
+const MODAL_SECONDS = 60;
+
 function Modal({ children, onClose, label }: { children: React.ReactNode; onClose: () => void; label: string }) {
+  const [left, setLeft] = useState(MODAL_SECONDS);
+  useEffect(() => {
+    const t = setInterval(() => setLeft((s) => s - 1), 1000);
+    const reset = () => setLeft(MODAL_SECONDS);
+    window.addEventListener('pointerdown', reset);
+    return () => {
+      clearInterval(t);
+      window.removeEventListener('pointerdown', reset);
+    };
+  }, []);
+  useEffect(() => {
+    if (left <= 0) onClose();
+  }, [left, onClose]);
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-10" onClick={onClose}>
       <div
         role="dialog"
         aria-modal="true"
         aria-label={label}
-        className="rise grid max-h-full w-full max-w-6xl grid-cols-[minmax(0,1fr)_auto] gap-10 overflow-y-auto rounded-2xl border border-line bg-surface p-10"
+        className="rise relative grid max-h-full w-full max-w-6xl grid-cols-[minmax(0,1fr)_auto] gap-10 overflow-y-auto rounded-2xl border border-line bg-surface p-10 pt-20"
         onClick={(e) => e.stopPropagation()}
       >
+        <div className="absolute right-6 top-5 flex items-center gap-4">
+          <span className="text-[18px] text-muted tabular-nums">Closes in {left}s</span>
+          <button onClick={onClose} className="pressable inline-flex h-14 items-center gap-2 rounded-xl bg-surface-2 px-5 text-[20px] font-semibold">
+            <X className="size-6" /> Close
+          </button>
+        </div>
         {children}
-        <button onClick={onClose} className="pressable col-span-full flex h-16 items-center justify-center gap-2 rounded-xl bg-surface-2 text-[22px] font-semibold">
-          <X className="size-7" /> Close
-        </button>
       </div>
     </div>
   );
@@ -341,10 +393,10 @@ function Modal({ children, onClose, label }: { children: React.ReactNode; onClos
 
 function ScanBox({ url, title, body }: { url: string; title: string; body: string }) {
   return (
-    <div className="flex w-[340px] flex-col items-center gap-4 rounded-xl bg-surface-2 p-6 text-center">
-      <QR value={url} size={280} label={title} />
-      <p className="text-[26px] font-semibold">{title}</p>
-      <p className="text-[18px] text-muted">{body}</p>
+    <div className="flex w-[360px] flex-col items-center gap-4 self-start rounded-xl bg-surface-2 p-6 text-center">
+      <p className="text-[32px] font-bold text-accent">{title}</p>
+      <QR value={url} size={290} label={title} />
+      <p className="text-[19px] text-muted">{body}</p>
     </div>
   );
 }

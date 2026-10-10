@@ -2,9 +2,8 @@ import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import { labStats, leaderboard, listCreations, listTasks, recentWins } from '@/lib/server/data';
 import { getCurrentUser } from '@/lib/server/session';
-import { timeAgo } from '@/lib/format';
 import { CreationCard, TaskCard, WinRow } from '@/components/cards';
-import { ButtonLink, EmptyState, LeaderList, Panel, StatTile } from '@/components/ui';
+import { ButtonLink, EmptyState, LeaderList, Panel, StatTile, names } from '@/components/ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,11 +26,15 @@ export default async function HomePage() {
         <div>
           <h1 className="display text-3xl font-bold sm:text-4xl">{user ? `Welcome back, ${user.name}` : 'Task board'}</h1>
           <p className="mt-1 text-muted">
-            {stats.lastWin ? (
+            {wins[0]?.task ? (
               <>
-                Last task finished {timeAgo(stats.lastWin.created)} by{' '}
-                <Link href={`/makers/${stats.lastWin.member.id}`} className="font-medium text-ink hover:underline">
-                  {stats.lastWin.member.name}
+                Latest:{' '}
+                <Link href={`/makers/${wins[0].members[0].id}`} className="font-medium text-ink hover:underline">
+                  {names(wins[0].members, 2)}
+                </Link>{' '}
+                finished{' '}
+                <Link href={`/tasks/${wins[0].task.id}`} className="cap inline-block font-medium text-ink hover:underline">
+                  {wins[0].task.title}
                 </Link>
               </>
             ) : (
@@ -49,11 +52,11 @@ export default async function HomePage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatTile label="Open tasks" value={stats.openTasks} hint="Ready to claim" />
+      <div className="grid grid-cols-4 gap-2 sm:gap-3">
+        <StatTile label="Open" value={stats.openTasks} hint="Ready to claim" />
         <StatTile label="In progress" value={stats.inProgressTasks} hint="Someone’s on it" />
-        <StatTile label="Tasks done" value={stats.tasksDoneAllTime} hint={`${stats.tasksDone30d} in the last 30 days`} />
-        <StatTile label="Hours logged" value={stats.hoursAllTime} hint={`${stats.makers30d} active in the last 30 days`} />
+        <StatTile label="Done" value={stats.tasksDoneAllTime} hint="All time" />
+        <StatTile label="Hours" value={stats.hoursAllTime} hint="Logged all time" />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
@@ -65,7 +68,7 @@ export default async function HomePage() {
             </Link>
           </div>
           {tasks.length ? (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid items-start gap-3 sm:grid-cols-2">
               {tasks.map((t) => (
                 <TaskCard key={t.id} task={t} />
               ))}
@@ -111,7 +114,7 @@ export default async function HomePage() {
           </Link>
         </div>
         {creations.length ? (
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div className="grid grid-cols-4 gap-2 sm:gap-3">
             {creations.map((c) => (
               <CreationCard key={c.id} creation={c} />
             ))}

@@ -9,7 +9,7 @@ import { Avatar, AvatarStack, ZoneTag, cx, names } from './ui';
 export function ZoneLabel({ zone, large }: { zone: string; large?: boolean }) {
   return (
     <span
-      className={cx('inline-flex items-center rounded-md font-semibold text-[#111]', large ? 'h-8 px-3 text-[17px]' : 'h-6 px-2 text-xs')}
+      className={cx('inline-flex items-center rounded-md font-semibold text-[#111]', large ? 'h-9 px-3 text-[19px]' : 'h-6 px-2 text-[13px]')}
       style={{ background: zoneColor(zone) }}
     >
       {zone}
@@ -29,20 +29,28 @@ export function TaskCardBody({ task, large }: { task: Task; large?: boolean }) {
         <span className="flex flex-wrap items-center gap-1.5">
           <ZoneLabel zone={task.zone} large={large} />
         </span>
-        <span className={cx('cap font-semibold leading-snug', large ? 'text-[22px]' : 'text-[15px]')}>{task.title}</span>
-        <span className={cx('flex items-center gap-3 text-muted', large ? 'text-[17px]' : 'text-[13px]')}>
-          {task.estimatedMinutes > 0 && (
-            <span className="inline-flex items-center gap-1">
-              <Clock className={large ? 'size-5' : 'size-3.5'} aria-hidden /> {formatMinutes(task.estimatedMinutes)}
+        <span className={cx('cap font-semibold leading-snug', large ? 'text-[24px]' : 'text-[15px]')}>{task.title}</span>
+        {task.estimatedMinutes > 0 || !large ? (
+          <span className={cx('flex items-center gap-3 text-muted', large ? 'text-[20px]' : 'text-[13px]')}>
+            {task.estimatedMinutes > 0 && (
+              <span className="inline-flex items-center gap-1.5">
+                <Clock className={large ? 'size-5' : 'size-3.5'} aria-hidden /> {formatMinutes(task.estimatedMinutes)}
+              </span>
+            )}
+            {!large && <span className="tabular-nums">#{task.number}</span>}
+          </span>
+        ) : null}
+        {task.assignees.length > 0 && task.status !== 'completed' && (
+          <span className={cx('flex items-center gap-2 border-t border-line pt-2', large ? 'text-[20px]' : 'text-[13px]')}>
+            <AvatarStack members={task.assignees} size={large ? 34 : 22} max={3} />
+            <span className="min-w-0 flex-1 truncate">
+              <strong>{names(task.assignees, 2)}</strong>
             </span>
-          )}
-          <span className="tabular-nums">#{task.number}</span>
-          {task.assignees.length > 0 && task.status !== 'completed' && (
-            <span className="ml-auto">
-              <AvatarStack members={task.assignees} size={large ? 36 : 24} max={3} />
+            <span className="inline-flex shrink-0 items-center gap-1.5 text-warn">
+              <span className="size-2 rounded-full bg-warn" aria-hidden /> working
             </span>
-          )}
-        </span>
+          </span>
+        )}
       </span>
     </>
   );
@@ -73,8 +81,11 @@ export function DoneCardBody({ win, large }: { win: Win; large?: boolean }) {
             <ZoneLabel zone={win.task.zone} large={large} />
           </span>
         )}
-        <span className={cx('cap font-semibold leading-snug', large ? 'text-[22px]' : 'text-[15px]')}>{win.task?.title ?? 'A task'}</span>
-        <span className={cx('flex items-center gap-2', large ? 'text-[18px]' : 'text-[13px]')}>
+        <span className={cx('cap font-semibold leading-snug', large ? 'text-[24px]' : 'text-[15px]')}>{win.task?.title ?? 'A task'}</span>
+        {win.note && (
+          <span className={cx('line-clamp-2 text-ink-2', large ? 'text-[19px]' : 'text-[13px]')}>“{capitalize(win.note)}”</span>
+        )}
+        <span className={cx('flex items-center gap-2 border-t border-line pt-2', large ? 'text-[20px]' : 'text-[13px]')}>
           <AvatarStack members={win.members} size={large ? 36 : 24} max={3} />
           <span className="min-w-0 flex-1 truncate">
             <strong>{names(win.members, 2)}</strong>
@@ -115,7 +126,7 @@ export function BoardColumn({
   className?: string;
 }) {
   return (
-    <section className={cx('flex min-w-0 flex-col rounded-2xl bg-surface-2 p-2.5', className)}>
+    <section className={cx('min-w-0 flex-col rounded-2xl bg-surface-2 p-2.5', className ?? 'flex')}>
       <h2 className="flex items-center gap-2 px-1.5 pb-2.5 pt-1 text-[15px] font-semibold">
         <span className="size-2.5 rounded-full" style={{ background: dot }} aria-hidden />
         {title}
