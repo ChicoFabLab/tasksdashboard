@@ -140,3 +140,18 @@ See `REDESIGN_BRIEF.md` for the full brief. Summary:
 - An end-to-end suite (Playwright, 26 checks) was run against a **copy** of the DB on a private port. It covered sign-up from a scanned task, claim, finish with helper and photo, creation upload, password change and re-login, forged/legacy cookies, open redirects, cross-user edits, admin gating, and kiosk tap-to-QR. All 26 passed on the final design.
 - Verified after go-live on the public URLs: anonymous PocketBase writes and password auth return 403, the volunteer list is private, tasks are publicly readable, and old `/claim/<n>` QR links resolve.
 - `pm2 logs cfl-dashboard` may show `Failed to find Server Action "x"`. Those are internet scanners probing Next.js sites and are harmless.
+
+## 9. Discord bot
+- **Bot:** application `cfl-dashboard` (`1431448844285247649`). Its token is `DISCORD_BOT_TOKEN` and its public key is `DISCORD_PUBLIC_KEY`, both in `.env.local`.
+- **Posts:** only two kinds, one line each, in `#general-chico-fab-lab` (`DISCORD_ANNOUNCEMENTS_CHANNEL_ID`):
+  - someone posted a task
+  - someone shared a creation
+- **Slash command `/task`:** Discord delivers it as signed HTTP requests to `https://tasks.chicofl.org/api/discord/interactions`. No separate bot process runs. Every reply is visible only to the person who ran it.
+  - `/task create title zone [minutes] [details]` — posts a task; this also triggers the #general one-liner.
+  - `/task list` — your claimed tasks plus the 10 newest open ones.
+  - `/task claim task` and `/task close task [minutes] [note]` — the task picker autocompletes and lists your tasks first. `close` logs time to you.
+  - Someone without a website account gets one automatically on first use, linked to their Discord ID.
+- **Re-register after changing commands, or after moving to a different bot:**
+  `cd tasksdashboard-redesign && set -a && . ./.env.local && set +a && node scripts/discord-register-commands.mjs --endpoint`
+  When switching bots, update `DISCORD_BOT_TOKEN` and `DISCORD_PUBLIC_KEY` and redeploy *before* running the script.
+- **Turning it off:** clear the Interactions Endpoint URL in the Discord developer portal. For posts, blank out `DISCORD_ANNOUNCEMENTS_CHANNEL_ID` and redeploy.
