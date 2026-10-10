@@ -46,7 +46,11 @@ export async function exchangeDiscordCode(code: string): Promise<DiscordUser> {
     }),
     cache: 'no-store',
   });
-  if (!tokenRes.ok) throw new Error(`Discord token exchange failed (${tokenRes.status})`);
+  if (!tokenRes.ok) {
+    // Discord's error_description (e.g. "Invalid \"redirect_uri\" in request.") is safe to log and pinpoints config issues.
+    const detail = await tokenRes.text().catch(() => '');
+    throw new Error(`Discord token exchange failed (${tokenRes.status}) ${detail.slice(0, 200)}`);
+  }
   const { access_token } = await tokenRes.json();
   const userRes = await fetch(`${API}/users/@me`, {
     headers: { Authorization: `Bearer ${access_token}` },

@@ -120,7 +120,7 @@ async function ActivityTab() {
 
 async function MembersTab({ me }: { me: string }) {
   const pb = await adminPb();
-  const recs = await pb.collection('volunteers').getFullList({ sort: 'username', fields: 'id,username,discord_username,profile_photo,is_admin,pw_hash,discord_id,total_minutes,created' });
+  const recs = await pb.collection('volunteers').getFullList({ sort: 'username', fields: 'id,username,discord_username,profile_photo,is_admin,pw_hash,discord_id,total_minutes' });
   return (
     <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
       <table className={table}>
@@ -129,7 +129,6 @@ async function MembersTab({ me }: { me: string }) {
             <th>Member</th>
             <th>Sign-in</th>
             <th>Logged</th>
-            <th>Joined</th>
             <th className="text-right">Actions</th>
           </tr>
         </thead>
@@ -145,7 +144,6 @@ async function MembersTab({ me }: { me: string }) {
                 </td>
                 <td className="whitespace-nowrap text-muted">{[r.pw_hash && 'Password', r.discord_id && 'Discord'].filter(Boolean).join(' + ') || '—'}</td>
                 <td className="whitespace-nowrap">{formatMinutes(Number(r.total_minutes) || 0)}</td>
-                <td className="whitespace-nowrap text-muted">{shortDate(r.created)}</td>
                 <td className="whitespace-nowrap text-right">
                   {r.id === me ? (
                     <span className="text-sm text-muted">You</span>

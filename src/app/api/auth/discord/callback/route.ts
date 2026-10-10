@@ -45,8 +45,9 @@ export async function GET(req: NextRequest) {
 
   const pb = await adminPb();
   const matches = await pb.collection('volunteers').getFullList({
+    // volunteers has no `created` field; ids are time-ordered, so sort by id for "oldest first".
     filter: pb.filter('discord_id = {:d}', { d: du.id }),
-    sort: 'created',
+    sort: 'id',
   });
 
   // ----- Link Discord to the signed-in account -----
