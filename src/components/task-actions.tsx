@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { Check, Clock, Pause, Pencil, Play, RotateCcw, Search, Timer, X } from 'lucide-react';
-import { claimTask, editTime, finishTask, unclaimTask } from '@/app/actions/tasks';
+import { claimTask, editTime, finishTask, unclaimTask, updateEstimate } from '@/app/actions/tasks';
 import type { FormState } from '@/app/actions/auth';
 import type { Member } from '@/lib/types';
 import { Avatar, Button, Field, Notice, cx, inputClass } from './ui';
@@ -163,6 +163,7 @@ export function FinishForm({
   const [helperMinutes, setHelperMinutes] = useState<Record<string, string>>({});
   const [query, setQuery] = useState('');
   const [picking, setPicking] = useState(false);
+  const [remaining, setRemaining] = useState('');
 
   const others = useMemo(() => members.filter((m) => m.id !== me), [members, me]);
   const matches = useMemo(() => {
@@ -361,6 +362,28 @@ export function FinishForm({
         )}
       </Field>
 
+      {mode === 'partial' && (
+        <Field label="How much is left? (optional)" hint="Updates the task’s estimate for the next person.">
+          <input type="hidden" name="remaining" value={remaining} />
+          <div className="flex flex-wrap gap-2">
+            {ESTIMATES.slice(0, 6).map(([m, label]) => (
+              <button
+                key={m}
+                type="button"
+                aria-pressed={remaining === String(m)}
+                onClick={() => setRemaining(remaining === String(m) ? '' : String(m))}
+                className={cx(
+                  'h-11 min-w-14 rounded-xl border px-3 text-[15px] font-semibold',
+                  remaining === String(m) ? 'border-accent bg-accent-soft text-ink' : 'border-line-strong bg-surface',
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </Field>
+      )}
+
       {mode === 'finish' && (
         <Field label="Show it off (optional)" hint="A before/after or finished photo gets featured on the big screen.">
           <PhotoInput name="photo" label="Add a photo" />
@@ -423,5 +446,89 @@ export function EditTimeButton({ id, minutes, note }: { id: string; minutes: num
       {state?.error && <p className="w-full text-sm text-bad">{state.error}</p>}
       {state?.ok && <p className="w-full text-sm text-good">{state.ok}</p>}
     </form>
+  );
+}
+
+// ---------------- Change the estimate ----------------
+
+const ESTIMATES: [number, string][] = [
+  [15, '15m'],
+  [30, '30m'],
+  [45, '45m'],
+  [60, '1h'],
+  [90, '1½h'],
+  [120, '2h'],
+  [180, '3h'],
+  [240, '4h'],
+];
+
+function fmt(m: number) {
+  if (m < 60) return `${m} min`;
+  const h = Math.floor(m / 60);
+  const r = m % 60;
+  return r ? `${h} hr ${r} min` : `${h} hr`;
+}
+
+/** "About 1 hr · Change" — quick estimate fix for whoever is doing the task. */
+export function EstimateEditor({ taskId, minutes, canEdit }: { taskId: string; minutes: number; canEdit: boolean }) {
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState(String(minutes || ''));
+  const [pending, start] = useTransition();
+  const [msg, setMsg] = useState<FormState>();
+  const save = (m: number) =>
+    start(async () => {
+      const r = await updateEstimate(taskId, m);
+      setMsg(r);
+      if (r?.ok) setOpen(false);
+    });
+
+  return (
+    <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
+      <span className="inline-flex items-center gap-1.5">
+        <Clock className="size-4" aria-hidden /> {minutes > 0 ? `About ${fmt(minutes)}` : 'No estimate yet'}
+      </span>
+      {canEdit && !open && (
+        <button type="button" onClick={() => setOpen(true)} className="inline-flex h-9 items-center gap-1 rounded-lg px-2 text-sm font-semibold text-accent hover:bg-surface-2">
+          <Pencil className="size-3.5" aria-hidden /> Change
+        </button>
+      )}
+      {msg?.ok && !open && <span className="text-sm text-good">{msg.ok}</span>}
+      {open && (
+        <span className="mt-2 block w-full rounded-xl border border-line bg-surface p-3">
+          <span className="mb-2 block text-sm font-semibold text-ink">How long will it really take?</span>
+          <span className="flex flex-wrap gap-2">
+            {ESTIMATES.map(([m, label]) => (
+              <button
+                key={m}
+                type="button"
+                disabled={pending}
+                onClick={() => save(m)}
+                className={cx('h-11 min-w-14 rounded-xl border px-3 text-[15px] font-semibold', m === minutes ? 'border-accent bg-accent-soft text-ink' : 'border-line-strong bg-surface')}
+              >
+                {label}
+              </button>
+            ))}
+          </span>
+          <span className="mt-2 flex items-center gap-2">
+            <input
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={value}
+              onChange={(e) => setValue(e.target.value.replace(/\D/g, '').slice(0, 4))}
+              className={cx(inputClass, 'h-11 w-24 text-center')}
+              aria-label="Estimate in minutes"
+            />
+            <span className="text-sm text-muted">min</span>
+            <Button type="button" size="sm" disabled={pending || !Number(value)} onClick={() => save(Number(value))}>
+              {pending ? 'Saving…' : 'Save'}
+            </Button>
+            <Button type="button" size="sm" variant="ghost" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+          </span>
+          {msg?.error && <span className="mt-2 block text-sm text-bad">{msg.error}</span>}
+        </span>
+      )}
+    </span>
   );
 }

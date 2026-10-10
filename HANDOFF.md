@@ -165,5 +165,7 @@ See `REDESIGN_BRIEF.md` for the full brief. Summary:
   - Partial time counts toward hours, but not toward "tasks done" or the Done column.
 - **Split.** Each helper has their own minutes. The buttons are "Everyone N min" and "Split total evenly".
 - **Edit.** Anyone can change the minutes and note on their own entries from the task page; admins can change anyone's. `total_minutes` is kept in step.
-- **Board filters.** Keyword search, person, "I have 15m/30m/1h/2h", sort (newest, quickest, zone). Zones show on two rows on phones. All filters live in the URL, so a filtered view can be shared. The wall screen has "Any / ≤30m / ≤1h" buttons.
+- **Change the estimate.** "Change" next to "About N" on a task page offers quick chips or a custom number. It's available to whoever is on the task, its poster, and admins. Leaving a task open can also set "How much is left?".
+- **Board filters.** Keyword search, person, "I have 15m/30m/1h/2h", sort (newest, quickest, zone). On phones, everything except search sits behind a **Filters** button that shows how many filters are active. All filters live in the URL, so a filtered view can be shared. The wall screen has "Any / ≤30m / ≤1h" buttons.
 - **Schema.** `completions.partial` (bool) was added to the live DB on 2026-10-10, additive only. Backup: `/var/backups/taskdashboard/partial-field-*`.
+- **Data note.** 120 of 168 tasks predate the `created` timestamp, so the board orders by task number, and missing dates are hidden rather than showing "Invalid Date".

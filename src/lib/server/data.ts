@@ -36,7 +36,8 @@ export async function listTasks(
   if (opts.zone) parts.push(pb.filter('zone = {:z}', { z: opts.zone }));
   const res = await pb.collection('tasks').getList(1, opts.limit ?? 200, {
     filter: parts.join(' && '),
-    sort: '-created',
+    // Most tasks predate the created timestamp, so order by task number (always increasing).
+    sort: '-task_number,-created',
     expand: 'assigned_to',
   });
   return res.items.map(toTask);

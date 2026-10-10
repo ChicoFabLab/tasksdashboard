@@ -74,8 +74,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
       />
 
       <div className="mb-4 space-y-3">
-        <BoardFilters people={people} />
-
+        <BoardFilters people={people} activeCount={[zone, fits, who, sp.sort].filter(Boolean).length}>
         <div className="flex flex-wrap items-center gap-2">
           <span className="mr-1 text-sm font-medium text-muted">I have:</span>
           {FITS.map(([m, label]) => (
@@ -86,8 +85,8 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
         </div>
 
         {zones.length > 1 && (
-          /* Two rows on phones so one swipe shows twice as many zones; wraps on wider screens. */
-          <div className="no-scrollbar -mx-4 grid auto-cols-max grid-flow-col grid-rows-2 gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex sm:flex-wrap sm:px-0">
+          /* Inside the Filters panel on phones, so it can simply wrap. */
+          <div className="flex flex-wrap gap-2">
             <Chip href={href({ zone: '' })} active={!zone}>
               All zones
             </Chip>
@@ -99,6 +98,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
             ))}
           </div>
         )}
+        </BoardFilters>
 
         {filtered && (
           <p className="text-sm text-muted">

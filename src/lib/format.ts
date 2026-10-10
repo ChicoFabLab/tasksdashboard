@@ -20,7 +20,13 @@ export function parseDate(d: string): Date {
   return new Date(d.includes('T') ? d : d.replace(' ', 'T'));
 }
 
+function validDate(d: string | null | undefined): boolean {
+  return Boolean(d) && !Number.isNaN(parseDate(d as string).getTime());
+}
+
 export function timeAgo(d: string, now = Date.now()): string {
+  // Some older records have no timestamp at all.
+  if (!validDate(d)) return '';
   const diff = (parseDate(d).getTime() - now) / 1000;
   const abs = Math.abs(diff);
   if (abs < 60) return 'just now';
@@ -32,6 +38,7 @@ export function timeAgo(d: string, now = Date.now()): string {
 }
 
 export function shortDate(d: string): string {
+  if (!validDate(d)) return '';
   return parseDate(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 

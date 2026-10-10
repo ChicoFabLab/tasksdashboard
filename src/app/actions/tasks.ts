@@ -68,6 +68,9 @@ export async function finishTask(_: FormState, form: FormData): Promise<FormStat
 
   const result = await logTaskTime({ taskId, userId: user.id, entries, note, finish, photo: files[0] });
   if (!result.ok) return { error: result.error };
+  // Leaving it open: optionally tell the next person how much is left.
+  const remaining = finish ? null : int(form, 'remaining', 1, 24 * 60);
+  if (remaining) await (await adminPb()).collection('tasks').update(taskId, { estimated_minutes: remaining });
 
   refresh(taskId);
   redirect(`/tasks/${taskId}?${finish ? 'done=1' : 'logged=1'}`);
@@ -159,4 +162,18 @@ export async function deleteTask(taskId: string): Promise<FormState> {
   await pb.collection('tasks').delete(taskId);
   refresh();
   redirect('/tasks');
+}
+
+/** Quick estimate change from the task page: for whoever is on the task, its poster, or an admin. */
+export async function updateEstimate(taskId: string, minutes: number): Promise<FormState> {
+  const user = await requireUser(`/tasks/${taskId}`);
+  if (!Number.isInteger(minutes) || minutes < 1 || minutes > 24 * 60) return { error: 'Pick between 1 minute and 24 hours.' };
+  const task = await loadTask(taskId);
+  if (!task) return { error: 'That task no longer exists.' };
+  if (!user.isAdmin && task.created_by !== user.id && !assigneeIds(task).includes(user.id)) {
+    return { error: 'Claim the task first, then you can adjust its time.' };
+  }
+  await (await adminPb()).collection('tasks').update(taskId, { estimated_minutes: minutes });
+  refresh(taskId);
+  return { ok: 'Estimate updated.' };
 }

@@ -7,7 +7,7 @@ import { absoluteUrl } from '@/lib/site-config';
 import { capitalize, formatMinutes, shortDate, taskNo, timeAgo } from '@/lib/format';
 import { Avatar, ButtonLink, Card, Notice, StatusPill, ZoneTag, names } from '@/components/ui';
 import { CollapsibleText } from '@/components/collapsible';
-import { ClaimButtons, EditTimeButton, FinishForm } from '@/components/task-actions';
+import { ClaimButtons, EditTimeButton, EstimateEditor, FinishForm } from '@/components/task-actions';
 import { QR } from '@/components/qr';
 
 export const dynamic = 'force-dynamic';
@@ -75,12 +75,12 @@ export default async function TaskPage({
             <StatusPill status={task.status} />
             <span className="tabular-nums">Task #{task.number}</span>
             <ZoneTag zone={task.zone} />
-            {task.estimatedMinutes > 0 && (
-              <span className="inline-flex items-center gap-1.5">
-                <Clock className="size-4" aria-hidden /> About {formatMinutes(task.estimatedMinutes)}
-              </span>
-            )}
-            <span>Posted {timeAgo(task.created)}</span>
+            <EstimateEditor
+              taskId={task.id}
+              minutes={task.estimatedMinutes}
+              canEdit={!done && Boolean(user && (user.isAdmin || task.createdBy === user.id || mine))}
+            />
+            {timeAgo(task.created) && <span>Posted {timeAgo(task.created)}</span>}
             {canEdit && (
               <Link href={`/tasks/${task.id}/edit`} className="ml-auto inline-flex h-10 items-center gap-1.5 rounded-lg px-3 text-sm font-medium text-muted hover:bg-surface-2 hover:text-ink">
                 <Pencil className="size-4" aria-hidden /> Edit
