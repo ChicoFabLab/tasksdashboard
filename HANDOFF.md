@@ -128,7 +128,9 @@ See `REDESIGN_BRIEF.md` for the full brief. Summary:
 - The goals/courses UI was dropped (1 goal, 0 progress records). Its data is untouched.
 
 ## 7. Needs a human
-1. **Discord bot token is invalid** (Discord returns 401). Channel announcements and the Zone-Leader→admin check have been silently failing, possibly for months. To fix: Discord Developer Portal → app `1425383085977112688` → Bot → Reset Token, put the new token in `DISCORD_BOT_TOKEN` in `tasksdashboard-redesign/.env.local`, then `sudo -u cfl pm2 restart cfl-dashboard`. Make sure the bot is in the server and can post in the announcements channel.
+1. **Discord app switched to `1431448844285247649`** (2026-10-10). Its OAuth credentials and bot token ("cfl-dashboard") are in `.env.local`, and the previous values are backed up in `/var/backups/taskdashboard/env.local.before-*`. Still to do:
+   - **Invite the bot to the lab's server.** It's in no servers yet, so announcements and the Zone Leader → admin check are off until then. Invite link (View Channels, Send Messages, Embed Links): `https://discord.com/oauth2/authorize?client_id=1431448844285247649&scope=bot&permissions=19456`. Make sure it can post in the announcements channel.
+   - **Register the redirect URI.** Make sure `https://tasks.chicofl.org/api/auth/discord/callback` is listed under the app's OAuth2 → Redirects.
 2. **Rotate the PocketBase superuser password.** The old app put superuser tokens in browser cookies. Those tokens expire after 24 h and the token secret was rotated at go-live, but the password should change too. Change it in the PB admin UI, then update `POCKETBASE_ADMIN_PASSWORD` in both `.env.local` files.
 3. **5 members have neither Discord nor a password** (they were created by older flows). An admin can give them a temporary password: `/admin → Members → Temp password`.
 4. **Point the kiosk browser at `https://tasks.chicofl.org/display`** in full-screen/kiosk mode.
