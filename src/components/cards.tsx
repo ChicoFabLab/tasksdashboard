@@ -76,7 +76,7 @@ export function TaskTileBody({ task, large }: { task: Task; large?: boolean }) {
   return (
     <span className={cx('flex w-full items-start', large ? 'gap-4 p-4' : 'gap-3 p-3')}>
       <span className="min-w-0 flex-1">
-        <span className={cx('cap line-clamp-2 font-semibold leading-snug', large ? 'text-[22px] line-clamp-3' : 'text-[15px]')}>{task.title}</span>
+        <span className={cx('cap line-clamp-2 font-semibold leading-snug', large ? 'text-[22px]' : 'text-[15px]')}>{task.title}</span>
         <span className={cx('mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-muted', large ? 'text-[18px]' : 'text-[13px]')}>
           <span className="inline-flex items-center gap-1.5">
             <span className={cx('shrink-0 rounded-full', large ? 'size-3' : 'size-2.5')} style={{ background: zoneColor(task.zone) }} aria-hidden />
@@ -248,9 +248,11 @@ export function CreationCard({ creation, className }: { creation: Creation; clas
         )}
       </div>
       <div className="flex items-center gap-3 p-3.5">
-        <Avatar member={creation.member} size={34} />
+        <span className="hidden sm:block">
+          <Avatar member={creation.member} size={34} />
+        </span>
         <div className="min-w-0">
-          <h3 className="cap truncate font-semibold leading-tight">{creation.title}</h3>
+          <h3 className="cap line-clamp-2 font-semibold leading-tight">{creation.title}</h3>
           <p className="truncate text-sm text-muted">
             {creation.member.name} · {timeAgo(creation.created)}
           </p>

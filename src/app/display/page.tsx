@@ -22,7 +22,7 @@ export default async function DisplayPage() {
       creations={creations}
       boards={{ month, all: allTime }}
       stats={{ open: stats.openTasks, inProgress: stats.inProgressTasks, done: stats.tasksDoneAllTime, hours: stats.hoursAllTime }}
-      urls={{ base: absoluteUrl(''), join: absoluteUrl('/signup'), share: absoluteUrl('/creations/new') }}
+      urls={{ base: absoluteUrl(''), join: absoluteUrl('/login'), share: absoluteUrl('/creations/new') }}
     />
   );
 }

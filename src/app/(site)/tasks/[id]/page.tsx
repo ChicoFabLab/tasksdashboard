@@ -22,7 +22,7 @@ export default async function TaskPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ done?: string; created?: string; finish?: string }>;
+  searchParams: Promise<{ done?: string; created?: string; finish?: string; claim?: string }>;
 }) {
   const { id } = await params;
   const sp = await searchParams;
@@ -38,7 +38,8 @@ export default async function TaskPage({
   ]);
   const wins = groupWins(history);
   const url = absoluteUrl(`/tasks/${task.id}`);
-  const next = encodeURIComponent(`/tasks/${task.id}`);
+  const next = encodeURIComponent(`/tasks/${task.id}?claim=1`);
+  const autoClaim = Boolean(sp.claim && user && !mine && !done);
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -99,7 +100,7 @@ export default async function TaskPage({
         {/* Action panel */}
         <aside className="space-y-4 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:sticky lg:top-24 lg:self-start">
           {!done && !user && (
-            <Card className="space-y-3 p-5">
+            <Card className="hidden space-y-3 p-5 md:block">
               <p className="text-lg font-semibold">Want to take this on?</p>
               <p className="text-[15px] text-muted">Sign in or make a quick account — no Discord needed — and you’ll come right back here.</p>
               <ButtonLink href={`/signup?next=${next}`} size="lg" block>
@@ -114,9 +115,13 @@ export default async function TaskPage({
           {!done && user && (
             <div className="space-y-3">
               {(mine || sp.finish) ? (
-                <FinishForm taskId={task.id} estimate={task.estimatedMinutes} members={members} me={user.id} defaultOpen={Boolean(sp.finish)} />
+                <div id="finish">
+                  <FinishForm taskId={task.id} estimate={task.estimatedMinutes} members={members} me={user.id} defaultOpen={Boolean(sp.finish)} />
+                </div>
               ) : (
-                <ClaimButtons taskId={task.id} mine={mine} status={task.status} />
+                <div className="hidden md:block">
+                  <ClaimButtons taskId={task.id} mine={mine} status={task.status} />
+                </div>
               )}
               {mine ? (
                 <ClaimButtons taskId={task.id} mine status={task.status} />
@@ -150,6 +155,29 @@ export default async function TaskPage({
             </div>
           </Card>
         </aside>
+
+        {/* Phones: the main action is always on screen, above the tab bar. */}
+        {!done && !sp.finish && (
+          <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-30 border-t border-line bg-surface/95 p-3 backdrop-blur md:hidden">
+            {!user ? (
+              <div className="flex gap-2">
+                <ButtonLink href={`/signup?next=${next}`} size="lg" className="flex-1">
+                  Sign up &amp; claim
+                </ButtonLink>
+                <ButtonLink href={`/login?next=${next}`} size="lg" variant="secondary">
+                  Sign in
+                </ButtonLink>
+              </div>
+            ) : mine ? (
+              <ButtonLink href={`/tasks/${task.id}?finish=1#finish`} size="lg" variant="dark" block>
+                I finished it
+              </ButtonLink>
+            ) : (
+              <ClaimButtons taskId={task.id} mine={false} status={task.status} autoClaim={autoClaim} />
+            )}
+          </div>
+        )}
+        {!done && !sp.finish && <div className="h-20 md:hidden" aria-hidden />}
         <article className="lg:col-start-1">
           {!done && task.assignees.length > 0 && (
             <div className={`flex items-center gap-3 rounded-2xl border p-4 ${mine ? 'border-accent bg-accent-soft' : 'border-line bg-surface'}`}>

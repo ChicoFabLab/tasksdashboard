@@ -139,12 +139,12 @@ export function Notice({ tone = 'info', children }: { tone?: 'info' | 'good' | '
 
 export function PageHeader({ title, subtitle, action }: { title: string; subtitle?: ReactNode; action?: ReactNode }) {
   return (
-    <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <h1 className="display text-4xl font-bold leading-tight sm:text-5xl">{title}</h1>
-        {subtitle && <p className="mt-1.5 text-muted sm:text-lg">{subtitle}</p>}
+    <div className="mb-4 flex items-center justify-between gap-3 sm:mb-6">
+      <div className="min-w-0">
+        <h1 className="display text-2xl font-bold leading-tight sm:text-3xl">{title}</h1>
+        {subtitle && <p className="mt-1 hidden text-muted sm:block">{subtitle}</p>}
       </div>
-      {action}
+      {action && <div className="shrink-0">{action}</div>}
     </div>
   );
 }

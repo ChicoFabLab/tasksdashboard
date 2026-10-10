@@ -52,7 +52,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         </div>
 
         {zones.length > 1 && (
-          <nav aria-label="Filter by zone" className="no-scrollbar -mx-4 mb-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0">
+          <nav aria-label="Filter by zone" className="no-scrollbar -mx-4 mb-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0">
             <ZoneChip href="/" active={!zone}>
               All
             </ZoneChip>

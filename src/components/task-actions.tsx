@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useMemo, useState, useTransition } from 'react';
+import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { Check, Search, X } from 'lucide-react';
 import { claimTask, finishTask, unclaimTask } from '@/app/actions/tasks';
 import type { FormState } from '@/app/actions/auth';
@@ -9,10 +9,19 @@ import { Avatar, Button, Field, Notice, cx, inputClass } from './ui';
 import { PhotoInput } from './photo-input';
 import { Submit } from './submit';
 
-export function ClaimButtons({ taskId, mine, status }: { taskId: string; mine: boolean; status: string }) {
+export function ClaimButtons({ taskId, mine, status, autoClaim }: { taskId: string; mine: boolean; status: string; autoClaim?: boolean }) {
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<FormState>();
   const run = (fn: (id: string) => Promise<FormState>) => start(async () => setMsg(await fn(taskId)));
+  // Arriving back from sign-up/sign-in with ?claim=1: they already chose this task.
+  const claimed = useRef(false);
+  useEffect(() => {
+    if (autoClaim && !claimed.current) {
+      claimed.current = true;
+      run(claimTask);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoClaim]);
 
   return (
     <div className="space-y-3">

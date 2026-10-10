@@ -92,16 +92,13 @@ export function MobileTabBar({ signedIn }: { signedIn: boolean }) {
             if (!tab) {
               return (
                 <li key="add">
-                  <button
-                    onClick={() => setSheet(true)}
-                    aria-haspopup="dialog"
-                    className="flex h-16 w-full flex-col items-center justify-center gap-1 text-[11px] font-semibold text-ink"
-                  >
+                  {/* Sharing a creation is the #2 job: one tap, no menu. Posting tasks lives on the Tasks page. */}
+                  <Link href="/creations/new" className="flex h-16 w-full flex-col items-center justify-center gap-1 text-[11px] font-semibold text-ink">
                     <span className="grid h-8 w-11 place-items-center rounded-lg bg-accent text-accent-ink">
                       <Plus className="size-5" strokeWidth={2.5} aria-hidden />
                     </span>
-                    Add
-                  </button>
+                    Share
+                  </Link>
                 </li>
               );
             }

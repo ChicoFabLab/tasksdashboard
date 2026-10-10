@@ -34,8 +34,8 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
         title="Task board"
         subtitle="Pick one, claim it, finish it, get credit."
         action={
-          <ButtonLink href="/tasks/new">
-            <Plus className="size-5" aria-hidden /> Add a task
+          <ButtonLink href="/tasks/new" variant="secondary" size="sm">
+            <Plus className="size-4" aria-hidden /> Post a task
           </ButtonLink>
         }
       />
@@ -68,7 +68,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
             aria-selected={col === k}
             href={colHref(k)}
             scroll={false}
-            className={cx('flex h-11 items-center justify-center gap-1.5 rounded-lg px-4 text-sm font-medium', col === k ? 'bg-surface text-ink shadow-sm' : 'text-muted')}
+            className={cx('flex h-11 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-2 text-sm font-medium sm:px-4', col === k ? 'bg-surface text-ink shadow-sm' : 'text-muted')}
           >
             {label} <span className="tabular-nums text-muted">{n}</span>
           </Link>

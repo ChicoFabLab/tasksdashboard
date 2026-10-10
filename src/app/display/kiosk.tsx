@@ -132,7 +132,7 @@ export function Kiosk({
         <button onClick={reset} aria-label="Back to start" className="rounded-lg">
           <Logo href={null} />
         </button>
-        <p className="text-[22px] font-medium text-ink-2">Tap a task to claim it with your phone</p>
+        <p className="text-[26px] font-semibold text-ink">Volunteer jobs — tap one, scan, claim it on your phone</p>
         <dl className="ml-auto flex items-baseline gap-6 text-[20px] text-muted">
           <div className="flex items-baseline gap-2">
             <dd className="text-[30px] font-semibold tabular-nums text-ink">{stats.done}</dd>
@@ -173,7 +173,7 @@ export function Kiosk({
               ))}
             </div>
             {zones.length > 1 && (
-              <div className="no-scrollbar flex min-w-0 gap-2 overflow-x-auto">
+              <div className="no-scrollbar flex min-w-0 gap-2 overflow-x-auto [mask-image:linear-gradient(to_right,black_92%,transparent)] pr-10">
                 {[null, ...zones].map((z) => (
                   <button
                     key={z ?? 'all'}
@@ -182,7 +182,7 @@ export function Kiosk({
                       grid.current?.scrollTo({ top: 0 });
                     }}
                     className={cx(
-                      'inline-flex h-14 shrink-0 items-center gap-2 rounded-full border px-4 text-[19px] font-medium',
+                      'inline-flex h-14 shrink-0 items-center gap-2 rounded-full border px-3 text-[18px] font-medium',
                       zone === z ? 'border-accent bg-accent-soft text-ink' : 'border-line bg-surface text-ink-2',
                     )}
                   >
@@ -199,7 +199,7 @@ export function Kiosk({
               {shown.length ? (
                 <div className="grid grid-cols-4 gap-3">
                   {shown.map((t) => (
-                    <button key={t.id} onClick={() => setSelectedTask(t.id)} className={cx(tileClass, 'min-h-[176px] !bg-surface')}>
+                    <button key={t.id} onClick={() => setSelectedTask(t.id)} className={cx(tileClass, 'min-h-[136px] !bg-surface')}>
                       <TaskTileBody task={t} large />
                     </button>
                   ))}
@@ -222,16 +222,16 @@ export function Kiosk({
         <aside className="flex min-h-0 flex-col gap-4">
           <div className="grid grid-cols-2 gap-3">
             <PhoneQR url={urls.share} title="Share a creation" body="Scan, snap, post" accent />
-            <PhoneQR url={urls.join} title="Sign in / join" body="No Discord needed" />
+            <PhoneQR url={urls.join} title="Join / sign in" body="Free, takes 30 seconds" />
           </div>
 
           {creations.length > 0 && (
             <RailPanel title="Latest creations">
               <div className="grid grid-cols-2 gap-2.5 p-3 pt-0">
-                {creations.slice(0, 2).map((c) => (
+                {creations.slice(0, 4).map((c) => (
                   <button key={c.id} onClick={() => setSelectedCreation(c.id)} className="pressable overflow-hidden rounded-lg bg-surface-2 text-left">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    {c.thumbs[0] && <img src={c.thumbs[0]} alt="" className="aspect-[4/3] w-full object-cover" />}
+                    {c.thumbs[0] && <img src={c.thumbs[0]} alt="" className="aspect-[5/2] w-full object-cover" />}
                     <span className="cap block truncate px-2.5 py-1.5 text-[17px] font-medium">{c.title}</span>
                   </button>
                 ))}
@@ -239,13 +239,13 @@ export function Kiosk({
             </RailPanel>
           )}
 
-          <RailPanel title="Recently finished" className="min-h-0 flex-1 overflow-hidden">
+          <RailPanel title="Recently finished" className="min-h-[150px] flex-1 overflow-hidden">
             <ul className="px-2">
-              {wins.slice(0, 4).map((w) => (
+              {wins.slice(0, 2).map((w) => (
                 <li key={w.key} className="flex items-start gap-3 rounded-lg px-2 py-2">
                   <Avatar member={w.members[0]} size={40} />
                   <span className="min-w-0 text-[17px] leading-snug">
-                    <strong>{names(w.members, 1)}</strong> <span className="text-muted">finished</span>{' '}
+                    <strong>{names(w.members, 2)}</strong> <span className="text-muted">finished</span>{' '}
                     <span className="cap line-clamp-1 font-medium">{w.task?.title ?? 'a task'}</span>
                     <span className="text-[15px] text-muted">{ago(w.created)}</span>
                   </span>
@@ -264,7 +264,7 @@ export function Kiosk({
                     ['all', 'All time'],
                   ] as const
                 ).map(([k, l]) => (
-                  <button key={k} onClick={() => setPeriod(k)} className={cx('h-12 rounded-md px-3.5 text-[17px] font-medium', period === k ? 'bg-surface text-ink shadow' : 'text-muted')}>
+                  <button key={k} onClick={() => setPeriod(k)} className={cx('h-14 rounded-md px-4 text-[18px] font-medium', period === k ? 'bg-surface text-ink shadow' : 'text-muted')}>
                     {l}
                   </button>
                 ))}
