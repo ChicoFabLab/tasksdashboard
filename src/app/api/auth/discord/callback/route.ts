@@ -74,9 +74,11 @@ export async function GET(req: NextRequest) {
   let rec: RecordModel;
   if (found) {
     rec = found;
-    if (rec.discord_username !== du.username) {
-      await pb.collection('volunteers').update(rec.id, { discord_username: du.username });
-    }
+    // Keep the Discord handle current, and give older accounts with no name one.
+    const patch: Record<string, string> = {};
+    if (rec.discord_username !== du.username) patch.discord_username = du.username;
+    if (!String(rec.username || '').trim()) patch.username = await uniqueName(du.global_name || du.username);
+    if (Object.keys(patch).length) rec = await pb.collection('volunteers').update(rec.id, patch);
   } else {
     const pw = randomBytes(24).toString('base64url');
     rec = await pb.collection('volunteers').create({
