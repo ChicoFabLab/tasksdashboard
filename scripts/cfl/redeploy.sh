@@ -16,7 +16,9 @@ fi
 
 chown -R cfl:cfl "$NEW"
 sudo -u cfl npm ci --no-audit --no-fund
-rm -rf .next-build   # stale generated types from a previous build can fail type-checking
+# tsconfig's **/*.ts picks up generated route types from every build dir; stale ones
+# (e.g. for a removed page) fail type-checking. They're not used at runtime.
+rm -rf .next-build .next-test .next/types .next-prev/types
 sudo -u cfl env NEXT_DIST_DIR=.next-build npx next build
 rm -rf .next-prev
 mv .next .next-prev
