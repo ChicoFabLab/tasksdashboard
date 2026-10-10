@@ -64,7 +64,7 @@ const AVATAR_TONES: [string, string][] = [
   ['#ffc21f', '#2b1d00'],
   ['#e5234a', '#ffffff'],
   ['#4d8dff', '#ffffff'],
-  ['#2fbf71', '#062312'],
+  ['#24476b', '#ffffff'],
   ['#9b7bff', '#ffffff'],
 ];
 
