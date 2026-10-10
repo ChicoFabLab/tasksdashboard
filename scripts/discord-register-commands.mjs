@@ -25,12 +25,12 @@ const api = async (path, init = {}) => {
 };
 
 const ZONES = ['General', 'Woodshop', '3D Printing', 'Electronics', 'Laser Cutting', 'CNC', 'Vinyl', 'Metal Shop', 'Waterjet', 'CNC Plasma', 'Mill', 'Lathe', 'Admin'];
-const STRING = 3, INTEGER = 4, SUB = 1;
+const STRING = 3, INTEGER = 4, BOOLEAN = 5, USER = 6, SUB = 1;
 const taskOption = { type: STRING, name: 'task', description: 'Start typing a task name or number', required: true, autocomplete: true };
 
 const command = {
   name: 'task',
-  description: 'Lab tasks: create, list, claim or close',
+  description: 'Lab tasks: create, list, search, claim or close',
   contexts: [0], // guild only
   options: [
     {
@@ -43,6 +43,15 @@ const command = {
       ],
     },
     { type: SUB, name: 'list', description: 'Your tasks and the newest open ones (only you see this)' },
+    {
+      type: SUB, name: 'search', description: 'Find tasks by keyword, zone or person (only you see this)',
+      options: [
+        { type: STRING, name: 'keyword', description: 'Words in the title or details', max_length: 80 },
+        { type: STRING, name: 'zone', description: 'Area of the lab', choices: ZONES.map((z) => ({ name: z, value: z })) },
+        { type: USER, name: 'user', description: 'Tasks this person is on, posted or finished' },
+        { type: BOOLEAN, name: 'include_done', description: 'Include finished tasks (default: no)' },
+      ],
+    },
     { type: SUB, name: 'claim', description: 'Take a task on', options: [taskOption] },
     {
       type: SUB, name: 'close', description: 'Mark a task finished and log your time',

@@ -8,7 +8,7 @@ import { cleanName, ZONES } from '@/lib/types';
 import { absoluteUrl } from '@/lib/site-config';
 
 /**
- * Discord slash commands (/task create | list | claim | close), delivered by
+ * Discord slash commands (/task create | list | search | claim | close), delivered by
  * Discord as signed HTTP requests. Every reply is ephemeral (only the person
  * who ran the command sees it). Register the commands with
  * scripts/discord-register-commands.mjs.
@@ -37,10 +37,10 @@ function isValid(body: string, sig: string | null, ts: string | null) {
 const reply = (content: string) =>
   Response.json({ type: 4, data: { content, flags: EPHEMERAL | SUPPRESS_EMBEDS, allowed_mentions: { parse: [] } } });
 
-type Option = { name: string; type: number; value?: string | number; focused?: boolean; options?: Option[] };
+type Option = { name: string; type: number; value?: string | number | boolean; focused?: boolean; options?: Option[] };
 
 function opts(sub: Option | undefined) {
-  const out: Record<string, string | number | undefined> = {};
+  const out: Record<string, string | number | boolean | undefined> = {};
   for (const o of sub?.options ?? []) out[o.name] = o.value;
   return out;
 }
@@ -121,6 +121,45 @@ export async function POST(req: Request) {
       lines.push('', `**Open tasks** (newest ${open.items.length} of ${open.totalItems})`);
       for (const t of open.items) lines.push(`• ${link(t)} · ${esc(t.zone)}${t.estimated_minutes ? ` · ~${mins(t.estimated_minutes)}` : ''}`);
       lines.push('', `Full board: <${absoluteUrl('/tasks')}>`);
+      return reply(lines.join('\n').slice(0, 1990));
+    }
+
+    case 'search': {
+      const keyword = String(o.keyword ?? '').trim().slice(0, 80);
+      const zone = o.zone ? String(o.zone) : '';
+      const userId = o.user ? String(o.user) : '';
+      const includeDone = o.include_done === true || o.include_done === 'true';
+      if (!keyword && !zone && !userId) return reply('Add at least one filter: a keyword, a zone, or a person.');
+
+      const parts = ['title !~ "[ARCHIVED]%"', '(board = "" || board = "main")'];
+      if (!includeDone) parts.push('status != "completed"');
+      if (keyword) parts.push(pb.filter('(title ~ {:k} || description ~ {:k})', { k: keyword }));
+      if (zone) {
+        if (!(ZONES as readonly string[]).includes(zone)) return reply('Pick one of the listed zones.');
+        parts.push(pb.filter('zone = {:z}', { z: zone }));
+      }
+      let who = '';
+      if (userId) {
+        const du2 = i.data?.resolved?.users?.[userId];
+        who = du2?.global_name || du2?.username || 'that person';
+        const vols = await pb.collection('volunteers').getFullList({ filter: pb.filter('discord_id = {:d}', { d: userId }), fields: 'id' });
+        if (!vols.length) return reply(`${esc(who)} hasn’t used the task board yet.`);
+        // Tasks they're on, posted, or finished.
+        const done = await pb.collection('completions').getFullList({
+          filter: vols.map((v, n) => pb.filter(`volunteer = {:v${n}}`, { [`v${n}`]: v.id })).join(' || '),
+          fields: 'task',
+        });
+        const clauses = vols.flatMap((v, n) => [pb.filter(`assigned_to.id ?= {:a${n}}`, { [`a${n}`]: v.id }), pb.filter(`created_by = {:c${n}}`, { [`c${n}`]: v.id })]);
+        [...new Set(done.map((d) => d.task))].slice(0, 80).forEach((t, n) => clauses.push(pb.filter(`id = {:t${n}}`, { [`t${n}`]: t })));
+        parts.push(`(${clauses.join(' || ')})`);
+      }
+
+      const res = await pb.collection('tasks').getList(1, 15, { filter: parts.join(' && '), sort: '-updated' });
+      const label = [keyword && `“${esc(keyword)}”`, zone && esc(zone), who && esc(who)].filter(Boolean).join(' · ');
+      if (!res.items.length) return reply(`No ${includeDone ? '' : 'open '}tasks match ${label}.${includeDone ? '' : ' Try adding include_done.'}`);
+      const status = (t: RecordModel) => (t.status === 'completed' ? ' ✅' : t.status === 'in_progress' ? ' 🔧' : '');
+      const lines = [`**${res.totalItems} task${res.totalItems === 1 ? '' : 's'}** for ${label}${res.totalItems > 15 ? ' (showing 15)' : ''}`];
+      for (const t of res.items) lines.push(`• ${link(t)} · ${esc(t.zone)}${status(t)}`);
       return reply(lines.join('\n').slice(0, 1990));
     }
 

@@ -149,6 +149,7 @@ See `REDESIGN_BRIEF.md` for the full brief. Summary:
 - **Slash command `/task`:** Discord delivers it as signed HTTP requests to `https://tasks.chicofl.org/api/discord/interactions`. No separate bot process runs. Every reply is visible only to the person who ran it.
   - `/task create title zone [minutes] [details]` — posts a task; this also triggers the #general one-liner.
   - `/task list` — your claimed tasks plus the 10 newest open ones.
+  - `/task search [keyword] [zone] [user] [include_done]` — find tasks by words in the title or details, by area, or by person (tasks they're on, posted or finished). Shows up to 15.
   - `/task claim task` and `/task close task [minutes] [note]` — the task picker autocompletes and lists your tasks first. `close` logs time to you.
   - Someone without a website account gets one automatically on first use, linked to their Discord ID.
 - **Re-register after changing commands, or after moving to a different bot:**
