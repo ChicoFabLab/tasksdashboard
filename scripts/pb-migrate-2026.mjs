@@ -5,7 +5,7 @@
  *   PB_URL=http://127.0.0.1:8091 PB_EMAIL=... PB_PASSWORD=... node scripts/pb-migrate-2026.mjs [--dry-run]
  *
  * 1. Saves a JSON snapshot of every collection to ./pb-snapshot-<timestamp>.json (used by pb-rollback-2026.mjs).
- * 2. Adds optional fields: volunteers.is_admin, volunteers.pw_hash (hidden), completions.photo,
+ * 2. Adds optional fields: volunteers.is_admin, volunteers.pw_hash (hidden), completions.photo, completions.partial,
  *    creations.featured, creations.board; image limits + thumbnail sizes on file fields;
  *    makes creations.description optional.
  * 3. Locks API rules: public read for tasks/completions/creations, server-only writes everywhere,
@@ -62,6 +62,8 @@ const log = [];
 {
   const c = byName.completions;
   log.push(ensureField(c, { name: 'photo', type: 'file', required: false, maxSelect: 1, maxSize: 10 * MB, mimeTypes: IMAGE, thumbs: ['800x0', '160x160'], protected: false }));
+  // Time logged without finishing the task (added after go-live).
+  log.push(ensureField(c, { name: 'partial', type: 'bool', required: false }));
   Object.assign(c, { listRule: '', viewRule: '', createRule: null, updateRule: null, deleteRule: null });
 }
 // --- creations ---

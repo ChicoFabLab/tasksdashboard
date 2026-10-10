@@ -129,11 +129,13 @@ export async function POST(req: Request) {
       const zone = o.zone ? String(o.zone) : '';
       const userId = o.user ? String(o.user) : '';
       const includeDone = o.include_done === true || o.include_done === 'true';
-      if (!keyword && !zone && !userId) return reply('Add at least one filter: a keyword, a zone, or a person.');
+      const maxMinutes = Math.min(1440, Math.max(0, Number(o.max_minutes) || 0));
+      if (!keyword && !zone && !userId && !maxMinutes) return reply('Add at least one filter: a keyword, a zone, a person, or max minutes.');
 
       const parts = ['title !~ "[ARCHIVED]%"', '(board = "" || board = "main")'];
       if (!includeDone) parts.push('status != "completed"');
       if (keyword) parts.push(pb.filter('(title ~ {:k} || description ~ {:k})', { k: keyword }));
+      if (maxMinutes) parts.push(pb.filter('estimated_minutes > 0 && estimated_minutes <= {:m}', { m: maxMinutes }));
       if (zone) {
         if (!(ZONES as readonly string[]).includes(zone)) return reply('Pick one of the listed zones.');
         parts.push(pb.filter('zone = {:z}', { z: zone }));
@@ -155,11 +157,11 @@ export async function POST(req: Request) {
       }
 
       const res = await pb.collection('tasks').getList(1, 15, { filter: parts.join(' && '), sort: '-updated' });
-      const label = [keyword && `“${esc(keyword)}”`, zone && esc(zone), who && esc(who)].filter(Boolean).join(' · ');
+      const label = [keyword && `“${esc(keyword)}”`, zone && esc(zone), who && esc(who), maxMinutes && `≤ ${mins(maxMinutes)}`].filter(Boolean).join(' · ');
       if (!res.items.length) return reply(`No ${includeDone ? '' : 'open '}tasks match ${label}.${includeDone ? '' : ' Try adding include_done.'}`);
       const status = (t: RecordModel) => (t.status === 'completed' ? ' ✅' : t.status === 'in_progress' ? ' 🔧' : '');
       const lines = [`**${res.totalItems} task${res.totalItems === 1 ? '' : 's'}** for ${label}${res.totalItems > 15 ? ' (showing 15)' : ''}`];
-      for (const t of res.items) lines.push(`• ${link(t)} · ${esc(t.zone)}${status(t)}`);
+      for (const t of res.items) lines.push(`• ${link(t)} · ${esc(t.zone)}${t.estimated_minutes ? ` · ~${mins(t.estimated_minutes)}` : ''}${status(t)}`);
       return reply(lines.join('\n').slice(0, 1990));
     }
 

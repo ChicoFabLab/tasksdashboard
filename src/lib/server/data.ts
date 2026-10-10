@@ -105,13 +105,15 @@ export interface Win {
   note: string;
   photo: string | null;
   created: string;
+  /** Time logged on a task that is still open (not a finish). */
+  partial: boolean;
 }
 
 export function groupWins(items: Completion[]): Win[] {
   const wins: Win[] = [];
   const byKey = new Map<string, Win>();
   for (const c of items) {
-    const key = c.task ? `${c.task.id}:${c.created.slice(0, 13)}` : c.id;
+    const key = c.task ? `${c.task.id}:${c.created.slice(0, 13)}:${c.partial ? 'p' : 'f'}` : c.id;
     const existing = byKey.get(key);
     if (existing) {
       if (!existing.members.some((m) => m.id === c.member.id)) existing.members.push(c.member);
@@ -128,6 +130,7 @@ export function groupWins(items: Completion[]): Win[] {
       note: c.note,
       photo: c.photo,
       created: c.created,
+      partial: c.partial,
     };
     byKey.set(key, win);
     wins.push(win);
@@ -135,8 +138,9 @@ export function groupWins(items: Completion[]): Win[] {
   return wins;
 }
 
-export async function recentWins(limit = 8): Promise<Win[]> {
-  return groupWins(await recentCompletions(limit * 3)).slice(0, limit);
+export async function recentWins(limit = 8, opts: { finishedOnly?: boolean } = {}): Promise<Win[]> {
+  const wins = groupWins(await recentCompletions(limit * 4));
+  return (opts.finishedOnly ? wins.filter((w) => !w.partial) : wins).slice(0, limit);
 }
 
 function pbDate(d: Date) {
@@ -163,7 +167,7 @@ export async function labStats(): Promise<LabStats> {
   const since = new Date(Date.now() - 30 * 864e5);
   const [all, open, busyTasks] = await Promise.all([
     pb.collection('completions').getFullList({
-      fields: 'id,task,volunteer,actual_minutes,created,expand.volunteer.id,expand.volunteer.username,expand.volunteer.discord_username,expand.volunteer.profile_photo',
+      fields: 'id,task,volunteer,actual_minutes,partial,created,expand.volunteer.id,expand.volunteer.username,expand.volunteer.discord_username,expand.volunteer.profile_photo',
       expand: 'volunteer',
     }),
     pb.collection('tasks').getList(1, 1, {
@@ -196,12 +200,12 @@ export async function labStats(): Promise<LabStats> {
   }
 
   return {
-    tasksDone30d: new Set(recent.map((c) => c.task)).size,
+    tasksDone30d: new Set(recent.filter((c) => !c.partial).map((c) => c.task)).size,
     hours30d: Math.round(minutes(recent) / 60),
     makers30d: new Set(recent.map((c) => c.volunteer)).size,
     openTasks: open.totalItems,
     inProgressTasks: busyTasks.totalItems,
-    tasksDoneAllTime: new Set(all.map((c) => c.task)).size,
+    tasksDoneAllTime: new Set(all.filter((c) => !c.partial).map((c) => c.task)).size,
     hoursAllTime: Math.round(minutes(all) / 60),
     topMakers: [...tally.values()]
       .filter((t) => t.member.id)
@@ -290,7 +294,7 @@ export async function memberActivity(id: string): Promise<MemberActivity> {
     creations,
     activeTasks: active.map(toTask),
     minutes: Math.round(c.reduce((s, x) => s + x.minutes, 0) + extra),
-    tasksDone: new Set(c.map((x) => x.task?.id).filter(Boolean)).size,
+    tasksDone: new Set(c.filter((x) => !x.partial).map((x) => x.task?.id).filter(Boolean)).size,
   };
 }
 
@@ -332,7 +336,7 @@ export async function tasksLogged(period: Period, limit = 20): Promise<LoggedRow
   const rows = await pb.collection('completions').getFullList({
     filter: since ? pb.filter('created >= {:s}', { s: since }) : '',
     fields:
-      'task,volunteer,actual_minutes,created,expand.volunteer.id,expand.volunteer.username,expand.volunteer.discord_username,expand.volunteer.profile_photo',
+      'task,volunteer,actual_minutes,partial,created,expand.volunteer.id,expand.volunteer.username,expand.volunteer.discord_username,expand.volunteer.profile_photo',
     expand: 'volunteer',
   });
   const tally = new Map<string, { member: Member; minutes: number; tasks: Set<string>; last: string }>();
@@ -340,7 +344,7 @@ export async function tasksLogged(period: Period, limit = 20): Promise<LoggedRow
     if (!c.volunteer) continue;
     const t = tally.get(c.volunteer) ?? { member: toMember(c.expand?.volunteer as RecordModel), minutes: 0, tasks: new Set<string>(), last: '' };
     t.minutes += Number(c.actual_minutes) || 0;
-    t.tasks.add(c.task);
+    if (!c.partial) t.tasks.add(c.task);
     if (c.created > t.last) t.last = c.created;
     tally.set(c.volunteer, t);
   }

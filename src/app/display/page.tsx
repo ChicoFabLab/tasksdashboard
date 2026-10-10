@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: `${siteConfig.name} — Live board`, 
 export default async function DisplayPage() {
   const [tasks, wins, creations, stats, month, allTime] = await Promise.all([
     listTasks({ status: ['open', 'in_progress'], limit: 200 }),
-    recentWins(7),
+    recentWins(7, { finishedOnly: true }),
     listCreations({ limit: 60 }),
     labStats(),
     tasksLogged('month', 200),

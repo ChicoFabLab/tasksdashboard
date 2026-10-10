@@ -197,7 +197,7 @@ export function WinRow({ win, size = 'md' }: { win: Win; size?: 'md' | 'lg' }) {
       </span>
       <span className="min-w-0 flex-1">
         <span className={cx('block leading-snug', lg ? 'text-xl' : 'text-[15px]')}>
-          <strong>{names(win.members, 2)}</strong> <span className="text-muted">finished</span>{' '}
+          <strong>{names(win.members, 2)}</strong> <span className="text-muted">{win.partial ? 'worked on' : 'finished'}</span>{' '}
           <span className="cap font-semibold">{win.task?.title ?? 'a task'}</span>
         </span>
         <span className={cx('mt-0.5 flex flex-wrap items-center gap-x-3 text-muted', lg ? 'text-base' : 'text-sm')}>

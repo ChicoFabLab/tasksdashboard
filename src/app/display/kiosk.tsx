@@ -57,13 +57,14 @@ export function Kiosk({
   const [period, setPeriod] = useState<'month' | 'all'>(boards.month.length >= 3 ? 'month' : 'all');
   const [now, setNow] = useState<Date | null>(null);
   const [more, setMore] = useState(false);
+  const [fits, setFits] = useState(0); // "I have N minutes" filter; 0 = any
   const grid = useRef<HTMLDivElement>(null);
   const logged = useRef<HTMLOListElement>(null);
   const lastTouch = useRef(Date.now());
 
   const pool = tasks.filter((t) => (view === 'open' ? t.status === 'open' : t.status !== 'open'));
   const zones = useMemo(() => [...new Set(pool.map((t) => t.zone))].sort(), [pool]);
-  const shown = zone ? pool.filter((t) => t.zone === zone) : pool;
+  const shown = pool.filter((t) => (!zone || t.zone === zone) && (!fits || (t.estimatedMinutes > 0 && t.estimatedMinutes <= fits)));
   const task = tasks.find((t) => t.id === selectedTask) ?? null;
   const creation = creations.find((c) => c.id === selectedCreation) ?? null;
   const board = boards[period];
@@ -75,6 +76,7 @@ export function Kiosk({
     setSelectedCreation(null);
     setGallery(false);
     setZone(null);
+    setFits(0);
     setView('open');
     grid.current?.scrollTo({ top: 0 });
   }, []);
@@ -188,6 +190,28 @@ export function Kiosk({
                 </button>
               ))}
             </div>
+            <div className="flex shrink-0 items-center rounded-xl bg-surface p-1" role="radiogroup" aria-label="Time available">
+              {(
+                [
+                  [0, 'Any time'],
+                  [30, '≤ 30m'],
+                  [60, '≤ 1h'],
+                ] as const
+              ).map(([m, label]) => (
+                <button
+                  key={m}
+                  role="radio"
+                  aria-checked={fits === m}
+                  onClick={() => {
+                    setFits(m);
+                    grid.current?.scrollTo({ top: 0 });
+                  }}
+                  className={cx('h-14 rounded-lg px-4 text-[19px] font-semibold', fits === m ? 'bg-accent text-accent-ink' : 'text-ink-2')}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
             {zones.length > 1 && (
               <div className="no-scrollbar flex min-w-0 gap-2 overflow-x-auto [mask-image:linear-gradient(to_right,black_92%,transparent)] pr-10">
                 {[null, ...zones].map((z) => (
@@ -267,7 +291,7 @@ export function Kiosk({
                 <li key={w.key} className="flex items-start gap-3 rounded-lg px-2 py-2">
                   <Avatar member={w.members[0]} size={40} />
                   <span className="min-w-0 text-[17px] leading-snug">
-                    <strong>{names(w.members, 2)}</strong> <span className="text-muted">finished</span>{' '}
+                    <strong>{names(w.members, 2)}</strong> <span className="text-muted">{w.partial ? 'worked on' : 'finished'}</span>{' '}
                     <span className="cap line-clamp-1 font-medium">{w.task?.title ?? 'a task'}</span>
                     <span className="text-[15px] text-muted">{ago(w.created)}</span>
                   </span>

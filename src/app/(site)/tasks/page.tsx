@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
-import { listTasks, recentWins } from '@/lib/server/data';
+import { listMembersForPicker, listTasks, recentWins } from '@/lib/server/data';
+import { BoardFilters } from '@/components/board-filters';
+import type { Task } from '@/lib/types';
 import { DoneCard, TaskTile } from '@/components/cards';
 import { ButtonLink, PageHeader, cx } from '@/components/ui';
 import { zoneColor } from '@/lib/format';
@@ -8,25 +10,56 @@ import { zoneColor } from '@/lib/format';
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Tasks' };
 
-export default async function TasksPage({ searchParams }: { searchParams: Promise<{ zone?: string; col?: string }> }) {
+export default async function TasksPage({ searchParams }: { searchParams: Promise<{ zone?: string; col?: string; q?: string; fits?: string; who?: string; sort?: string }> }) {
   const sp = await searchParams;
-  const [live, wins] = await Promise.all([listTasks({ status: ['open', 'in_progress', 'pending_approval'], limit: 300 }), recentWins(20)]);
+  const [live, wins, members] = await Promise.all([
+    listTasks({ status: ['open', 'in_progress', 'pending_approval'], limit: 300 }),
+    recentWins(40, { finishedOnly: true }),
+    listMembersForPicker(),
+  ]);
   const zones = [...new Set(live.map((t) => t.zone))].sort();
   const zone = sp.zone && zones.includes(sp.zone as never) ? sp.zone : undefined;
-  const inZone = <T extends { zone: string }>(xs: T[]) => (zone ? xs.filter((t) => t.zone === zone) : xs);
+  const q = (sp.q ?? '').trim().toLowerCase().slice(0, 80);
+  const fits = FITS.some(([m]) => String(m) === sp.fits) ? Number(sp.fits) : 0;
+  const who = sp.who && /^[a-z0-9]{15}$/.test(sp.who) ? sp.who : '';
 
-  const todo = inZone(live.filter((t) => t.status === 'open'));
-  const doing = inZone(live.filter((t) => t.status !== 'open'));
-  const done = zone ? wins.filter((w) => w.task?.zone === zone) : wins;
+  // People worth filtering by: anyone on, or who posted, a live task or a recent finish.
+  const involved = new Set<string>([...live.flatMap((t) => [...t.assignees.map((a) => a.id), t.createdBy]), ...wins.flatMap((w) => w.members.map((m) => m.id))]);
+  const people = members.filter((m) => involved.has(m.id));
+
+  const keep = (t: Task) =>
+    (!zone || t.zone === zone) &&
+    (!q || t.title.toLowerCase().includes(q) || t.description.toLowerCase().includes(q)) &&
+    (!fits || (t.estimatedMinutes > 0 && t.estimatedMinutes <= fits)) &&
+    (!who || t.createdBy === who || t.assignees.some((a) => a.id === who));
+  const order = (xs: Task[]) =>
+    sp.sort === 'quickest'
+      ? [...xs].sort((a, b) => (a.estimatedMinutes || 1e9) - (b.estimatedMinutes || 1e9))
+      : sp.sort === 'zone'
+        ? [...xs].sort((a, b) => a.zone.localeCompare(b.zone))
+        : xs;
+
+  const todo = order(live.filter((t) => t.status === 'open' && keep(t)));
+  const doing = order(live.filter((t) => t.status !== 'open' && keep(t)));
+  const done = wins
+    .filter((w) => !zone || w.task?.zone === zone)
+    .filter((w) => !q || (w.task?.title ?? '').toLowerCase().includes(q))
+    .filter((w) => !who || w.members.some((m) => m.id === who))
+    .slice(0, 20);
+  const filtered = Boolean(zone || q || fits || who);
+
+  // Build links that keep the other filters.
+  const href = (changes: Record<string, string>) => {
+    const p = new URLSearchParams();
+    for (const [k, v] of Object.entries(sp)) if (v && typeof v === 'string') p.set(k, v);
+    for (const [k, v] of Object.entries(changes)) (v ? p.set(k, v) : p.delete(k));
+    const s = p.toString();
+    return `/tasks${s ? `?${s}` : ''}`;
+  };
+
   // One list at a time, as a dense grid, so as many tasks as possible are visible.
   const col = sp.col === 'doing' || sp.col === 'done' ? sp.col : 'todo';
-  const colHref = (c: string) => {
-    const p = new URLSearchParams();
-    if (zone) p.set('zone', zone);
-    if (c !== 'todo') p.set('col', c);
-    const q = p.toString();
-    return `/tasks${q ? `?${q}` : ''}`;
-  };
+  const colHref = (c: string) => href({ col: c === 'todo' ? '' : c });
 
   return (
     <>
@@ -40,19 +73,42 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
         }
       />
 
-      {zones.length > 1 && (
-        <div className="no-scrollbar -mx-4 mb-5 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0">
-          <Chip href={col === 'todo' ? '/tasks' : `/tasks?col=${col}`} active={!zone}>
-            All zones
-          </Chip>
-          {zones.map((z) => (
-            <Chip key={z} href={`/tasks?zone=${encodeURIComponent(z)}${col === 'todo' ? '' : `&col=${col}`}`} active={zone === z}>
-              <span className="size-2.5 rounded-full" style={{ background: zoneColor(z) }} aria-hidden />
-              {z}
+      <div className="mb-4 space-y-3">
+        <BoardFilters people={people} />
+
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="mr-1 text-sm font-medium text-muted">I have:</span>
+          {FITS.map(([m, label]) => (
+            <Chip key={m} href={href({ fits: fits === m ? '' : String(m) })} active={fits === m}>
+              {label}
             </Chip>
           ))}
         </div>
-      )}
+
+        {zones.length > 1 && (
+          /* Two rows on phones so one swipe shows twice as many zones; wraps on wider screens. */
+          <div className="no-scrollbar -mx-4 grid auto-cols-max grid-flow-col grid-rows-2 gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex sm:flex-wrap sm:px-0">
+            <Chip href={href({ zone: '' })} active={!zone}>
+              All zones
+            </Chip>
+            {zones.map((z) => (
+              <Chip key={z} href={href({ zone: zone === z ? '' : z })} active={zone === z}>
+                <span className="size-2.5 rounded-full" style={{ background: zoneColor(z) }} aria-hidden />
+                {z}
+              </Chip>
+            ))}
+          </div>
+        )}
+
+        {filtered && (
+          <p className="text-sm text-muted">
+            Showing {todo.length + doing.length} matching task{todo.length + doing.length === 1 ? '' : 's'} ·{' '}
+            <Link href={sp.col ? `/tasks?col=${sp.col}` : '/tasks'} className="font-medium text-accent hover:underline">
+              Clear filters
+            </Link>
+          </p>
+        )}
+      </div>
 
       <div role="tablist" aria-label="Column" className="mb-4 grid grid-cols-3 rounded-xl bg-surface-2 p-1 sm:inline-grid">
         {(
@@ -85,7 +141,15 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
             ))}
           </ul>
         ) : (
-          <EmptyCol text={col === 'todo' ? 'Nothing open here — add a task?' : 'Nobody’s working on anything right now.'} />
+          <EmptyCol
+            text={
+              filtered
+                ? 'No tasks match these filters — try a longer time or another zone.'
+                : col === 'todo'
+                  ? 'Nothing open here — add a task?'
+                  : 'Nobody’s working on anything right now.'
+            }
+          />
         )
       ) : done.length ? (
         <div className="grid gap-2.5 pb-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -99,6 +163,13 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
     </>
   );
 }
+
+const FITS: [number, string][] = [
+  [15, '15 min'],
+  [30, '30 min'],
+  [60, '1 hr'],
+  [120, '2 hr'],
+];
 
 function EmptyCol({ text }: { text: string }) {
   return <p className="rounded-xl border border-dashed border-line-strong px-3 py-6 text-center text-sm text-muted">{text}</p>;

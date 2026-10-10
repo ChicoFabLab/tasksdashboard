@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { adminPb } from '@/lib/server/pb';
 import { getCurrentUser, type CurrentUser } from '@/lib/server/session';
-import { assigneeIds, createTaskRecord, finishTaskRecord, loadTask } from '@/lib/server/task-ops';
+import { assigneeIds, createTaskRecord, editTimeEntry, loadTask, logTaskTime } from '@/lib/server/task-ops';
 import { int, readImages, text } from '@/lib/server/uploads';
 import { rateLimit } from '@/lib/server/rate-limit';
 import { ZONES } from '@/lib/types';
@@ -52,24 +52,36 @@ export async function finishTask(_: FormState, form: FormData): Promise<FormStat
   const user = await requireUser(`/tasks/${taskId}`);
   if (!rateLimit(`finish:${user.id}`, 30, 60 * 60 * 1000)) return { error: 'Slow down a little — try again shortly.' };
 
+  const finish = text(form, 'mode', 10) !== 'partial';
   const minutes = int(form, 'minutes', 1, 24 * 60);
-  if (minutes === null) return { error: 'How long did it take? Enter minutes between 1 and 1440.' };
+  if (minutes === null) return { error: 'How long did you work on it? Enter minutes between 1 and 1440.' };
   const note = text(form, 'note', 500);
   const { files, error } = readImages(form, 'photo', 1);
   if (error) return { error };
 
-  const result = await finishTaskRecord({
-    taskId,
-    userId: user.id,
-    minutes,
-    note,
-    helperIds: form.getAll('helpers').map(String),
-    photo: files[0],
-  });
+  // Each helper can have their own minutes (helper_minutes_<id>); default to yours.
+  const entries = [{ volunteerId: user.id, minutes }];
+  for (const id of form.getAll('helpers').map(String)) {
+    const own = int(form, `helper_minutes_${id}`, 1, 24 * 60);
+    entries.push({ volunteerId: id, minutes: own ?? minutes });
+  }
+
+  const result = await logTaskTime({ taskId, userId: user.id, entries, note, finish, photo: files[0] });
   if (!result.ok) return { error: result.error };
 
   refresh(taskId);
-  redirect(`/tasks/${taskId}?done=1`);
+  redirect(`/tasks/${taskId}?${finish ? 'done=1' : 'logged=1'}`);
+}
+
+export async function editTime(_: FormState, form: FormData): Promise<FormState> {
+  const user = await getCurrentUser();
+  if (!user) redirect('/login');
+  const minutes = int(form, 'minutes', 1, 24 * 60);
+  if (minutes === null) return { error: 'Minutes must be between 1 and 1440.' };
+  const result = await editTimeEntry({ completionId: text(form, 'id', 20), actor: user, minutes, note: text(form, 'note', 500) });
+  if (!result.ok) return { error: result.error };
+  refresh(result.taskId);
+  return { ok: 'Time updated.' };
 }
 
 function readTaskFields(form: FormData) {

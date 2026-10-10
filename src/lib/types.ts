@@ -54,6 +54,8 @@ export interface Completion {
   note: string;
   photo: string | null;
   created: string;
+  /** Time logged without finishing the task ("I did some, someone else can finish"). */
+  partial: boolean;
   member: Member;
   task: { id: string; number: number; title: string; zone: Zone } | null;
 }
@@ -126,6 +128,7 @@ export function toCompletion(rec: RecordModel): Completion {
       : '',
     photo: fu('completions', rec.id, rec.photo, '800x0'),
     created: rec.created,
+    partial: rec.partial === true,
     member: toMember(rec.expand?.volunteer as RecordModel | undefined),
     task: t
       ? { id: t.id, number: Number(t.task_number) || 0, title: t.title || 'Task', zone: t.zone || 'General' }

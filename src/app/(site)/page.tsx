@@ -147,7 +147,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                   <Link href={w.task ? `/tasks/${w.task.id}` : '/activity#activity'} className="flex items-start gap-2.5 rounded-lg px-2 py-2 hover:bg-surface-2">
                     <Avatar member={w.members[0]} size={28} />
                     <span className="min-w-0 text-[13px] leading-snug">
-                      <strong>{names(w.members, 2)}</strong> <span className="text-muted">finished</span>{' '}
+                      <strong>{names(w.members, 2)}</strong> <span className="text-muted">{w.partial ? 'worked on' : 'finished'}</span>{' '}
                       <span className="cap font-medium">{w.task?.title ?? 'a task'}</span>
                       <span className="block text-muted">{timeAgo(w.created)}</span>
                     </span>

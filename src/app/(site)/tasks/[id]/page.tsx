@@ -1,13 +1,13 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, Clock, Pencil, PartyPopper, Smartphone } from 'lucide-react';
-import { completionsForTask, getTask, groupWins, listMembersForPicker } from '@/lib/server/data';
+import { completionsForTask, getTask, listMembersForPicker } from '@/lib/server/data';
 import { getCurrentUser } from '@/lib/server/session';
 import { absoluteUrl } from '@/lib/site-config';
 import { capitalize, formatMinutes, shortDate, taskNo, timeAgo } from '@/lib/format';
 import { Avatar, ButtonLink, Card, Notice, StatusPill, ZoneTag, names } from '@/components/ui';
 import { CollapsibleText } from '@/components/collapsible';
-import { ClaimButtons, FinishForm } from '@/components/task-actions';
+import { ClaimButtons, EditTimeButton, FinishForm } from '@/components/task-actions';
 import { QR } from '@/components/qr';
 
 export const dynamic = 'force-dynamic';
@@ -22,7 +22,7 @@ export default async function TaskPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ done?: string; created?: string; finish?: string; claim?: string }>;
+  searchParams: Promise<{ done?: string; created?: string; finish?: string; claim?: string; logged?: string }>;
 }) {
   const { id } = await params;
   const sp = await searchParams;
@@ -33,10 +33,9 @@ export default async function TaskPage({
   const mine = Boolean(user && task.assignees.some((a) => a.id === user.id));
   const canEdit = Boolean(user && (user.isAdmin || task.createdBy === user.id));
   const [history, members] = await Promise.all([
-    done ? completionsForTask(task.id) : Promise.resolve([]),
+    completionsForTask(task.id),
     user && !done ? listMembersForPicker() : Promise.resolve([]),
   ]);
-  const wins = groupWins(history);
   const url = absoluteUrl(`/tasks/${task.id}`);
   const next = encodeURIComponent(`/tasks/${task.id}?claim=1`);
   const autoClaim = Boolean(sp.claim && user && !mine && !done);
@@ -57,6 +56,11 @@ export default async function TaskPage({
           <ButtonLink href="/creations/new" size="sm" variant="secondary" className="shrink-0">
             Share it
           </ButtonLink>
+        </div>
+      )}
+      {sp.logged && (
+        <div className="mb-6">
+          <Notice tone="good">Your time is saved. The task is back on the board for the next person — your note tells them where you left off.</Notice>
         </div>
       )}
       {sp.created && (
@@ -194,33 +198,42 @@ export default async function TaskPage({
             </div>
           )}
 
-          {done && (
+          {history.length > 0 ? (
             <section className="mt-10">
-              <h2 className="mb-4 text-lg font-semibold">Who finished it</h2>
-              {wins.length === 0 && <p className="text-muted">Marked done {timeAgo(task.updated)}.</p>}
-              <div className="space-y-4">
-                {wins.map((w) => (
-                  <Card key={w.key} className="overflow-hidden">
-                    {w.photo && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={w.photo} alt="" className="max-h-[420px] w-full object-cover" />
-                    )}
-                    <div className="flex flex-wrap items-center gap-3 p-4">
-                      {w.members.map((m) => (
-                        <Link key={m.id} href={`/makers/${m.id}`} className="inline-flex items-center gap-2 rounded-full pr-2 hover:bg-surface-2">
-                          <Avatar member={m} size={36} />
-                          <span className="font-semibold">{m.name}</span>
+              <h2 className="mb-1 text-lg font-semibold">Time logged</h2>
+              <p className="mb-4 text-sm text-muted">
+                {formatMinutes(history.reduce((n, c) => n + c.minutes, 0))} in total from {new Set(history.map((c) => c.member.id)).size}{' '}
+                {new Set(history.map((c) => c.member.id)).size === 1 ? 'person' : 'people'}
+              </p>
+              <ul className="space-y-3">
+                {history.map((c) => (
+                  <li key={c.id}>
+                    <Card className="overflow-hidden">
+                      {c.photo && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={c.photo} alt="" className="max-h-[420px] w-full object-cover" />
+                      )}
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 p-4">
+                        <Link href={`/makers/${c.member.id}`} className="inline-flex items-center gap-2 rounded-full pr-2 hover:bg-surface-2">
+                          <Avatar member={c.member} size={36} />
+                          <span className="font-semibold">{c.member.name}</span>
                         </Link>
-                      ))}
-                      <span className="ml-auto text-sm text-muted">
-                        {shortDate(w.created)} · {formatMinutes(w.minutes)}
-                      </span>
-                      {w.note && <p className="w-full text-ink-2">“{w.note}”</p>}
-                    </div>
-                  </Card>
+                        <span className={c.partial ? 'rounded-full bg-warn-soft px-2.5 py-0.5 text-xs font-semibold text-warn' : 'rounded-full bg-good-soft px-2.5 py-0.5 text-xs font-semibold text-good'}>
+                          {c.partial ? 'Worked on it' : 'Finished'}
+                        </span>
+                        <span className="ml-auto text-sm text-muted">
+                          {shortDate(c.created)} · <strong className="text-ink">{formatMinutes(c.minutes)}</strong>
+                        </span>
+                        {c.note && <p className="w-full text-ink-2">“{c.note}”</p>}
+                        {user && (user.isAdmin || user.id === c.member.id) && <EditTimeButton id={c.id} minutes={c.minutes} note={c.note} />}
+                      </div>
+                    </Card>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </section>
+          ) : (
+            done && <p className="mt-10 text-muted">Marked done {timeAgo(task.updated)}.</p>
           )}
         </article>
       </div>

@@ -149,10 +149,21 @@ See `REDESIGN_BRIEF.md` for the full brief. Summary:
 - **Slash command `/task`:** Discord delivers it as signed HTTP requests to `https://tasks.chicofl.org/api/discord/interactions`. No separate bot process runs. Every reply is visible only to the person who ran it.
   - `/task create title zone [minutes] [details]` — posts a task; this also triggers the #general one-liner.
   - `/task list` — your claimed tasks plus the 10 newest open ones.
-  - `/task search [keyword] [zone] [user] [include_done]` — find tasks by words in the title or details, by area, or by person (tasks they're on, posted or finished). Shows up to 15.
+  - `/task search [keyword] [zone] [user] [max_minutes] [include_done]` — find tasks by words in the title or details, by area, by person (tasks they're on, posted or finished), or ones that fit in a given time. Shows up to 15.
   - `/task claim task` and `/task close task [minutes] [note]` — the task picker autocompletes and lists your tasks first. `close` logs time to you.
   - Someone without a website account gets one automatically on first use, linked to their Discord ID.
 - **Re-register after changing commands, or after moving to a different bot:**
   `cd tasksdashboard-redesign && set -a && . ./.env.local && set +a && node scripts/discord-register-commands.mjs --endpoint`
   When switching bots, update `DISCORD_BOT_TOKEN` and `DISCORD_PUBLIC_KEY` and redeploy *before* running the script.
 - **Turning it off:** clear the Interactions Endpoint URL in the Discord developer portal. For posts, blank out `DISCORD_ANNOUNCEMENTS_CHANNEL_ID` and redeploy.
+
+## 10. Time logging (from user feedback, 2026-10-10)
+- **Timer.** The task page has start, pause and reset, with progress against the estimate. It is stored per device (localStorage), so a reload keeps it. "Use timer" fills the minutes.
+- **Finish or leave it open.**
+  - *Finished it* — marks the task done.
+  - *Did some — leave it open* — saves the time as a partial entry (`completions.partial = true`), takes you off the task, and puts it back on the board with your note.
+  - Partial time counts toward hours, but not toward "tasks done" or the Done column.
+- **Split.** Each helper has their own minutes. The buttons are "Everyone N min" and "Split total evenly".
+- **Edit.** Anyone can change the minutes and note on their own entries from the task page; admins can change anyone's. `total_minutes` is kept in step.
+- **Board filters.** Keyword search, person, "I have 15m/30m/1h/2h", sort (newest, quickest, zone). Zones show on two rows on phones. All filters live in the URL, so a filtered view can be shared. The wall screen has "Any / ≤30m / ≤1h" buttons.
+- **Schema.** `completions.partial` (bool) was added to the live DB on 2026-10-10, additive only. Backup: `/var/backups/taskdashboard/partial-field-*`.

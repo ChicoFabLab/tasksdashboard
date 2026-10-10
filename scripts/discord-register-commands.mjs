@@ -44,11 +44,12 @@ const command = {
     },
     { type: SUB, name: 'list', description: 'Your tasks and the newest open ones (only you see this)' },
     {
-      type: SUB, name: 'search', description: 'Find tasks by keyword, zone or person (only you see this)',
+      type: SUB, name: 'search', description: 'Find tasks by keyword, zone, person or time (only you see this)',
       options: [
         { type: STRING, name: 'keyword', description: 'Words in the title or details', max_length: 80 },
         { type: STRING, name: 'zone', description: 'Area of the lab', choices: ZONES.map((z) => ({ name: z, value: z })) },
         { type: USER, name: 'user', description: 'Tasks this person is on, posted or finished' },
+        { type: INTEGER, name: 'max_minutes', description: 'Only tasks that take at most this long (e.g. 30)', min_value: 5, max_value: 1440 },
         { type: BOOLEAN, name: 'include_done', description: 'Include finished tasks (default: no)' },
       ],
     },

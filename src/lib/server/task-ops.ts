@@ -51,7 +51,80 @@ export async function createTaskRecord(input: {
 
 export type FinishResult = { ok: true; task: RecordModel } | { ok: false; error: string };
 
-/** Mark a task finished and credit the user (plus optional helpers). */
+export interface TimeEntry {
+  volunteerId: string;
+  minutes: number;
+}
+
+/**
+ * Log time on a task. Each person gets their own minutes (the first entry is
+ * the person logging). With `finish`, the task is marked done; without it the
+ * time is recorded as partial progress and the loggers step off the task so
+ * someone else can pick it up.
+ */
+export async function logTaskTime(input: {
+  taskId: string;
+  userId: string;
+  entries: TimeEntry[];
+  note: string;
+  finish: boolean;
+  photo?: File;
+}): Promise<FinishResult> {
+  const pb = await adminPb();
+  const task = await loadTask(input.taskId);
+  if (!task) return { ok: false, error: 'That task no longer exists.' };
+  if (task.status === 'completed') return { ok: false, error: 'This task was already marked finished.' };
+
+  // One entry per person, the logger first; ignore malformed ids and bad minutes.
+  const seen = new Set<string>();
+  const entries = input.entries.filter((e) => {
+    if (!ID_RE.test(e.volunteerId) || seen.has(e.volunteerId)) return false;
+    if (!Number.isInteger(e.minutes) || e.minutes < 1 || e.minutes > 24 * 60) return false;
+    seen.add(e.volunteerId);
+    return true;
+  });
+  if (!entries.length || entries[0].volunteerId !== input.userId) return { ok: false, error: 'Enter your own time first.' };
+  if (entries.length > 11) return { ok: false, error: 'That’s a big crew — log up to 10 helpers at once.' };
+
+  // Only credit people who actually exist.
+  const others = entries.slice(1);
+  const known = others.length
+    ? new Set(
+        (
+          await pb.collection('volunteers').getFullList({
+            filter: others.map((e, i) => pb.filter(`id = {:h${i}}`, { [`h${i}`]: e.volunteerId })).join(' || '),
+            fields: 'id',
+          })
+        ).map((v) => v.id),
+      )
+    : new Set<string>();
+  const team = entries.filter((e, i) => i === 0 || known.has(e.volunteerId));
+  const teamIds = team.map((e) => e.volunteerId);
+
+  if (input.finish) {
+    // Mark the task done first so a double-tap can't credit twice.
+    await pb.collection('tasks').update(input.taskId, { status: 'completed', assigned_to: [...new Set([...assigneeIds(task), ...teamIds])] });
+  } else {
+    // "I have to go": step off the task so it's clearly available again.
+    const remaining = assigneeIds(task).filter((id) => !teamIds.includes(id));
+    await pb.collection('tasks').update(input.taskId, { assigned_to: remaining, status: remaining.length ? 'in_progress' : 'open' });
+  }
+
+  for (const e of team) {
+    const data = new FormData();
+    data.set('task', input.taskId);
+    data.set('volunteer', e.volunteerId);
+    data.set('actual_minutes', String(e.minutes));
+    data.set('completion_note', input.note);
+    data.set('partial', String(!input.finish));
+    if (e.volunteerId === input.userId && input.photo) data.set('photo', input.photo);
+    await pb.collection('completions').create(data);
+    await pb.collection('volunteers').update(e.volunteerId, { 'total_minutes+': e.minutes });
+  }
+  return { ok: true, task };
+}
+
+/** Mark a task finished and credit the user (plus optional helpers, same minutes each). */
 export async function finishTaskRecord(input: {
   taskId: string;
   userId: string;
@@ -60,33 +133,31 @@ export async function finishTaskRecord(input: {
   helperIds?: string[];
   photo?: File;
 }): Promise<FinishResult> {
+  return logTaskTime({
+    taskId: input.taskId,
+    userId: input.userId,
+    entries: [input.userId, ...(input.helperIds ?? [])].map((volunteerId) => ({ volunteerId, minutes: input.minutes })),
+    note: input.note,
+    finish: true,
+    photo: input.photo,
+  });
+}
+
+/** Change the minutes/note on a logged entry (owner or admin). Keeps total_minutes in step. */
+export async function editTimeEntry(input: { completionId: string; actor: { id: string; isAdmin: boolean }; minutes: number; note: string }) {
+  if (!ID_RE.test(input.completionId)) return { ok: false as const, error: 'Unknown entry.' };
+  if (!Number.isInteger(input.minutes) || input.minutes < 1 || input.minutes > 24 * 60) return { ok: false as const, error: 'Minutes must be between 1 and 1440.' };
   const pb = await adminPb();
-  const task = await loadTask(input.taskId);
-  if (!task) return { ok: false, error: 'That task no longer exists.' };
-  if (task.status === 'completed') return { ok: false, error: 'This task was already marked finished.' };
-
-  const helperIds = [...new Set((input.helperIds ?? []).filter((id) => ID_RE.test(id) && id !== input.userId))].slice(0, 10);
-  // Only credit helpers who actually exist.
-  const helpers = helperIds.length
-    ? await pb.collection('volunteers').getFullList({
-        filter: helperIds.map((id, i) => pb.filter(`id = {:h${i}}`, { [`h${i}`]: id })).join(' || '),
-        fields: 'id',
-      })
-    : [];
-  const team = [input.userId, ...helpers.map((h) => h.id)];
-
-  // Mark the task done first so a double-tap can't credit twice.
-  await pb.collection('tasks').update(input.taskId, { status: 'completed', assigned_to: [...new Set([...assigneeIds(task), ...team])] });
-
-  for (const vid of team) {
-    const data = new FormData();
-    data.set('task', input.taskId);
-    data.set('volunteer', vid);
-    data.set('actual_minutes', String(input.minutes));
-    data.set('completion_note', input.note);
-    if (vid === input.userId && input.photo) data.set('photo', input.photo);
-    await pb.collection('completions').create(data);
-    await pb.collection('volunteers').update(vid, { 'total_minutes+': input.minutes });
+  let c: RecordModel;
+  try {
+    c = await pb.collection('completions').getOne(input.completionId);
+  } catch (err) {
+    if (isNotFound(err)) return { ok: false as const, error: 'That entry no longer exists.' };
+    throw err;
   }
-  return { ok: true, task };
+  if (c.volunteer !== input.actor.id && !input.actor.isAdmin) return { ok: false as const, error: 'You can only change your own time.' };
+  const delta = input.minutes - (Number(c.actual_minutes) || 0);
+  await pb.collection('completions').update(c.id, { actual_minutes: input.minutes, completion_note: input.note });
+  if (delta) await pb.collection('volunteers').update(c.volunteer, { 'total_minutes+': delta });
+  return { ok: true as const, taskId: c.task as string };
 }
