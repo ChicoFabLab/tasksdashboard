@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import { listTasks, recentWins } from '@/lib/server/data';
-import { BoardColumn, DoneCard, TaskCard } from '@/components/cards';
+import { DoneCard, TaskTile } from '@/components/cards';
 import { ButtonLink, PageHeader, cx } from '@/components/ui';
 import { zoneColor } from '@/lib/format';
 
@@ -18,7 +18,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
   const todo = inZone(live.filter((t) => t.status === 'open'));
   const doing = inZone(live.filter((t) => t.status !== 'open'));
   const done = zone ? wins.filter((w) => w.task?.zone === zone) : wins;
-  // Phones show one column at a time via tabs; desktop shows all three.
+  // One list at a time, as a dense grid, so as many tasks as possible are visible.
   const col = sp.col === 'doing' || sp.col === 'done' ? sp.col : 'todo';
   const colHref = (c: string) => {
     const p = new URLSearchParams();
@@ -27,13 +27,12 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
     const q = p.toString();
     return `/tasks${q ? `?${q}` : ''}`;
   };
-  const phoneOnly = (c: string) => (col === c ? 'flex w-full' : 'hidden md:flex');
 
   return (
     <>
       <PageHeader
         title="Task board"
-        subtitle="Pick something from To do, claim it, and it moves along as you go."
+        subtitle="Pick one, claim it, finish it, get credit."
         action={
           <ButtonLink href="/tasks/new">
             <Plus className="size-5" aria-hidden /> Add a task
@@ -55,10 +54,10 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
         </div>
       )}
 
-      <div role="tablist" aria-label="Column" className="mb-3 grid grid-cols-3 rounded-xl bg-surface-2 p-1 md:hidden">
+      <div role="tablist" aria-label="Column" className="mb-4 grid grid-cols-3 rounded-xl bg-surface-2 p-1 sm:inline-grid">
         {(
           [
-            ['todo', 'To do', todo.length],
+            ['todo', 'Open', todo.length],
             ['doing', 'In progress', doing.length],
             ['done', 'Done', done.length],
           ] as const
@@ -69,24 +68,34 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
             aria-selected={col === k}
             href={colHref(k)}
             scroll={false}
-            className={cx('flex h-11 items-center justify-center gap-1.5 rounded-lg text-sm font-medium', col === k ? 'bg-surface text-ink shadow-sm' : 'text-muted')}
+            className={cx('flex h-11 items-center justify-center gap-1.5 rounded-lg px-4 text-sm font-medium', col === k ? 'bg-surface text-ink shadow-sm' : 'text-muted')}
           >
             {label} <span className="tabular-nums text-muted">{n}</span>
           </Link>
         ))}
       </div>
 
-      <div className="pb-4 md:grid md:grid-cols-3 md:items-start md:gap-3">
-        <BoardColumn title="To do" count={todo.length} dot="#94a3b8" className={phoneOnly('todo')}>
-          {todo.length ? todo.map((t) => <TaskCard key={t.id} task={t} />) : <EmptyCol text="Nothing to do here — add a task?" />}
-        </BoardColumn>
-        <BoardColumn title="In progress" count={doing.length} dot="#f59e0b" className={phoneOnly('doing')}>
-          {doing.length ? doing.map((t) => <TaskCard key={t.id} task={t} />) : <EmptyCol text="Nobody’s working on anything right now." />}
-        </BoardColumn>
-        <BoardColumn title="Recently done" count={done.length} dot="#22c55e" className={phoneOnly('done')}>
-          {done.length ? done.map((w) => <DoneCard key={w.key} win={w} />) : <EmptyCol text="Finished tasks show up here." />}
-        </BoardColumn>
-      </div>
+      {col !== 'done' ? (
+        (col === 'todo' ? todo : doing).length ? (
+          <ul className="grid grid-cols-1 gap-2.5 pb-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+            {(col === 'todo' ? todo : doing).map((t) => (
+              <li key={t.id} className="flex min-w-0">
+                <TaskTile task={t} />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <EmptyCol text={col === 'todo' ? 'Nothing open here — add a task?' : 'Nobody’s working on anything right now.'} />
+        )
+      ) : done.length ? (
+        <div className="grid gap-2.5 pb-4 sm:grid-cols-2 lg:grid-cols-3">
+          {done.map((w) => (
+            <DoneCard key={w.key} win={w} />
+          ))}
+        </div>
+      ) : (
+        <EmptyCol text="Finished tasks show up here." />
+      )}
     </>
   );
 }

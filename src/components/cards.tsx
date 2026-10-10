@@ -67,6 +67,53 @@ export function TaskCard({ task, href }: { task: Task; href?: string }) {
   );
 }
 
+/**
+ * Compact task tile — the workhorse. Title first, one meta line, photo as a
+ * thumbnail. Small enough that a screen shows many tasks at once.
+ */
+export function TaskTileBody({ task, large }: { task: Task; large?: boolean }) {
+  const busy = task.assignees.length > 0 && task.status !== 'completed';
+  return (
+    <span className={cx('flex w-full items-start', large ? 'gap-4 p-4' : 'gap-3 p-3')}>
+      <span className="min-w-0 flex-1">
+        <span className={cx('cap line-clamp-2 font-semibold leading-snug', large ? 'text-[22px] line-clamp-3' : 'text-[15px]')}>{task.title}</span>
+        <span className={cx('mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-muted', large ? 'text-[18px]' : 'text-[13px]')}>
+          <span className="inline-flex items-center gap-1.5">
+            <span className={cx('shrink-0 rounded-full', large ? 'size-3' : 'size-2.5')} style={{ background: zoneColor(task.zone) }} aria-hidden />
+            {task.zone}
+          </span>
+          {task.estimatedMinutes > 0 && (
+            <span className="inline-flex items-center gap-1">
+              <Clock className={large ? 'size-[18px]' : 'size-3.5'} aria-hidden /> {formatMinutes(task.estimatedMinutes)}
+            </span>
+          )}
+        </span>
+        {busy && (
+          <span className={cx('mt-2 flex items-center gap-2 font-medium text-warn', large ? 'text-[18px]' : 'text-[13px]')}>
+            <AvatarStack members={task.assignees} size={large ? 30 : 20} max={3} />
+            <span className="truncate">{names(task.assignees, 1)} on it</span>
+          </span>
+        )}
+      </span>
+      {task.image && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={task.image} alt="" className={cx('shrink-0 rounded-lg object-cover', large ? 'size-24' : 'size-16')} loading="lazy" />
+      )}
+    </span>
+  );
+}
+
+export const tileClass =
+  'pressable flex w-full min-w-0 rounded-xl border border-line bg-surface text-left hover:border-line-strong hover:shadow-sm';
+
+export function TaskTile({ task }: { task: Task }) {
+  return (
+    <Link href={`/tasks/${task.id}`} className={tileClass}>
+      <TaskTileBody task={task} />
+    </Link>
+  );
+}
+
 /** "Done" column card: what was finished and by whom. */
 export function DoneCardBody({ win, large }: { win: Win; large?: boolean }) {
   return (

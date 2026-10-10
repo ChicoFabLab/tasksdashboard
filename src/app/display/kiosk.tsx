@@ -3,17 +3,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Clock, X } from 'lucide-react';
-import type { Creation, Member, Task } from '@/lib/types';
+import type { Creation, Task } from '@/lib/types';
 import type { LeaderRow, Win } from '@/lib/server/data';
 import { capitalize, formatMinutes, zoneColor } from '@/lib/format';
 import { QR } from '@/components/qr';
 import { Logo } from '@/components/logo';
 import { Avatar, AvatarStack, cx, names } from '@/components/ui';
-import { DoneCardBody, TaskCardBody, cardClass } from '@/components/cards';
+import { TaskTileBody, tileClass } from '@/components/cards';
 
 const REFRESH_MS = 30_000;
 const IDLE_RESET_MS = 90_000;
-
 
 function ago(d: string) {
   const s = (Date.now() - new Date(d.replace(' ', 'T')).getTime()) / 1000;
@@ -29,6 +28,11 @@ function hours(min: number) {
   return h < 1 ? `${Math.round(min)}m` : `${h < 10 ? Math.round(h * 10) / 10 : Math.round(h)}h`;
 }
 
+/**
+ * Wall touchscreen, 1920×1080. Space budget: header <8%, task grid ~72% (4×4 tiles),
+ * right rail ~20%: phone QRs (join / share), creations, who finished what, top makers.
+ * The only per-task QR is in the sheet that opens when a task is tapped.
+ */
 export function Kiosk({
   tasks,
   wins,
@@ -42,29 +46,34 @@ export function Kiosk({
   creations: Creation[];
   boards: { month: LeaderRow[]; all: LeaderRow[] };
   stats: { open: number; inProgress: number; done: number; hours: number };
-  urls: { base: string; join: string };
+  urls: { base: string; join: string; share: string };
 }) {
   const router = useRouter();
+  const [view, setView] = useState<'open' | 'doing'>('open');
   const [zone, setZone] = useState<string | null>(null);
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
   const [selectedCreation, setSelectedCreation] = useState<string | null>(null);
   const [period, setPeriod] = useState<'month' | 'all'>(boards.month.length >= 3 ? 'month' : 'all');
   const [now, setNow] = useState<Date | null>(null);
+  const [more, setMore] = useState(false);
   const grid = useRef<HTMLDivElement>(null);
   const lastTouch = useRef(Date.now());
 
-  const zones = useMemo(() => [...new Set(tasks.map((t) => t.zone))].sort(), [tasks]);
-  const todo = tasks.filter((t) => t.status === 'open' && (!zone || t.zone === zone));
-  const doing = tasks.filter((t) => t.status !== 'open' && (!zone || t.zone === zone));
-  const done = wins.filter((w) => !zone || w.task?.zone === zone);
+  const pool = tasks.filter((t) => (view === 'open' ? t.status === 'open' : t.status !== 'open'));
+  const zones = useMemo(() => [...new Set(pool.map((t) => t.zone))].sort(), [pool]);
+  const shown = zone ? pool.filter((t) => t.zone === zone) : pool;
   const task = tasks.find((t) => t.id === selectedTask) ?? null;
   const creation = creations.find((c) => c.id === selectedCreation) ?? null;
+  const board = boards[period].slice(0, 3);
+  const openCount = tasks.filter((t) => t.status === 'open').length;
+  const doingCount = tasks.length - openCount;
 
   const reset = useCallback(() => {
     setSelectedTask(null);
     setSelectedCreation(null);
     setZone(null);
-    grid.current?.querySelectorAll('[data-col]').forEach((el) => el.scrollTo({ top: 0 }));
+    setView('open');
+    grid.current?.scrollTo({ top: 0 });
   }, []);
 
   useEffect(() => {
@@ -77,133 +86,185 @@ export function Kiosk({
     const touch = () => (lastTouch.current = Date.now());
     window.addEventListener('pointerdown', touch, { capture: true });
     window.addEventListener('wheel', touch, { passive: true });
-    const esc = (e: KeyboardEvent) => {
+    const key = (e: KeyboardEvent) => {
       touch();
       if (e.key === 'Escape') {
         setSelectedTask(null);
         setSelectedCreation(null);
       }
     };
-    window.addEventListener('keydown', esc);
+    window.addEventListener('keydown', key);
     return () => {
       clearInterval(tick);
       clearInterval(refresh);
       clearInterval(idle);
       window.removeEventListener('pointerdown', touch, { capture: true });
       window.removeEventListener('wheel', touch);
-      window.removeEventListener('keydown', esc);
+      window.removeEventListener('keydown', key);
     };
   }, [router, reset]);
 
-  // When nobody is touching the screen, slowly page through each column so every task gets seen.
+  // "More below" hint + slow auto-paging when nobody is touching, so every task gets seen.
   useEffect(() => {
-    const t = setInterval(() => {
+    const el = grid.current;
+    if (!el) return;
+    const check = () => setMore(el.scrollTop + el.clientHeight < el.scrollHeight - 12);
+    check();
+    el.addEventListener('scroll', check, { passive: true });
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    const page = setInterval(() => {
       if (Date.now() - lastTouch.current < 30_000 || selectedTask || selectedCreation) return;
-      grid.current?.querySelectorAll<HTMLElement>('[data-col]').forEach((el) => {
-        if (el.scrollTop + el.clientHeight >= el.scrollHeight - 8) el.scrollTo({ top: 0, behavior: 'smooth' });
-        else el.scrollBy({ top: el.clientHeight * 0.7, behavior: 'smooth' });
-      });
-    }, 7_000);
-    return () => clearInterval(t);
-  }, [selectedTask, selectedCreation]);
-
-  const board = boards[period];
+      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 8) el.scrollTo({ top: 0, behavior: 'smooth' });
+      else el.scrollBy({ top: el.clientHeight * 0.9, behavior: 'smooth' });
+    }, 12_000);
+    return () => {
+      el.removeEventListener('scroll', check);
+      ro.disconnect();
+      clearInterval(page);
+    };
+  }, [shown.length, selectedTask, selectedCreation]);
 
   return (
     <div data-theme="dark" className="flex h-dvh select-none flex-col overflow-hidden bg-paper text-ink" onContextMenu={(e) => e.preventDefault()}>
-      {/* Header */}
-      <header className="flex items-center gap-6 border-b border-line bg-surface px-8 py-4">
+      {/* Header — kept short so tasks get the space */}
+      <header className="flex h-[84px] shrink-0 items-center gap-8 border-b border-line bg-surface px-6">
         <button onClick={reset} aria-label="Back to start" className="rounded-lg">
-          <Logo size="lg" href={null} />
+          <Logo href={null} />
         </button>
-        <dl className="ml-auto flex items-stretch gap-3">
-          {[
-            ['Open tasks', stats.open],
-            ['In progress', stats.inProgress],
-            ['Done all-time', stats.done],
-            ['Hours logged', stats.hours],
-          ].map(([l, v]) => (
-            <div key={l} className="min-w-[150px] rounded-xl border border-line bg-surface-2 px-5 py-2.5">
-              <dt className="text-[17px] text-muted">{l}</dt>
-              <dd className="text-[34px] font-semibold leading-tight tabular-nums">{v}</dd>
-            </div>
-          ))}
+        <p className="text-[22px] font-medium text-ink-2">Tap a task to claim it with your phone</p>
+        <dl className="ml-auto flex items-baseline gap-6 text-[20px] text-muted">
+          <div className="flex items-baseline gap-2">
+            <dd className="text-[30px] font-semibold tabular-nums text-ink">{stats.done}</dd>
+            <dt>tasks done</dt>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <dd className="text-[30px] font-semibold tabular-nums text-ink">{stats.hours}</dd>
+            <dt>hours logged</dt>
+          </div>
         </dl>
-        <time className="w-32 text-right text-[40px] font-semibold tabular-nums text-ink-2" suppressHydrationWarning>
+        <time className="w-28 text-right text-[34px] font-semibold tabular-nums text-ink-2" suppressHydrationWarning>
           {now?.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }).replace(/\s?[AP]M/, '') ?? ''}
         </time>
       </header>
 
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-6 p-6 xl:grid-cols-[minmax(0,1fr)_460px]">
-        {/* Board */}
-        <section className="flex min-h-0 flex-col gap-4">
-          {zones.length > 1 && (
-            <div className="no-scrollbar flex gap-2 overflow-x-auto">
-              {[null, ...zones].map((z) => (
+      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_420px] gap-5 p-5">
+        {/* A) Tasks */}
+        <section className="flex min-h-0 flex-col gap-3">
+          <div className="flex items-center gap-2">
+            <div className="flex shrink-0 rounded-xl bg-surface p-1">
+              {(
+                [
+                  ['open', 'Open', openCount],
+                  ['doing', 'In progress', doingCount],
+                ] as const
+              ).map(([k, label, n]) => (
                 <button
-                  key={z ?? 'all'}
-                  onClick={() => setZone(z)}
-                  className={cx(
-                    'inline-flex h-14 shrink-0 items-center gap-2.5 rounded-full border px-5 text-[20px] font-medium',
-                    zone === z ? 'border-accent bg-accent-soft text-ink' : 'border-line-strong bg-surface text-ink-2',
-                  )}
+                  key={k}
+                  onClick={() => {
+                    setView(k);
+                    setZone(null);
+                    grid.current?.scrollTo({ top: 0 });
+                  }}
+                  className={cx('h-14 rounded-lg px-5 text-[21px] font-semibold', view === k ? 'bg-accent text-accent-ink' : 'text-ink-2')}
                 >
-                  {z && <span className="size-3 rounded-full" style={{ background: zoneColor(z) }} />}
-                  {z ?? 'All zones'}
+                  {label} <span className="tabular-nums opacity-80">{n}</span>
                 </button>
               ))}
             </div>
-          )}
-          <div ref={grid} className="grid min-h-0 flex-1 grid-cols-3 gap-4">
-            <KColumn title="To do" count={todo.length} dot="#94a3b8" hint="Tap a card to claim">
-              {todo.length ? (
-                todo.map((t) => (
-                  <button key={t.id} onClick={() => setSelectedTask(t.id)} className={cx(cardClass, "!bg-surface-2 !border-line-strong")}>
-                    <TaskCardBody task={t} large />
+            {zones.length > 1 && (
+              <div className="no-scrollbar flex min-w-0 gap-2 overflow-x-auto">
+                {[null, ...zones].map((z) => (
+                  <button
+                    key={z ?? 'all'}
+                    onClick={() => {
+                      setZone(z);
+                      grid.current?.scrollTo({ top: 0 });
+                    }}
+                    className={cx(
+                      'inline-flex h-14 shrink-0 items-center gap-2 rounded-full border px-4 text-[19px] font-medium',
+                      zone === z ? 'border-accent bg-accent-soft text-ink' : 'border-line bg-surface text-ink-2',
+                    )}
+                  >
+                    {z && <span className="size-3 rounded-full" style={{ background: zoneColor(z) }} />}
+                    {z ?? 'All zones'}
                   </button>
-                ))
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="relative min-h-0 flex-1">
+            <div ref={grid} className="no-scrollbar h-full overflow-y-auto overscroll-contain pb-2">
+              {shown.length ? (
+                <div className="grid grid-cols-4 gap-3">
+                  {shown.map((t) => (
+                    <button key={t.id} onClick={() => setSelectedTask(t.id)} className={cx(tileClass, 'min-h-[176px] !bg-surface')}>
+                      <TaskTileBody task={t} large />
+                    </button>
+                  ))}
+                </div>
               ) : (
-                <KEmpty text="Nothing to do right now." />
+                <p className="grid h-full place-items-center rounded-xl border border-dashed border-line-strong text-[24px] text-muted">
+                  {view === 'open' ? 'No open tasks here right now.' : 'Nobody is mid-task right now.'}
+                </p>
               )}
-            </KColumn>
-            <KColumn title="In progress" count={doing.length} dot="#f59e0b">
-              {doing.length ? (
-                doing.map((t) => (
-                  <button key={t.id} onClick={() => setSelectedTask(t.id)} className={cx(cardClass, "!bg-surface-2 !border-line-strong")}>
-                    <TaskCardBody task={t} large />
-                  </button>
-                ))
-              ) : (
-                <KEmpty text="Nobody is mid-task." />
-              )}
-            </KColumn>
-            <KColumn title="Recently done" dot="#22c55e">
-              {done.length ? (
-                done.map((w) => (
-                  <div key={w.key} className={cx(cardClass, "!bg-surface-2 !border-line-strong")}>
-                    <DoneCardBody win={w} large />
-                  </div>
-                ))
-              ) : (
-                <KEmpty text="Finished tasks show up here." />
-              )}
-            </KColumn>
+            </div>
+            {more && (
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 flex h-20 items-end justify-center bg-gradient-to-t from-paper to-transparent pb-2">
+                <span className="rounded-full bg-surface-2 px-5 py-2 text-[19px] font-medium text-ink-2 shadow">Swipe up for more ↓</span>
+              </div>
+            )}
           </div>
         </section>
 
-        {/* Side panels */}
-        <aside className="hidden min-h-0 flex-col gap-4 overflow-hidden xl:flex">
-          <KPanel
-            title="Leaderboard"
+        {/* Rail */}
+        <aside className="flex min-h-0 flex-col gap-4">
+          <div className="grid grid-cols-2 gap-3">
+            <PhoneQR url={urls.share} title="Share a creation" body="Scan, snap, post" accent />
+            <PhoneQR url={urls.join} title="Sign in / join" body="No Discord needed" />
+          </div>
+
+          {creations.length > 0 && (
+            <RailPanel title="Latest creations">
+              <div className="grid grid-cols-2 gap-2.5 p-3 pt-0">
+                {creations.slice(0, 2).map((c) => (
+                  <button key={c.id} onClick={() => setSelectedCreation(c.id)} className="pressable overflow-hidden rounded-lg bg-surface-2 text-left">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    {c.thumbs[0] && <img src={c.thumbs[0]} alt="" className="aspect-[4/3] w-full object-cover" />}
+                    <span className="cap block truncate px-2.5 py-1.5 text-[17px] font-medium">{c.title}</span>
+                  </button>
+                ))}
+              </div>
+            </RailPanel>
+          )}
+
+          <RailPanel title="Recently finished" className="min-h-0 flex-1 overflow-hidden">
+            <ul className="px-2">
+              {wins.slice(0, 4).map((w) => (
+                <li key={w.key} className="flex items-start gap-3 rounded-lg px-2 py-2">
+                  <Avatar member={w.members[0]} size={40} />
+                  <span className="min-w-0 text-[17px] leading-snug">
+                    <strong>{names(w.members, 1)}</strong> <span className="text-muted">finished</span>{' '}
+                    <span className="cap line-clamp-1 font-medium">{w.task?.title ?? 'a task'}</span>
+                    <span className="text-[15px] text-muted">{ago(w.created)}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </RailPanel>
+
+          <RailPanel
+            title="Top makers"
             action={
               <div className="flex rounded-lg bg-surface-2 p-0.5">
                 {(
                   [
-                    ['month', 'This month'],
+                    ['month', 'Month'],
                     ['all', 'All time'],
                   ] as const
                 ).map(([k, l]) => (
-                  <button key={k} onClick={() => setPeriod(k)} className={cx('h-14 rounded-md px-4 text-[19px] font-medium', period === k ? 'bg-surface text-ink shadow' : 'text-muted')}>
+                  <button key={k} onClick={() => setPeriod(k)} className={cx('h-12 rounded-md px-3.5 text-[17px] font-medium', period === k ? 'bg-surface text-ink shadow' : 'text-muted')}>
                     {l}
                   </button>
                 ))}
@@ -211,54 +272,29 @@ export function Kiosk({
             }
           >
             {board.length ? (
-              <ol>
+              <ol className="px-2 pb-2">
                 {board.map((r, i) => (
-                  <li key={r.member.id} className="flex items-center gap-3 px-4 py-1.5">
-                    <span className={cx('w-7 text-center text-[22px] font-semibold tabular-nums', i < 3 ? 'text-accent' : 'text-muted')}>{i + 1}</span>
-                    <Avatar member={r.member} size={44} />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[22px] font-semibold">{r.member.name}</span>
-                      <span className="block text-[18px] text-muted tabular-nums">{r.tasks} {r.tasks === 1 ? "task" : "tasks"}</span>
-                    </span>
-                    <span className="text-right text-[26px] font-semibold tabular-nums">{hours(r.minutes)}</span>
+                  <li key={r.member.id} className="flex items-center gap-3 px-2 py-1.5">
+                    <span className="w-5 text-center text-[19px] font-semibold text-accent">{i + 1}</span>
+                    <Avatar member={r.member} size={38} />
+                    <span className="min-w-0 flex-1 truncate text-[19px] font-semibold">{r.member.name}</span>
+                    <span className="text-[19px] font-semibold tabular-nums">{hours(r.minutes)}</span>
                   </li>
                 ))}
               </ol>
             ) : (
-              <p className="p-4 text-[18px] text-muted">No finished tasks this month yet.</p>
+              <p className="px-4 pb-3 text-[17px] text-muted">No finished tasks yet this month.</p>
             )}
-          </KPanel>
-
-          {creations.length > 0 && (
-            <KPanel title="Latest creations">
-              <div className="grid grid-cols-2 gap-3 p-3">
-                {creations.slice(0, 2).map((c) => (
-                  <button key={c.id} onClick={() => setSelectedCreation(c.id)} className="pressable overflow-hidden rounded-lg bg-surface-2 text-left">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    {c.thumbs[0] && <img src={c.thumbs[0]} alt="" className="aspect-[16/9] w-full object-cover" />}
-                    <span className="cap line-clamp-2 px-3 py-2 text-[19px] font-medium leading-snug">{c.title}</span>
-                  </button>
-                ))}
-              </div>
-            </KPanel>
-          )}
-
-          <div className="mt-auto flex items-center gap-5 rounded-2xl border border-line bg-surface p-4">
-            <QR value={urls.join} size={116} label="Scan to sign in or create an account" />
-            <div>
-              <p className="text-[24px] font-semibold">New here? Join in</p>
-              <p className="mt-1 text-[19px] leading-snug text-muted">Scan to make an account. To claim a task, tap its card and scan that code.</p>
-            </div>
-          </div>
+          </RailPanel>
         </aside>
       </div>
 
-      {/* Task detail — the only place a task QR appears */}
+      {/* Task sheet — the only place a task QR appears */}
       {task && (
         <Modal onClose={() => setSelectedTask(null)} label={task.title}>
           <div className="min-w-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            {task.image && <img src={task.image} alt="" className="mb-6 max-h-[300px] w-full rounded-xl object-cover" />}
+            {task.image && <img src={task.image} alt="" className="mb-6 max-h-[320px] w-full rounded-xl object-cover" />}
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[20px] text-ink-2">
               <span className="inline-flex items-center gap-2">
                 <span className="size-3.5 rounded-full" style={{ background: zoneColor(task.zone) }} />
@@ -266,9 +302,10 @@ export function Kiosk({
               </span>
               {task.estimatedMinutes > 0 && (
                 <span className="inline-flex items-center gap-1.5">
-                  <Clock className="size-6" /> Takes about {formatMinutes(task.estimatedMinutes)}
+                  <Clock className="size-6" /> About {formatMinutes(task.estimatedMinutes)}
                 </span>
               )}
+              <span className="text-muted">#{task.number}</span>
             </div>
             <h2 className="cap mt-3 text-[40px] font-bold leading-tight tracking-tight">{task.title}</h2>
             {task.description && <p className="mt-4 line-clamp-6 whitespace-pre-line text-[21px] leading-relaxed text-ink-2">{capitalize(task.description)}</p>}
@@ -281,7 +318,7 @@ export function Kiosk({
               </p>
             )}
           </div>
-          <ScanBox url={`${urls.base}/tasks/${task.id}`} title="Scan to claim" body="Point your phone camera at the code — no app needed." />
+          <ScanBox url={`${urls.base}/tasks/${task.id}`} title="Scan to claim" body="Point your phone camera at the code. You can sign up right there." />
         </Modal>
       )}
 
@@ -295,61 +332,31 @@ export function Kiosk({
               <Avatar member={creation.member} size={36} /> {creation.member.name} · {ago(creation.created)}
             </p>
           </div>
-          <ScanBox url={`${urls.base}/creations/${creation.id}`} title="See it on your phone" body="Scan to view all photos and the story." />
+          <ScanBox url={`${urls.base}/creations/${creation.id}`} title="See it on your phone" body="All photos and the story behind it." />
         </Modal>
       )}
     </div>
   );
 }
 
-function KColumn({ title, count, dot, hint, children }: { title: string; count?: number; dot: string; hint?: string; children: React.ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [more, setMore] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const check = () => setMore(el.scrollTop + el.clientHeight < el.scrollHeight - 12);
-    check();
-    el.addEventListener('scroll', check, { passive: true });
-    const ro = new ResizeObserver(check);
-    ro.observe(el);
-    return () => {
-      el.removeEventListener('scroll', check);
-      ro.disconnect();
-    };
-  }, [children]);
+function PhoneQR({ url, title, body, accent }: { url: string; title: string; body: string; accent?: boolean }) {
   return (
-    <section className="relative flex min-h-0 flex-col rounded-2xl bg-surface p-3">
-      <h2 className="flex items-center gap-2.5 px-2 pb-3 pt-1 text-[24px] font-semibold">
-        <span className="size-3.5 rounded-full" style={{ background: dot }} />
-        {title}
-        {count !== undefined && <span className="rounded-full bg-surface-2 px-2.5 text-[20px] font-medium tabular-nums text-muted">{count}</span>}
-        {hint && <span className="ml-auto text-[18px] font-normal text-muted">{hint}</span>}
-      </h2>
-      <div ref={ref} data-col className="no-scrollbar flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain [&>*]:shrink-0">
-        {children}
-      </div>
-      {more && (
-        <div className="pointer-events-none absolute inset-x-3 bottom-3 flex h-20 items-end justify-center rounded-b-xl bg-gradient-to-t from-surface to-transparent pb-2">
-          <span className="rounded-full bg-surface-2 px-4 py-1.5 text-[18px] font-medium text-ink-2 shadow">More below ↓</span>
-        </div>
-      )}
-    </section>
+    <div className={cx('flex flex-col items-center gap-2 rounded-2xl border p-3 text-center', accent ? 'border-accent bg-accent-soft' : 'border-line bg-surface')}>
+      <QR value={url} size={132} label={`${title}: scan with your phone`} />
+      <p className="text-[19px] font-semibold leading-tight">{title}</p>
+      <p className="-mt-1 text-[15px] text-muted">{body}</p>
+    </div>
   );
 }
 
-function KEmpty({ text }: { text: string }) {
-  return <p className="rounded-xl border border-dashed border-line-strong px-4 py-10 text-center text-[18px] text-muted">{text}</p>;
-}
-
-function KPanel({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
+function RailPanel({ title, action, children, className }: { title: string; action?: React.ReactNode; children: React.ReactNode; className?: string }) {
   return (
-    <section className="rounded-2xl border border-line bg-surface">
-      <div className="flex h-[68px] items-center justify-between border-b border-line px-5">
-        <h2 className="text-[24px] font-semibold">{title}</h2>
+    <section className={cx('rounded-2xl border border-line bg-surface', className)}>
+      <div className="flex min-h-[56px] items-center justify-between px-4">
+        <h2 className="text-[20px] font-semibold">{title}</h2>
         {action}
       </div>
-      <div className="py-1">{children}</div>
+      {children}
     </section>
   );
 }
@@ -400,16 +407,3 @@ function ScanBox({ url, title, body }: { url: string; title: string; body: strin
     </div>
   );
 }
-
-function Empty({ title, body }: { title: string; body: string }) {
-  return (
-    <div className="grid h-full min-h-72 place-items-center rounded-xl border border-dashed border-line-strong text-center">
-      <div>
-        <p className="text-[30px] font-semibold">{title}</p>
-        <p className="mt-2 text-[20px] text-muted">{body}</p>
-      </div>
-    </div>
-  );
-}
-
-export type { Member };
