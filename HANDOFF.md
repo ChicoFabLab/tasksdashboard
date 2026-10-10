@@ -83,11 +83,15 @@ sudo systemctl start pocketbase
 The old code is tag `pre-redesign-2026-10-09` (= `mobiledesign` @ `7e1ce33`). `main` was never touched.
 If the redesign is merged and later regretted: `git revert -m 1 <merge commit>`.
 
-## 4. Going live again / redeploying
+## 4. Shipping updates
+Code-only changes (most updates):
 ```bash
 cd /var/www/taskdashboard/tasksdashboard-redesign && sudo -u cfl git pull
-sudo bash scripts/cfl/go-live.sh     # backs up, migrates (idempotent), builds, restarts
+sudo bash scripts/cfl/redeploy.sh            # builds beside the live build, swaps it in
+sudo bash scripts/cfl/redeploy.sh --revert   # undo the last redeploy (previous build kept in .next-prev)
 ```
+`go-live.sh` is only for the original switch-over or new database migrations. It keeps the
+first rules snapshot as the rollback target, so it is safe to re-run.
 
 ## 5. Configuration (`.env.local` of the new app)
 These were added to the old file's values:
